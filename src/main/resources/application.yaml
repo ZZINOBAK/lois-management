@@ -1,3 +1,14 @@
 spring:
   application:
     name: Lois management
+  datasource:
+    url: jdbc:mysql://localhost:3306/lois
+    username: lois
+    password: lois_20251103_gkdms_9494
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#  sql:
+#    init:
+#      mode: always
+#      schema-locations: classpath:sql/schema.sql
+#      data-locations: classpath:sql/data.sql
+
