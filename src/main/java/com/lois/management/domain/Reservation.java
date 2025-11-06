@@ -1,0 +1,27 @@
+package com.lois.management.domain;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+@Data
+@Setter
+@Getter
+public class Reservation {
+    private Long id;
+    private LocalDate resDate;
+    private LocalTime resTiem;
+    private String cakeFlavor;
+    private int cakeSize;
+    private int candles;
+    private String contact;
+    private boolean isPaid;
+    private String status;
+    private String note;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}
