@@ -5,9 +5,9 @@
 <mapper namespace="com.lois.management.mapper.ReservationMapper">
 
 
-    <insert id="create" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO reservations (employee_name)
-        VALUES (#{employeeName})
+    <insert id="insert" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reservations (res_date, res_time, cake_id, contact, is_paid)
+        VALUES (#{resDate}, #{resTime}, #{cakeId}, #{contact}, #{paid})
     </insert>
 
 

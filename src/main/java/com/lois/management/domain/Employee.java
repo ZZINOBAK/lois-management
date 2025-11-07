@@ -7,7 +7,6 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Data
-@Setter
 @Getter
 public class Employee {
     private Long id;
@@ -17,4 +16,15 @@ public class Employee {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
 }

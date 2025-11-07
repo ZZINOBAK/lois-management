@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>lois-cake-reserve</title>
+    <!-- HTMX: 부분 갱신용 (CDN) -->
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+
+
+</head>
+<body>
+<h1>케이크 예약</h1>
+
+<div id="step-container"
+     hx-get="/reservations/step/1"
+    hx-trigger="load"
+    hx-target="#step-container"
+    hx-swap="innerHTML">
+    <!-- 조각(fragment)이 삽입됨 -->
+</div>
+
+</body>
+</html>

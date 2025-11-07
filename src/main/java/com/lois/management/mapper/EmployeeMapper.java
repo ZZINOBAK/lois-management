@@ -5,7 +5,6 @@ import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
-@Mapper
 public interface EmployeeMapper {
     //CRUD
     //C : 생성하기

@@ -19,3 +19,4 @@ application*.properties
 gradle.properties
 
 src/main/resources/application.yaml
+out/

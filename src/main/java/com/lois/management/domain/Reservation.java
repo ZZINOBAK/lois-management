@@ -14,12 +14,12 @@ import java.time.LocalTime;
 public class Reservation {
     private Long id;
     private LocalDate resDate;
-    private LocalTime resTiem;
-    private String cakeFlavor;
+    private LocalTime resTime;
+    private Long cakeId;
     private int cakeSize;
     private int candles;
     private String contact;
-    private boolean isPaid;
+    private boolean paid;
     private String status;
     private String note;
     private LocalDateTime createdAt;
