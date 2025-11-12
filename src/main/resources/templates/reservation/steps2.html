@@ -1,10 +1,197 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org">
 <body>
-$END$
+
+<!-- ============ STEP 1 ============ -->
+<div th:fragment="step1">
+  <h2>케이크 선택</h2>
+
+  <form th:action="@{/reservations/step/1}" method="post"
+        th:attr="hx-post=@{/reservations/step/1}"
+        hx-target="#step-container"
+        hx-swap="innerHTML">
+
+    <label>케이크:
+      <select name="cakeId" required>
+        <option value="" disabled selected>선택하세요</option>
+        <option value="1">딸기 생크림</option>
+        <option value="2">초코 가나슈</option>
+        <option value="3">치즈 케이크</option>
+      </select>
+    </label>
+
+    <div style="margin-top:12px;">
+      <button type="submit">다음</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ STEP 2 ============ -->
+<div th:fragment="step2">
+  <h2>날짜 선택</h2>
+
+  <form th:action="@{/reservations/step/2}" method="post"
+        th:attr="hx-post=@{/reservations/step/2}"
+        hx-target="#step-container"
+        hx-swap="innerHTML">
+
+    <label>수령 날짜:
+      <input type="date" name="date" required>
+    </label>
+
+    <div style="margin-top:12px;">
+      <button type="submit">다음</button>
+
+      <!-- 이전 단계로 이동 (조각 GET) -->
+      <button type="button"
+              hx-get="@{/reservations/step/1}"
+              hx-target="#step-container"
+              hx-swap="innerHTML">
+        이전
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ STEP 3 ============ -->
+<div th:fragment="step3">
+  <h2>수령 시간</h2>
+
+  <form th:action="@{/reservations/step/3}" method="post"
+        th:attr="hx-post=@{/reservations/step/3}"
+        hx-target="#step-container"
+        hx-swap="innerHTML">
+
+    <label>수령 시간:
+      <input type="time" name="time" required>
+    </label>
+
+    <div style="margin-top:12px;">
+      <button type="submit">다음</button>
+
+      <button type="button"
+              hx-get="@{/reservations/step/2}"
+              hx-target="#step-container"
+              hx-swap="innerHTML">
+        이전
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ STEP 4 ============ -->
+<div th:fragment="step4">
+  <h2>연락처</h2>
+
+  <form th:action="@{/reservations/step/4}" method="post"
+        th:attr="hx-post=@{/reservations/step/4}"
+        hx-target="#step-container"
+        hx-swap="innerHTML">
+
+    <label>연락처:
+      <input type="tel" name="contact" pattern="010-[0-9]{4}-[0-9]{4}" placeholder="010-1234-5678" required>
+    </label>
+
+    <div style="margin-top:12px;">
+      <button type="submit">다음</button>
+
+      <button type="button"
+              hx-get="@{/reservations/step/3}"
+              hx-target="#step-container"
+              hx-swap="innerHTML">
+        이전
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ STEP 5 ============ -->
+<div th:fragment="step5">
+  <h2>결제여부</h2>
+
+  <form th:action="@{/reservations/step/5}" method="post"
+        th:attr="hx-post=@{/reservations/step/5}"
+        hx-target="#step-container"
+        hx-swap="innerHTML">
+
+    <label>결제 여부:</label>
+    <div>
+      <label>
+        <input type="radio" name="paid" value="true" required> 결제 완료
+      </label>
+      <label style="margin-left:12px;">
+        <input type="radio" name="paid" value="false"> 미결제
+      </label>
+    </div>
+
+    <div style="margin-top:12px;">
+      <button type="submit">다음</button>
+
+      <button type="button"
+              hx-get="@{/reservations/step/4}"
+              hx-target="#step-container"
+              hx-swap="innerHTML">
+        이전
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ STEP 6 ============ -->
+<div th:fragment="step6">
+  <h2>확인</h2>
+  <p>예약 정보를 확인하고 완료하세요.</p>
+
+  <div class="summary">
+    <p><strong>수령일:</strong>
+      <span th:if="${reserve != null and reserve.resDate != null}"
+            th:text="${#temporals.format(reserve.resDate, 'yyyy-MM-dd')}">2025-11-10</span>
+
+    </p>
+    <p><strong>수령시간:</strong>
+      <span th:if="${reserve != null and reserve.resTime != null}"
+            th:text="${#temporals.format(reserve.resTime, 'HH:mm')}">10:00</span>
+
+    </p>
+    <p><strong>케이크:</strong> <span th:text="${reserve.cakeId}">딸기생크림</span></p>
+    <p><strong>연락처:</strong> <span th:text="${reserve.contact}">010-0000-0000</span></p>
+
+    <p><strong>결제상태:</strong>
+      <span th:text="${reserve.paid} ? '결제완료' : '미결제'">미결제</span>
+    </p>
+    <p th:if="${reserve.note}">
+      <strong>요청사항:</strong> <span th:text="${reserve.note}"></span>
+    </p>
+  </div>
+
+  <form th:action="@{/reservations/finish}" method="post"
+        th:attr="hx-post=@{/reservations/finish}"
+        hx-target="#step-container"
+        hx-swap="innerHTML">
+
+    <button type="submit">완료</button>
+
+    <button type="button"
+            hx-get="@{/reservations/step/5}"
+            hx-target="#step-container"
+            hx-swap="innerHTML">
+      이전
+    </button>
+  </form>
+</div>
+
+<!-- ============ COMPLETE ============ -->
+<div th:fragment="complete">
+  <h2>예약이 완료되었습니다 🎉</h2>
+
+  <button type="button" onclick="location.href='/'">홈으로</button>
+  <button type="button"
+          hx-get="@{/reservations/step/1}"
+          hx-target="#step-container"
+          hx-swap="innerHTML">
+    새 예약 시작
+  </button>
+</div>
+
 </body>
 </html>
