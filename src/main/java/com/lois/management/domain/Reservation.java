@@ -24,4 +24,6 @@ public class Reservation {
     private String note;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private String cakeFlavor;
 }

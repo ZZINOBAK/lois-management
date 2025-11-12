@@ -4,180 +4,486 @@
 
 <!-- ============ STEP 1 ============ -->
 <div th:fragment="step1">
-    <h2>케이크 선택</h2>
-
     <form th:action="@{/reservations/step/1}" method="post"
           th:attr="hx-post=@{/reservations/step/1}"
           hx-target="#step-container"
-          hx-swap="innerHTML">
+          hx-swap="innerHTML"
+          class="step-form">
 
-        <label>케이크:
-            <select name="cakeId" required>
-                <option value="" disabled selected>선택하세요</option>
-                <option value="1">딸기 생크림</option>
-                <option value="2">초코 가나슈</option>
-                <option value="3">치즈 케이크</option>
-            </select>
-        </label>
-
-        <div style="margin-top:12px;">
-            <button type="submit">다음</button>
+        <!-- 제목 + 다음 버튼 한 줄 -->
+        <div class="section-head">
+            <h2 class="title">케이크 선택</h2>
+            <button type="submit" class="btn-next">다음</button>
         </div>
+
+        <!-- 3×3 그리드 -->
+        <div class="grid cake-grid">
+            <label class="option" th:each="c : ${cakes}">
+                <input type="radio" name="cakeId" th:value="${c.id}" required />
+                <div class="card">
+                    <div class="card__title" th:text="${c.flavor}">딸기 생크림</div>
+                </div>
+            </label>
+        </div>
+
     </form>
 </div>
 
 <!-- ============ STEP 2 ============ -->
 <div th:fragment="step2">
-    <h2>날짜 선택</h2>
-
     <form th:action="@{/reservations/step/2}" method="post"
           th:attr="hx-post=@{/reservations/step/2}"
           hx-target="#step-container"
-          hx-swap="innerHTML">
+          hx-swap="innerHTML"
+          class="step-form">
 
-        <label>수령 날짜:
-            <input type="date" name="date" required>
-        </label>
+        <!-- 제목 + 이전/다음 버튼 (스텝1과 동일 라인) -->
+        <div class="section-head">
+            <h2 class="title">날짜 선택</h2>
+            <div class="actions">
+                <!-- 이전: 조각 GET -->
+                <button type="button" class="btn"
+                        hx-get="@{/reservations/step/1}"
+                        hx-target="#step-container"
+                        hx-swap="innerHTML">이전</button>
 
-        <div style="margin-top:12px;">
-            <button type="submit">다음</button>
+                <!-- 다음: 선택 전까지 비활성화 -->
+                <button type="submit" class="btn-primary" id="btn-next-step2" disabled>다음</button>
+            </div>
+        </div>
 
-            <!-- 이전 단계로 이동 (조각 GET) -->
-            <button type="button"
-                    hx-get="@{/reservations/step/1}"
-                    hx-target="#step-container"
-                    hx-swap="innerHTML">
-                이전
-            </button>
+        <!-- 서버로 보낼 실제 값 -->
+        <input type="hidden" name="date" id="picked-date">
+
+        <!-- 달력 컴포넌트 -->
+        <div class="calendar" id="calendar">
+            <div class="cal-head">
+                <button type="button" class="cal-nav" id="cal-prev" aria-label="이전 달">◀</button>
+                <div class="cal-title" id="cal-title">2025년 11월</div>
+                <button type="button" class="cal-nav" id="cal-next" aria-label="다음 달">▶</button>
+            </div>
+
+            <div class="cal-weekdays">
+                <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+            </div>
+
+            <div class="cal-grid" id="cal-grid">
+                <!-- JS가 날짜 셀을 채움 -->
+            </div>
         </div>
     </form>
+
+    <!-- 스텝2 전용 스크립트 (프래그먼트 안에서만 동작) -->
+    <script>
+        (function () {
+          // 상태
+          const state = {
+            viewYear: new Date().getFullYear(),
+            viewMonth: new Date().getMonth(), // 0~11
+            selected: null // Date 객체
+          };
+
+          // 엘리먼트
+          const $title = document.getElementById('cal-title');
+          const $grid  = document.getElementById('cal-grid');
+          const $prev  = document.getElementById('cal-prev');
+          const $next  = document.getElementById('cal-next');
+          const $hidden = document.getElementById('picked-date');
+          const $btnNext = document.getElementById('btn-next-step2');
+
+          // 유틸: YYYY-MM-DD
+          const pad = n => String(n).padStart(2, '0');
+          function fmt(date) { return date.getFullYear() + '-' + pad(date.getMonth()+1) + '-' + pad(date.getDate()); }
+
+          // 렌더
+          function render() {
+            const y = state.viewYear, m = state.viewMonth;
+            $title.textContent = `${y}년 ${m+1}월`;
+            $grid.innerHTML = '';
+
+            const first = new Date(y, m, 1);
+            const last  = new Date(y, m+1, 0);
+            const startWeekday = first.getDay();    // 0(일)~6(토)
+            const daysInMonth  = last.getDate();
+
+            // 리드 블랭크
+            for (let i=0; i<startWeekday; i++) {
+              const blank = document.createElement('div');
+              blank.className = 'cal-cell blank';
+              $grid.appendChild(blank);
+            }
+
+            // 날짜 셀
+            const today = new Date();
+            for (let d=1; d<=daysInMonth; d++) {
+              const cell = document.createElement('button');
+              cell.type = 'button';
+              cell.className = 'cal-cell day';
+              cell.textContent = d;
+              cell.dataset.date = fmt(new Date(y, m, d));
+
+              // 오늘 표시
+              if (y === today.getFullYear() && m === today.getMonth() && d === today.getDate()) {
+                cell.classList.add('today');
+              }
+              // 선택 표시
+              if (state.selected && state.selected.getFullYear() === y
+                  && state.selected.getMonth() === m
+                  && state.selected.getDate() === d) {
+                cell.classList.add('selected');
+              }
+
+              $grid.appendChild(cell);
+            }
+          }
+
+          // 이벤트
+          $prev.addEventListener('click', () => {
+            state.viewMonth--;
+            if (state.viewMonth < 0) { state.viewMonth = 11; state.viewYear--; }
+            render();
+          });
+          $next.addEventListener('click', () => {
+            state.viewMonth++;
+            if (state.viewMonth > 11) { state.viewMonth = 0; state.viewYear++; }
+            render();
+          });
+
+          $grid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.cal-cell.day');
+            if (!btn) return;
+
+            // 선택 업데이트
+            const [yy, mm, dd] = btn.dataset.date.split('-').map(Number);
+            state.selected = new Date(yy, mm-1, dd);
+
+            // hidden 값/버튼 활성화
+            $hidden.value = btn.dataset.date;
+            $btnNext.disabled = false;
+
+            // 선택 클래스 갱신
+            $grid.querySelectorAll('.cal-cell.day.selected').forEach(n => n.classList.remove('selected'));
+            btn.classList.add('selected');
+          });
+
+          // 초기 렌더
+          render();
+        })();
+    </script>
 </div>
 
 <!-- ============ STEP 3 ============ -->
 <div th:fragment="step3">
-    <h2>수령 시간</h2>
-
     <form th:action="@{/reservations/step/3}" method="post"
           th:attr="hx-post=@{/reservations/step/3}"
           hx-target="#step-container"
-          hx-swap="innerHTML">
+          hx-swap="innerHTML"
+          class="step-form">
 
-        <label>수령 시간:
-            <input type="time" name="time" required>
-        </label>
+        <!-- 제목 + 이전/다음 버튼 -->
+        <div class="section-head">
+            <h2 class="title">수령 시간</h2>
+            <div class="actions">
+                <button type="button" class="btn"
+                        hx-get="@{/reservations/step/2}"
+                        hx-target="#step-container"
+                        hx-swap="innerHTML">이전</button>
 
-        <div style="margin-top:12px;">
-            <button type="submit">다음</button>
+                <button type="submit" class="btn-primary" id="btn-next-step3" disabled>다음</button>
+            </div>
+        </div>
 
-            <button type="button"
-                    hx-get="@{/reservations/step/2}"
-                    hx-target="#step-container"
-                    hx-swap="innerHTML">
-                이전
-            </button>
+        <!-- 서버로 보낼 실제 값(HH:MM) -->
+        <input type="hidden" name="time" id="picked-time" required>
+
+        <!-- 시간 선택: 시 -->
+        <div class="time-section">
+            <div class="time-label">시</div>
+            <div class="time-grid" id="hour-grid" role="group" aria-label="시(hour)">
+                <!-- 9 ~ 21 버튼 생성 (아래 스크립트가 채움) -->
+            </div>
+        </div>
+
+        <!-- 시간 선택: 분 -->
+        <div class="time-section">
+            <div class="time-label">분</div>
+            <div class="time-grid" id="minute-grid" role="group" aria-label="분(minute)">
+                <!-- 00, 30 버튼 생성 (아래 스크립트가 채움) -->
+            </div>
         </div>
     </form>
+
+    <!-- 스텝3 전용 스크립트 -->
+    <script>
+        (function () {
+          const $hourGrid   = document.getElementById('hour-grid');
+          const $minuteGrid = document.getElementById('minute-grid');
+          const $hidden     = document.getElementById('picked-time');
+          const $btnNext    = document.getElementById('btn-next-step3');
+
+          const state = { hour: null, minute: null };
+
+          const pad = n => String(n).padStart(2, '0');
+
+          function renderHours() {
+            for (let h = 9; h <= 21; h++) {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'btn-choice';
+              btn.textContent = h;         // 시만 숫자로
+              btn.dataset.value = h;
+              $hourGrid.appendChild(btn);
+            }
+          }
+
+          function renderMinutes() {
+            [0, 30].forEach(m => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'btn-choice';
+              btn.textContent = pad(m);
+              btn.dataset.value = pad(m);
+              $minuteGrid.appendChild(btn);
+            });
+          }
+
+          function updateSelectionUI(groupEl, value) {
+            groupEl.querySelectorAll('.btn-choice.selected').forEach(b => b.classList.remove('selected'));
+            const target = groupEl.querySelector(`.btn-choice[data-value="${value}"]`);
+            if (target) target.classList.add('selected');
+          }
+
+          function tryEnableNext() {
+            if (state.hour !== null && state.minute !== null) {
+              const hh = pad(Number(state.hour));
+              const mm = state.minute; // 이미 pad 처리됨
+              $hidden.value = `${hh}:${mm}`;
+              $btnNext.disabled = false;
+            } else {
+              $hidden.value = '';
+              $btnNext.disabled = true;
+            }
+          }
+
+          // 이벤트 바인딩
+          $hourGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-choice');
+            if (!btn) return;
+            state.hour = btn.dataset.value;
+            updateSelectionUI($hourGrid, state.hour);
+            tryEnableNext();
+          });
+
+          $minuteGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-choice');
+            if (!btn) return;
+            state.minute = btn.dataset.value;
+            updateSelectionUI($minuteGrid, state.minute);
+            tryEnableNext();
+          });
+
+          // 초기 렌더
+          renderHours();
+          renderMinutes();
+        })();
+    </script>
 </div>
 
 <!-- ============ STEP 4 ============ -->
 <div th:fragment="step4">
-    <h2>연락처</h2>
-
     <form th:action="@{/reservations/step/4}" method="post"
           th:attr="hx-post=@{/reservations/step/4}"
           hx-target="#step-container"
-          hx-swap="innerHTML">
+          hx-swap="innerHTML"
+          class="step-form">
 
-        <label>연락처:
-            <input type="tel" name="contact" pattern="010-[0-9]{4}-[0-9]{4}" placeholder="010-1234-5678" required>
-        </label>
+        <!-- 제목 + 이전/다음 버튼 -->
+        <div class="section-head">
+            <h2 class="title">연락처 입력</h2>
+            <div class="actions">
+                <button type="button" class="btn"
+                        hx-get="@{/reservations/step/3}"
+                        hx-target="#step-container"
+                        hx-swap="innerHTML">이전</button>
 
-        <div style="margin-top:12px;">
-            <button type="submit">다음</button>
+                <button type="submit" class="btn-primary" id="btn-next-step4" disabled>다음</button>
+            </div>
+        </div>
 
-            <button type="button"
-                    hx-get="@{/reservations/step/3}"
-                    hx-target="#step-container"
-                    hx-swap="innerHTML">
-                이전
-            </button>
+        <!-- 표시용 입력창 -->
+        <div class="phone-display">
+            <span id="phone-prefix">010-</span>
+            <span id="phone-body">____-____</span>
+        </div>
+
+        <!-- 실제 서버 전송용 -->
+        <input type="hidden" name="contact" id="hidden-phone" required>
+
+        <!-- 숫자 키패드 -->
+        <div class="keypad">
+            <button type="button" class="key">1</button>
+            <button type="button" class="key">2</button>
+            <button type="button" class="key">3</button>
+            <button type="button" class="key">4</button>
+            <button type="button" class="key">5</button>
+            <button type="button" class="key">6</button>
+            <button type="button" class="key">7</button>
+            <button type="button" class="key">8</button>
+            <button type="button" class="key">9</button>
+            <button type="button" class="key del">←</button>
+            <button type="button" class="key">0</button>
+            <button type="button" class="key clear">C</button>
         </div>
     </form>
+
+    <script>
+        (function () {
+          const $body = document.getElementById('phone-body');
+          const $hidden = document.getElementById('hidden-phone');
+          const $btnNext = document.getElementById('btn-next-step4');
+          const $keys = document.querySelectorAll('.keypad .key');
+
+          let digits = ''; // 8자리 (12345678)
+
+          function updateDisplay() {
+            let formatted = digits;
+            if (formatted.length > 4)
+              formatted = formatted.slice(0, 4) + '-' + formatted.slice(4);
+            const padded = formatted.padEnd(9, '_');
+            $body.textContent = padded;
+            $hidden.value = '010-' + formatted;
+            $btnNext.disabled = digits.length !== 8;
+          }
+
+          $keys.forEach(btn => {
+            btn.addEventListener('click', () => {
+              const val = btn.textContent;
+              if (btn.classList.contains('del')) {
+                digits = digits.slice(0, -1);
+              } else if (btn.classList.contains('clear')) {
+                digits = '';
+              } else if (digits.length < 8) {
+                digits += val;
+              }
+              updateDisplay();
+            });
+          });
+
+          updateDisplay();
+        })();
+    </script>
 </div>
 
 <!-- ============ STEP 5 ============ -->
 <div th:fragment="step5">
-    <h2>결제여부</h2>
-
     <form th:action="@{/reservations/step/5}" method="post"
           th:attr="hx-post=@{/reservations/step/5}"
           hx-target="#step-container"
-          hx-swap="innerHTML">
+          hx-swap="innerHTML"
+          class="step-form">
 
-        <label>결제 여부:</label>
-        <div>
-            <label>
-                <input type="radio" name="paid" value="true" required> 결제 완료
-            </label>
-            <label style="margin-left:12px;">
-                <input type="radio" name="paid" value="false"> 미결제
-            </label>
+        <!-- 제목 + 이전/다음 버튼 -->
+        <div class="section-head">
+            <h2 class="title">결제 여부</h2>
+            <div class="actions">
+                <button type="button" class="btn"
+                        hx-get="@{/reservations/step/4}"
+                        hx-target="#step-container"
+                        hx-swap="innerHTML">이전</button>
+
+                <button type="submit" class="btn-primary" id="btn-next-step5" disabled>다음</button>
+            </div>
         </div>
 
-        <div style="margin-top:12px;">
-            <button type="submit">다음</button>
+        <!-- 실제 전송값 -->
+        <input type="hidden" name="paid" id="hidden-paid" required>
 
-            <button type="button"
-                    hx-get="@{/reservations/step/4}"
-                    hx-target="#step-container"
-                    hx-swap="innerHTML">
-                이전
-            </button>
+        <!-- 결제 여부 버튼 -->
+        <div class="payment-options">
+            <button type="button" class="pay-btn" data-value="true">💳 결제 완료</button>
+            <button type="button" class="pay-btn" data-value="false">💰 미결제</button>
         </div>
     </form>
+
+    <script>
+        (function () {
+          const $buttons = document.querySelectorAll('.pay-btn');
+          const $hidden = document.getElementById('hidden-paid');
+          const $next = document.getElementById('btn-next-step5');
+
+          $buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+              // 선택 상태 갱신
+              $buttons.forEach(b => b.classList.remove('selected'));
+              btn.classList.add('selected');
+              // 값 저장 + 다음 버튼 활성화
+              $hidden.value = btn.dataset.value;
+              $next.disabled = false;
+            });
+          });
+        })();
+    </script>
 </div>
 
 <!-- ============ STEP 6 ============ -->
 <div th:fragment="step6">
-    <h2>확인</h2>
-    <p>예약 정보를 확인하고 완료하세요.</p>
+    <form th:action="@{/reservations/finish}" method="post" class="step-form"
+          onsubmit="return confirmFinish();">
 
-    <div class="summary">
-        <p><strong>수령일:</strong>
-            <span th:if="${reserve != null and reserve.resDate != null}"
-                  th:text="${#temporals.format(reserve.resDate, 'yyyy-MM-dd')}">2025-11-10</span>
+        <div class="section-head">
+            <h2 class="title">확인</h2>
+            <div class="actions">
+                <button type="button" class="btn"
+                        hx-get="@{/reservations/step/5}"
+                        hx-target="#step-container"
+                        hx-swap="innerHTML">이전</button>
 
-        </p>
-        <p><strong>수령시간:</strong>
-            <span th:if="${reserve != null and reserve.resTime != null}"
-                  th:text="${#temporals.format(reserve.resTime, 'HH:mm')}">10:00</span>
+                <button type="submit" class="btn-primary">완료</button>
+            </div>
+        </div>
 
-        </p>
-        <p><strong>케이크:</strong> <span th:text="${reserve.cakeId}">딸기생크림</span></p>
-        <p><strong>연락처:</strong> <span th:text="${reserve.contact}">010-0000-0000</span></p>
+        <p class="subtitle">예약 정보를 확인하고 완료하세요.</p>
 
-        <p><strong>결제상태:</strong>
-            <span th:text="${reserve.paid} ? '결제완료' : '미결제'">미결제</span>
-        </p>
-        <p th:if="${reserve.note}">
-            <strong>요청사항:</strong> <span th:text="${reserve.note}"></span>
-        </p>
-    </div>
+        <div class="summary-card">
+            <div class="summary-grid">
+                <div class="summary-label">수령일</div>
+                <div class="summary-value">
+                    <span th:if="${reserve != null and reserve.resDate != null}"
+                          th:text="${#temporals.format(reserve.resDate, 'yyyy-MM-dd')}">2025-11-10</span>
+                </div>
 
-    <form th:action="@{/reservations/finish}" method="post"
-          th:attr="hx-post=@{/reservations/finish}"
-          hx-target="#step-container"
-          hx-swap="innerHTML">
+                <div class="summary-label">수령시간</div>
+                <div class="summary-value">
+                    <span th:if="${reserve != null and reserve.resTime != null}"
+                          th:text="${#temporals.format(reserve.resTime, 'HH:mm')}">10:00</span>
+                </div>
 
-        <button type="submit">완료</button>
+                <div class="summary-label">케이크</div>
+                <div class="summary-value" th:text="${reserve.cakeId}">딸기생크림</div>
 
-        <button type="button"
-                hx-get="@{/reservations/step/5}"
-                hx-target="#step-container"
-                hx-swap="innerHTML">
-            이전
-        </button>
+                <div class="summary-label">연락처</div>
+                <div class="summary-value" th:text="${reserve.contact}">010-0000-0000</div>
+
+                <div class="summary-label">결제상태</div>
+                <div class="summary-value">
+                    <span class="badge"
+                          th:classappend="${reserve.paid} ? 'badge-paid' : 'badge-unpaid'"
+                          th:text="${reserve.paid} ? '결제완료' : '미결제'">미결제</span>
+                </div>
+
+                <div class="summary-label" th:if="${reserve.note}">요청사항</div>
+                <div class="summary-value summary-note"
+                     th:if="${reserve.note}" th:text="${reserve.note}"></div>
+            </div>
+        </div>
     </form>
+
+    <script>
+        function confirmFinish() {
+          alert('예약이 완료되었습니다. 🎉✨🎊💥🥳💫💖');
+          return true;
+        }
+    </script>
 </div>
 
 <!-- ============ COMPLETE ============ -->

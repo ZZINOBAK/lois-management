@@ -4,11 +4,37 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lois.management.mapper.ReservationMapper">
 
+    <select id="findAll" resultType="Reservation">
+        SELECT r.id,
+        r.res_date,
+        r.res_time,
+        r.cake_id,
+        c.flavor AS cake_flavor,
+        r.cake_size,
+        r.contact
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        ORDER BY r.id DESC
+    </select>
+
+    <select id="findAllCakeFlavor" resultType="Cake">
+        SELECT id, flavor
+        FROM cakes
+    </select>
+
+    <select id="findById" parameterType="long" resultType="Reservation">
+        SELECT id, res_date, res_time, cake_id, cake_size, contact
+        FROM reservations
+        WHERE id = #{id}
+    </select>
+
 
     <insert id="insert" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reservations (res_date, res_time, cake_id, contact, is_paid)
         VALUES (#{resDate}, #{resTime}, #{cakeId}, #{contact}, #{paid})
     </insert>
+
+
 
 
 </mapper>

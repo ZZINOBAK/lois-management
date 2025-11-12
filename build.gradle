@@ -42,6 +42,9 @@ dependencies {
 	implementation 'org.apache.tomcat.embed:tomcat-embed-jasper' //jsp 컴파일러
 	implementation 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api' //jstl api
 	implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl' //jstl 구현체
+
+
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 }
 
 tasks.named('test') {

@@ -1,0 +1,129 @@
+
+
+
+        /* 본문 */
+        .content {
+          display: block;
+        }
+
+        /* 리스트 헤더 */
+        .list-header {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: start;
+          gap: 16px;
+          margin-bottom: 12px;
+        }
+
+        .section-title {
+          font-size: 24px;
+          font-weight: 700;
+          margin: 6px 0 10px;
+          color: var(--ink);
+        }
+
+        .filters {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 16px;
+        }
+
+        .chip {
+          border: none;
+          background: var(--surface);
+          color: var(--accent);
+          padding: 8px 16px;
+          font-size: 14px;
+          border-radius: var(--radius);
+          box-shadow: var(--shadow);
+          cursor: pointer;
+          transition: .15s;
+        }
+
+        .chip:hover {
+          transform: translateY(-1px);
+          box-shadow: var(--hover-shadow)
+        }
+
+        /* 예약하기 버튼 (크게 확대) */
+        .cta {
+          align-self: start;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 75px;
+          padding: 0 40px;
+          background: var(--surface);
+          border: none;
+          border-radius: var(--radius-cta);
+          box-shadow: var(--shadow);
+          color: var(--ink);
+          text-decoration: none;
+          transition: .15s;
+        }
+
+        .cta:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--hover-shadow);
+        }
+
+        .cta .title {
+          font-size: 18px;
+          font-weight: 600;
+          color: var(--accent);
+        }
+
+        /* 컬럼 헤더 */
+        .thead {
+          display: grid;
+          grid-template-columns: 130px 90px 1fr 80px 160px 140px;
+          gap: 12px;
+          font-weight: 700;
+          color: var(--accent);
+          font-size: 14px;
+          padding: 6px 8px;
+          margin: 8px 0 6px;
+        }
+
+        /* 리스트 행 */
+        .row {
+          display: grid;
+          grid-template-columns: 130px 90px 1fr 80px 160px 140px;
+          gap: 12px;
+          align-items: center;
+          padding: 10px 12px;
+          background: var(--surface);
+          border-radius: var(--radius);
+          margin-bottom: 12px;
+          box-shadow: var(--shadow);
+        }
+
+        .ellipsis {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .actions {
+          display: flex;
+          gap: 10px;
+          justify-content: flex-end;
+        }
+
+        .btn {
+          border: none;
+          background: var(--surface);
+          color: var(--accent);
+          padding: 6px 14px;
+          font-size: 14px;
+          border-radius: var(--radius);
+          box-shadow: var(--shadow);
+          cursor: pointer;
+          transition: .15s;
+        }
+
+        .btn:hover {
+          transform: translateY(-1px);
+          box-shadow: var(--hover-shadow)
+        }
+
