@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Lois – Cake Reservations</title>
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+
+    <script>
+        function showPreparing(){ alert("준비 중입니다."); }
+
+    </script>
+</head>
+
+<body>
+<main class="wrap">
+    <header>
+        <a th:href="@{/}">
+            <img th:src="@{/images/logo_lois.png}" src="/images/logo_lois.png" alt="Lois by Auntie Jin" class="logo">
+        </a>
+        <div class="header-center">Management</div>
+
+        <nav class="nav">
+            <button type="button" onclick="showPreparing()">직원 관리</button>
+            <button type="button" onclick="showPreparing()">상품 관리</button>
+            <button type="button" onclick="showPreparing()">케이크 관리</button>
+        </nav>
+    </header>
+
+
+    <section class="content">
+        <div class="list-header">
+            <div>
+                <h2 class="section-title">케이크 예약 리스트</h2>
+                <div class="filters">
+                    <button class="chip" type="button" onclick="showPreparing()">전체</button>
+                    <button class="chip" type="button" onclick="showPreparing()">날짜</button>
+                    <button class="chip" type="button" onclick="showPreparing()">오늘</button>
+                </div>
+            </div>
+
+            <!-- 예약하기 버튼 -->
+            <a class="cta" th:href="@{/reservations/new}" href="/reservations/new" role="button">
+                <div class="title">예약하기</div>
+            </a>
+        </div>
+
+        <div class="thead">
+            <div>날짜</div>
+            <div>시간</div>
+            <div>맛</div>
+            <div>호수</div>
+            <div>연락처</div>
+            <div style="text-align:right">수정/삭제</div>
+        </div>
+
+        <div id="list">
+            <div th:each="r : ${reservations}" class="row">
+                <div th:text="${#temporals.format(r.resDate, 'yyyy-MM-dd')}"></div>
+                <div th:text="${#temporals.format(r.resTime, 'HH:mm')}"></div>
+                <div class="ellipsis" th:text="${r.cakeFlavor}"></div>
+                <div th:text="${r.cakeSize}"></div>
+                <div class="ellipsis" th:text="${r.contact}"></div>
+                <div class="actions">
+                    <button class="btn" onclick="showPreparing()">수정</button>
+                    <button class="btn" onclick="showPreparing()">삭제</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">© Lois by Auntie Jin</footer>
+</main>
+</body>
+</html>

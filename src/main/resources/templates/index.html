@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Lois Management</title>
+
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+
+    <!-- ✅ 준비중 알림 함수 -->
+    <script>
+        function showPreparing() {
+          alert("준비 중입니다.");
+        }
+    </script>
+</head>
+
+<body>
+<main class="wrap">
+
+    <header>
+        <img th:src="@{/images/logo_lois.png}" alt="Lois by Auntie Jin" class="logo">
+        <div class="header-center">Management</div>
+
+        <nav class="nav">
+            <button type="button" onclick="showPreparing()">직원 관리</button>
+            <button type="button" onclick="showPreparing()">상품 관리</button>
+            <button type="button" onclick="showPreparing()">케이크 관리</button>
+        </nav>
+    </header>
+
+    <section class="grid">
+        <!-- ✅ 실제 작동하는 유일한 버튼 -->
+        <div class="card" th:onclick="|location.href='@{/reservations}'|">
+            <div class="card__title">Reservation</div>
+            <div class="card__sub">케이크 예약</div>
+        </div>
+
+        <!-- 나머지는 준비중 알림만 -->
+        <div class="card" onclick="showPreparing()">
+            <div class="card__title">Stock Request</div>
+            <div class="card__sub">재고 주문 요청</div>
+        </div>
+
+        <div class="card" onclick="showPreparing()">
+            <div class="card__title">Check In</div>
+            <div class="card__sub">출근 등록</div>
+        </div>
+
+        <div class="card" onclick="showPreparing()">
+            <div class="card__title">Check Out</div>
+            <div class="card__sub">퇴근 등록</div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © Lois by Auntie Jin
+    </footer>
+
+</main>
+</body>
+</html>

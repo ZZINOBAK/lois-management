@@ -18,3 +18,8 @@ application*.yaml
 application*.properties
 gradle.properties
 
+src/main/resources/application.yaml
+out/
+
+# exclude webapp view files
+src/main/webapp/
