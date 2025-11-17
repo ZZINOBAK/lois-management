@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Lois – Edit Reservations</title>
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+
+    <script>
+        function showPreparing(){ alert("준비 중입니다."); }
+
+    </script>
+
+
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+</head>
+
+<body>
+<main class="wrap">
+    <header>
+        <a th:href="@{/}">
+            <img th:src="@{/images/logo_lois.png}" src="/images/logo_lois.png" alt="Lois by Auntie Jin" class="logo">
+        </a>
+        <div class="header-center">Management</div>
+
+        <nav class="nav">
+            <button type="button" onclick="showPreparing()">직원 관리</button>
+            <button type="button" onclick="showPreparing()">상품 관리</button>
+            <button type="button" onclick="showPreparing()">케이크 관리</button>
+        </nav>
+    </header>
+
+
+    <section class="content">
+        <div class="list-header">
+            <div>
+                <h2 class="section-title">예약 수정</h2>
+                <p style="color: var(--muted); font-size: 14px; margin: 0;">
+                    예약 정보를 변경한 뒤 저장해주세요.
+                </p>
+            </div>
+
+            <!-- 뒤로가기 버튼 -->
+            <a class="cta" th:href="@{/reservations}" href="/reservations" role="button">
+                <div class="title">목록으로</div>
+            </a>
+        </div>
+
+        <!-- 수정 폼 카드 -->
+        <div class="row" style="display:block; max-width: 520px;">
+            <form th:object="${reservation}"
+                  th:action="@{/reservations/{id}(id=*{id})}"
+                  method="patch"
+                  style="display:flex; flex-direction:column; gap:14px;">
+
+                <!-- id 숨김 -->
+                <input type="hidden" th:field="*{id}"/>
+
+                <!-- 날짜 -->
+                <div>
+                    <label style="display:block; font-size:14px; margin-bottom:4px;">
+                        수령 날짜
+                    </label>
+                    <input type="date"
+                           th:value="${#temporals.format(reservation.resDate, 'yyyy-MM-dd')}"
+                           style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px;"/>
+                </div>
+
+                <!-- 시간 -->
+                <div>
+                    <label style="display:block; font-size:14px; margin-bottom:4px;">
+                        수령 시간
+                    </label>
+                    <input type="time"
+                           th:value="${#temporals.format(reservation.resTime, 'HH:mm')}"
+                           style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px;"/>
+                </div>
+
+                <!-- 맛 / 케이크 정보 (현재는 텍스트로) -->
+                <div>
+                    <label style="display:block; font-size:14px; margin-bottom:4px;">
+                        케이크 맛
+                    </label>
+                    <input type="text"
+                           th:field="*{cakeFlavor}"
+                           placeholder="예: 딸기 생크림"
+                           style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px;"/>
+                </div>
+
+                <!-- 호수 -->
+                <div>
+                    <label style="display:block; font-size:14px; margin-bottom:4px;">
+                        케이크 호수
+                    </label>
+                    <input type="number"
+                           min="1"
+                           th:field="*{cakeSize}"
+                           style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px;"/>
+                </div>
+
+                <!-- 연락처 -->
+                <div>
+                    <label style="display:block; font-size:14px; margin-bottom:4px;">
+                        연락처
+                    </label>
+                    <input type="tel"
+                           th:field="*{contact}"
+                           placeholder="010-0000-0000"
+                           style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px;"/>
+                </div>
+
+                <!-- 결제 여부 -->
+                <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                    <input type="checkbox" th:field="*{paid}" id="paid-checkbox"
+                           style="width:16px; height:16px;"/>
+                    <label for="paid-checkbox" style="font-size:14px;">
+                        결제 완료
+                    </label>
+                </div>
+
+                <!-- 메모 -->
+                <div>
+                    <label style="display:block; font-size:14px; margin-bottom:4px;">
+                        메모
+                    </label>
+                    <textarea th:field="*{note}"
+                              rows="3"
+                              style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px; resize: vertical;"></textarea>
+                </div>
+
+                <!-- 버튼 영역 -->
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+                    <button class="btn"
+                            type="button"
+                            onclick="location.href='/reservations'">
+                        취소
+                    </button>
+                    <button class="btn" type="submit" style="background: var(--accent); color:#fff;">
+                        저장
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </section>
+
+    <footer class="footer">© Lois by Auntie Jin</footer>
+
+
+</main>
+
+
+</body>
+</html>

@@ -13,5 +13,26 @@ public interface ReservationMapper {
 
     List<Reservation> findAll();
 
+    Reservation findById(Long id);
+
+
     List<Cake> findAllCakeFlavor();
+
+
+//    ScopedValue<Object> findById(Long id);
+
+    void update(Reservation r);
+
+    void update1(Long id);
+
+
+    void pickedUp(Long id);
+
+    void delete(Long id);
+
+    void sortByPickUpTime();
+
+    List<Reservation> findTodayOrderByPickUpTime();
+
+    List<Reservation> findAllOrderByPickUpTime();
 }

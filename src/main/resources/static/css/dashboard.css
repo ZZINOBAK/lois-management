@@ -127,3 +127,90 @@
           box-shadow: var(--hover-shadow)
         }
 
+
+
+/* ===== 삭제 확인 모달 ===== */
+
+.confirm-modal {
+    position: fixed;
+    inset: 0; /* top:0; right:0; bottom:0; left:0; 와 동일 */
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 500; /* 헤더/콘텐츠보다 위로 */
+}
+
+.confirm-modal.hidden {
+    display: none;
+}
+
+.confirm-modal__content {
+    background: #fff;
+    padding: 24px 28px;
+    border-radius: 14px;
+    min-width: 260px;
+    max-width: 320px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    text-align: center;
+    font-size: 14px;
+}
+
+.confirm-modal__text {
+    margin: 0;
+    color: #333;
+    line-height: 1.5;
+}
+
+.confirm-modal__actions {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.confirm-modal__btn {
+    padding: 8px 20px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* 예 버튼 – Lois accent 컬러로 통일 */
+.confirm-modal__btn--yes {
+    background: var(--accent);
+    color: #fff;
+}
+
+/* 아니오 버튼 – 기존 스타일 유지 */
+.confirm-modal__btn--no {
+    background: var(--surface);
+    color: var(--ink);
+}
+
+
+.actions-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 샘플 버튼: 작고 조용한 스타일 */
+.cta-sample {
+    padding: 8px 16px;
+    background: var(--surface);
+    color: var(--accent);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: .15s;
+}
+
+.cta-sample:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--hover-shadow);
+}

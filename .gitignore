@@ -18,8 +18,15 @@ application*.yaml
 application*.properties
 gradle.properties
 
-src/main/resources/application.yaml
+src/main/resources/application-local.yml
+src/main/resources/application-*.yml
+src/main/resources/application-*.yaml
 out/
 
 # exclude webapp view files
 src/main/webapp/
+
+src/main/java/com/lois/management/config/GlobalExceptionHandler.java
+src/main/java/com/lois/management/domain/dto/ReservationRes.java
+src/main/java/com/lois/management/domain/dto/ReservationSummaryRes.java
+src/main/java/com/lois/management/domain/dto/ReservationUpdateReq.java
