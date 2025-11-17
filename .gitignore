@@ -23,3 +23,5 @@ out/
 
 # exclude webapp view files
 src/main/webapp/
+
+src/main/java/com/lois/management/config/GlobalExceptionHandler.java

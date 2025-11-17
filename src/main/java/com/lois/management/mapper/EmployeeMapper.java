@@ -21,4 +21,6 @@ public interface EmployeeMapper {
 
     //D : 삭제하기
     int delete(Long id);
+
+    Employee findByEmployeeName(String employeeName);
 }
