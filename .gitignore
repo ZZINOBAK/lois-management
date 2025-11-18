@@ -22,4 +22,5 @@ src/main/resources/application.yaml
 out/
 
 # exclude webapp view files
-src/main/webapp/src/main/java/com/lois/management/config/GlobalExceptionHandler.java
+src/main/webapp
+src/main/java/com/lois/management/config/GlobalExceptionHandler.java

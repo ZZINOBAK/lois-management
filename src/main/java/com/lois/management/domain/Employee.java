@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 public class Employee {
     private Long id;
     private String employeeName;
+    private String password;
+    private String role; // "ADMIN", "STAFF" 같은 값
     private String phone;
     private String note;
     private LocalDateTime createdAt;

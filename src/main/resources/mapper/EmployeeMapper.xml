@@ -16,6 +16,12 @@
         WHERE id = #{id}
     </select>
 
+    <select id="findByEmployeeName" parameterType="String" resultType="Employee">
+        SELECT id, employee_name, password, phone
+        FROM employees
+        WHERE employee_name = #{employeeName}
+    </select>
+
     <insert id="create" parameterType="Employee" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO employees (employee_name)
         VALUES (#{employeeName})
