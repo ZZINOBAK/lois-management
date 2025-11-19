@@ -9,10 +9,11 @@ import com.lois.management.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -46,5 +47,25 @@ public class AuthApiController {
         );
 
         return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/token") //세션+jwt
+    public Map<String, String> issueToken(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "먼저 로그인하세요.");
+        }
+
+        String employeeName = authentication.getName();
+        Employee employee = employeeService.findByEmployeeName(employeeName);
+        if (employee == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "직원 정보를 찾을 수 없습니다.");
+        }
+
+        String token = jwtProvider.createToken(
+                employee.getEmployeeName(),
+                employee.getRole()
+        );
+
+        return Map.of("token", token);
     }
 }

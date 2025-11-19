@@ -38,12 +38,18 @@ public class JwtProvider {
 
     public boolean validate(String token) {
         try {
+            System.out.println("✅ [validate] 들어온 token = " + token);
+
             Jwts.parser()
                     .verifyWith(Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes()))
                     .build()
                     .parseSignedClaims(token); // 파싱 성공 = 검증 성공
+            System.out.println("✅ [validate] 토큰 파싱/서명 검증 성공");
+
             return true;
         } catch (Exception e) {
+            System.out.println("❌ [validate] 토큰 검증 실패: " + e.getClass().getSimpleName()
+                    + " - " + e.getMessage());
             return false;
         }
     }

@@ -3,11 +3,13 @@ package com.lois.management.security;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-@Component
+//@Component
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthFilter implements Filter {
 
@@ -15,6 +17,8 @@ public class JwtAuthFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        log.info(">>> [JwtAuthFilter] doFilter 진입");
+
         HttpServletRequest req = (HttpServletRequest) request;
         String header = req.getHeader("Authorization");
 

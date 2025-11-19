@@ -1,6 +1,5 @@
 package com.lois.management.controller.api;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,21 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/test")
+@RequestMapping("/api")   // 🔹 /api 가 베이스
 @RequiredArgsConstructor
-public class TestApiController {
-    @GetMapping
-    public String hello(HttpServletRequest request) {
-        String username = (String) request.getAttribute("username");
-        return "hello " + username;
-    }
+public class TestRoleApiController {
 
-    @GetMapping("/admin-ping")
-    public String adminPing() {
-        return "admin only";
-    }
-
-    // 🔒 관리자 전용
+    // 👑 관리자 전용
     @GetMapping("/admin/ping")
     public Map<String, String> adminPing(Authentication auth) {
         return Map.of(
@@ -34,7 +23,7 @@ public class TestApiController {
         );
     }
 
-    // 👥 로그인만 되어 있으면 누구나
+    // 👥 로그인만 되어 있으면 모두 접근 가능
     @GetMapping("/user/ping")
     public Map<String, String> userPing(Authentication auth) {
         return Map.of(
@@ -43,4 +32,5 @@ public class TestApiController {
                 "user", auth.getName()
         );
     }
+
 }

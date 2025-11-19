@@ -17,7 +17,7 @@
     </select>
 
     <select id="findByEmployeeName" parameterType="String" resultType="Employee">
-        SELECT id, employee_name, password, phone
+        SELECT id, employee_name, password, phone, role
         FROM employees
         WHERE employee_name = #{employeeName}
     </select>
