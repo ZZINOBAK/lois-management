@@ -5,13 +5,10 @@
 <mapper namespace="com.lois.management.mapper.ReservationMapper">
 
     <select id="findAll" resultType="Reservation">
-        SELECT r.id,
-        r.res_date,
-        r.res_time,
-        r.cake_id,
-        c.flavor AS cake_flavor,
-        r.cake_size,
-        r.contact
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.id DESC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
         ORDER BY r.id DESC
@@ -24,16 +21,11 @@
 
     <select id="findById" parameterType="long" resultType="Reservation">
         SELECT
-        id,
-        res_date  AS resDate,
-        res_time  AS resTime,
-        cake_id   AS cakeId,
-        cake_size AS cakeSize,
-        contact,
-        note,
-        is_paid   AS paid
-        FROM reservations
-        WHERE id = #{id}
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.id = #{id}
     </select>
 
     <select id="sortByPickUpTime" resultType="Reservation">
@@ -72,11 +64,11 @@
     </select>
 
     <insert id="insert" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO reservations (res_date, res_time, cake_id, contact, is_paid)
+        INSERT INTO reservations (res_date, res_time, cake_id, contact, paid)
         VALUES (#{resDate}, #{resTime}, #{cakeId}, #{contact}, #{paid})
     </insert>
 
-    <update id="update" parameterType="com.lois.management.domain.Reservation"> <!-- ✅ id=update -->
+    <update id="updateApi" parameterType="com.lois.management.domain.Reservation"> <!-- ✅ id=update -->
         UPDATE reservations
         <set>
             <if test="resDate != null">res_date = #{resDate},</if>
@@ -90,23 +82,31 @@
         WHERE id = #{id}
     </update>
 
-    <update id="update1" parameterType="long">
+    <update id="update" parameterType="Reservation">
         UPDATE reservations
         <set>
-            <if test="resDate != null">res_date = #{resDate},</if>
-            <if test="resTime != null">res_time = #{resTime},</if>
-            <if test="contact != null">contact = #{contact},</if>
-            <if test="paid != null">is_paid = #{paid},</if>
-            <if test="status != null">status = #{status},</if>
-            <if test="note != null">note = #{note},</if>
+            <if test="reservation.resDate != null">res_date = #{reservation.resDate},</if>
+            <if test="reservation.resTime != null">res_time = #{reservation.resTime},</if>
+            <if test="reservation.contact != null">contact = #{reservation.contact},</if>
+            <if test="reservation.paid != null">paid = #{reservation.paid},</if>
+            <if test="reservation.note != null">note = #{reservation.note},</if>
             updated_at = NOW()
         </set>
         WHERE id = #{id}
     </update>
 
-    <update id="pickedUp" parameterType="long">
+    <update id="updatePickupStatus">
         UPDATE reservations
-        pickuptime = #{time}
+        SET
+            pickup_status = #{pickupStatus},
+            picked_up_at = #{pickedUpAt}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateMakeStatus">
+        UPDATE reservations
+        SET
+        make_status = #{makeStatus}
         WHERE id = #{id}
     </update>
 

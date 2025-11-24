@@ -6,6 +6,8 @@
           display: block;
         }
 
+
+
         /* 리스트 헤더 */
         .list-header {
           display: grid;
@@ -76,26 +78,50 @@
         /* 컬럼 헤더 */
         .thead {
           display: grid;
-          grid-template-columns: 130px 90px 1fr 80px 160px 140px;
-          gap: 12px;
+          /* 날짜 | 시간 | 맛 | 호수 | 연락처 | 결제 | 픽업 | 수정/삭제 */
+          grid-template-columns:
+                      25px
+                                                                90px
+                                                                45px
+                                                                95px
+                                                                30px
+                                                                130px
+                                                                65px
+                                                                75px
+                                                                120px;
+          gap: 21px;
           font-weight: 700;
           color: var(--accent);
           font-size: 14px;
           padding: 6px 8px;
           margin: 8px 0 6px;
+  text-align: center;
+
         }
 
         /* 리스트 행 */
         .row {
           display: grid;
-          grid-template-columns: 130px 90px 1fr 80px 160px 140px;
-          gap: 12px;
+          grid-template-columns:
+              25px
+                                          90px
+                                          45px
+                                          95px
+                                          30px
+                                          130px
+                                          65px
+                                          75px
+                                          120px;
+          gap: 20px;
           align-items: center;
           padding: 10px 12px;
           background: var(--surface);
           border-radius: var(--radius);
           margin-bottom: 12px;
           box-shadow: var(--shadow);
+
+  text-align: center;
+
         }
 
         .ellipsis {
@@ -106,10 +132,25 @@
 
         .actions {
           display: flex;
-          gap: 10px;
+          gap: 8px;
           justify-content: flex-end;
+          flex-wrap: nowrap;
         }
 
+        .actions .btn {
+          padding: 6px 10px;
+          min-width: 52px;
+          white-space: nowrap;
+        }
+
+        .pickup-btn {
+          min-width: 80px;
+          text-align: center;
+        }
+        .pickup-cell {
+          display: flex;
+          justify-content: center;
+        }
         .btn {
           border: none;
           background: var(--surface);
@@ -127,7 +168,23 @@
           box-shadow: var(--hover-shadow)
         }
 
+.phone {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
+/* 픽업 완료된 행 전체 회색 처리 */
+.row.picked {
+  background: #e5e5e5 !important; /* 연한 회색 */
+  opacity: 0.85;
+}
+
+/* 텍스트도 조금 약하게 */
+.row.picked div,
+.row.picked span {
+  color: #555 !important;
+}
 
 /* ===== 삭제 확인 모달 ===== */
 

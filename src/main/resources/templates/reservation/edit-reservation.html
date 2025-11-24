@@ -51,7 +51,7 @@
         <div class="row" style="display:block; max-width: 520px;">
             <form th:object="${reservation}"
                   th:action="@{/reservations/{id}(id=*{id})}"
-                  method="patch"
+                  th:method="patch"
                   style="display:flex; flex-direction:column; gap:14px;">
 
                 <!-- id 숨김 -->
@@ -63,8 +63,8 @@
                         수령 날짜
                     </label>
                     <input type="date"
-                           th:value="${#temporals.format(reservation.resDate, 'yyyy-MM-dd')}"
-                           style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px;"/>
+                           th:name="resDate"
+                           th:value="${#temporals.format(reservation.resDate, 'yyyy-MM-dd')}" />
                 </div>
 
                 <!-- 시간 -->
@@ -73,8 +73,8 @@
                         수령 시간
                     </label>
                     <input type="time"
-                           th:value="${#temporals.format(reservation.resTime, 'HH:mm')}"
-                           style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px;"/>
+                           th:name="resTime"
+                           th:value="${#temporals.format(reservation.resTime, 'HH:mm')}" />
                 </div>
 
                 <!-- 맛 / 케이크 정보 (현재는 텍스트로) -->

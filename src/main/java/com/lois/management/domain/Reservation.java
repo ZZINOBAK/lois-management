@@ -20,10 +20,13 @@ public class Reservation {
     private int candles;
     private String contact;
     private boolean paid;
-    private String status;
+    private String makeStatus;
     private String note;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime pickedUpAt;
+    private String pickupStatus;
 
     private String cakeFlavor;
+    private int rowNumber;
 }

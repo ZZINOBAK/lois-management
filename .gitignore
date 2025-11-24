@@ -13,14 +13,14 @@ build/
 *.jar
 *.war
 !gradle/wrapper/gradle-wrapper.jar
-application*.yml
-application*.yaml
-application*.properties
+#application*.yml
+#application*.yaml
+#application*.properties
 gradle.properties
 
-src/main/resources/application-local.yml
-src/main/resources/application-*.yml
-src/main/resources/application-*.yaml
+src/main/resources/application-local.yaml
+#src/main/resources/application-*.yml
+#src/main/resources/application-*.yaml
 out/
 
 # exclude webapp view files

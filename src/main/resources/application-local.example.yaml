@@ -1,0 +1,58 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/lois?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+    username: YOUR_DB_USERNAME
+    password: YOUR_DB_PASSWORD
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: YOUR_GOOGLE_CLIENT_ID
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET
+            scope:
+              - email
+              - profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-name: Google
+
+          kakao:
+            client-id: YOUR_KAKAO_REST_API_KEY
+            client-secret: ""   # Kakao는 보통 secret 없음
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - profile_nickname
+            client-name: Kakao
+
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+mybatis:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.lois.management.domain
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com.lois.management: debug
+    root: info
+
+jwt:
+  secret: YOUR_JWT_SECRET
+  expiration: 3600000
+  prefix: Bearer

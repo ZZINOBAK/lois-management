@@ -1,9 +1,9 @@
 package com.lois.management.controller.api;
 
 import com.lois.management.domain.dto.ReservationCreateReq;
-import com.lois.management.domain.dto.ReservationRes;
-import com.lois.management.domain.dto.ReservationSummaryRes;
-import com.lois.management.domain.dto.ReservationUpdateReq;
+import com.lois.management.dto.reservation.ReservationRes;
+import com.lois.management.dto.reservation.ReservationSummaryRes;
+import com.lois.management.dto.reservation.ReservationUpdateReq;
 import com.lois.management.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,9 +45,9 @@ public class ReservationApiController {
 
     @Operation(summary = "예약 수정")
     @PutMapping("/{id}")
-    public ReservationRes update(@PathVariable("id") Long id,
+    public ReservationRes updateApi(@PathVariable("id") Long id,
                                  @Valid @RequestBody ReservationUpdateReq req) {
-        reservationService.update(id, req);
+        reservationService.updateApi(id, req);
         return new ReservationRes(id, "UPDATED");
     }
 
