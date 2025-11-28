@@ -1,25 +1,34 @@
+### Build / IDE ###
 target/
-.idea/
-*.iml
-*.log
-.gradle/
 build/
-.DS_Store
-.env
-*.yml
+.gradle/
+out/
 
+.idea/
 .vscode/
+.DS_Store
+*.iml
 *.class
+*.log
+
+### JAR ###
 *.jar
 *.war
 !gradle/wrapper/gradle-wrapper.jar
+
+### Secrets ###
+.env
+gradle.properties
+
+### Spring Config (모든 민감 설정 차단) ###
 application*.yml
 application*.yaml
 application*.properties
-gradle.properties
 
+# 혹시 강제로 명시
 src/main/resources/application.yaml
-out/
+src/main/resources/application-local.yaml
+src/main/resources/application-prod.yaml
 
-# exclude webapp view files
+### Webapp view files (버전관리 원하지 않을 때) ###
 src/main/webapp/

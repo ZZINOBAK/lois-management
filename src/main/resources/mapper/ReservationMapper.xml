@@ -30,7 +30,7 @@
 
 
     <insert id="insert" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO reservations (res_date, res_time, cake_id, contact, is_paid)
+        INSERT INTO reservations (res_date, res_time, cake_id, contact, paid)
         VALUES (#{resDate}, #{resTime}, #{cakeId}, #{contact}, #{paid})
     </insert>
 
