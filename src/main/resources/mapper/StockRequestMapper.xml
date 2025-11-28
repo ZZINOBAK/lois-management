@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lois.management.mapper.StockRequestMapper">
+
+    <select id="findAll" resultType="StockRequest">
+        SELECT
+        sr.*,
+        i.item_name AS itemName
+        FROM stock_requests sr
+        JOIN items i ON sr.item_id = i.id
+        WHERE sr.status = 'requested'
+        ORDER BY sr.id ASC;
+    </select>
+
+
+    <select id="findById" parameterType="long" resultType="StockRequest">
+        SELECT *
+        FROM stock_requests
+        WHERE id = #{id}
+    </select>
+
+    <select id="existsRequestedByItemId" parameterType="long" resultType="int">
+    SELECT COUNT(*)
+    FROM stock_requests
+    WHERE item_id = #{itemId}
+    AND status = 'requested'
+    </select>
+
+    <insert id="insert" parameterType="StockRequest" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO stock_requests (item_id)
+        VALUES (#{itemId})
+    </insert>
+
+
+    <update id="update" parameterType="StockRequest">
+        UPDATE stock_requests
+        SET employee_name = #{employeeName},
+        phone = #{phone},
+        note = #{note}
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="long">
+        UPDATE stock_requests
+        SET status = 'COMPLETED'
+        WHERE id = #{id}
+    </update>
+
+    <delete id="drop" parameterType="long">
+        DELETE FROM stock_requests WHERE id = #{id}
+    </delete>
+
+</mapper>

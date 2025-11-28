@@ -44,7 +44,13 @@ dependencies {
 	implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl' //jstl 구현체
 
 
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+	//문자 api
+	implementation 'com.solapi:sdk:1.0.3'
+	implementation 'net.nurigo:sdk:4.3.2'
+
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+
 }
 
 tasks.named('test') {

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Lois – Cake Reservations</title>
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <script>
+        function showPreparing(){ alert("준비 중입니다."); }
+
+    </script>
+
+
+    <style>
+        /* 🔥 여기부터는 stockRequest 전용 최소한의 레이아웃만 추가 */
+
+        /* 전체 두 단 레이아웃 */
+        .stock-grid-layout {
+            display: grid;
+            grid-template-columns: 1.1fr 1.4fr;
+            gap: 32px;
+            margin-top: 24px;
+        }
+
+        /* 왼쪽 리스트 */
+        .stock-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .request-row {
+            display: grid;
+            grid-template-columns: 1fr 70px;
+            gap: 12px;
+            padding: 12px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 14px;
+        }
+
+        .request-main {
+            border: none;
+            background: transparent;
+            text-align: left;
+            font-size: 15px;
+            color: var(--ink);
+        }
+
+        .request-delete {
+            border: none;
+            border-radius: var(--radius);
+            background: var(--surface);
+            color: var(--accent);
+            padding: 8px 0;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: auto;
+            margin-top: 20px;
+        }
+
+        .action-button {
+            flex: 1;
+            border: none;
+            background: var(--surface);
+            color: var(--accent);
+            padding: 14px 0;
+            border-radius: var(--radius-cta);
+            box-shadow: var(--shadow);
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* 오른쪽 아이템 영역 */
+        .stock-right {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* chip은 기존 .chip 사용 */
+        .item-grid {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .item-button {
+            border: none;
+            padding: 14px 0;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            font-size: 15px;
+            color: var(--ink);
+            cursor: pointer;
+        }
+
+
+        .request-main {
+    display: flex;                     /* 가로로 나란히 */
+    justify-content: space-between;     /* 좌우 끝으로 배치 */
+    align-items: center;               /* 세로 가운데 정렬 */
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    background: white;
+}
+
+.request-item-name {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.request-days {
+    font-size: 14px;
+    color: #555;
+}
+    </style>
+
+    <script>
+        function sendStockRequestsSms() {
+            fetch("/sms/send-from-stock-requests", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    phoneNumber: "01092899657",   // ← 여기서 번호 고정
+                    text: "테스트 메시지입니다"   // 메시지 내용
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("문자 전송 완료!");
+            })
+            .catch(err => alert("문자 전송 실패"));
+        }
+    </script>
+
+</head>
+
+<body>
+<main class="wrap">
+    <header>
+        <a th:href="@{/}">
+            <img th:src="@{/images/logo_lois.png}" src="/images/logo_lois.png" alt="Lois by Auntie Jin" class="logo">
+        </a>
+        <div class="header-center">Management</div>
+
+        <nav class="nav">
+            <button type="button" onclick="showPreparing()">직원 관리</button>
+            <button type="button" onclick="showPreparing()">상품 관리</button>
+            <button type="button" onclick="showPreparing()">케이크 관리</button>
+        </nav>
+    </header>
+
+
+    <!-- ✨ 본문 두 단 구성 -->
+    <section class="content stock-grid-layout">
+
+        <!-- 왼쪽: Stock Requests -->
+        <section class="stock-left">
+
+            <h2 class="section-title">주문 요청</h2>
+
+            <!-- 요청 리스트 -->
+            <div th:each="req : ${stockRequests}"
+                 class="request-row"
+                 th:attr="id='stock-request-' + ${req.id}">
+
+                <button type="button" class="request-main" th:hx-get="@{'/stock-requests/{id}'(id=${req.id})}"
+                        hx-target="closest .request-row"
+                        hx-swap="afterend" hx-trigger="click">
+                    <span class="request-item-name"
+                          th:text="${req.itemName}">
+                    </span>
+
+                        <span class="request-days"
+                              th:text="'요청한 지 ' + ${req.daysSinceRequest} + '일 째'">
+                        </span>
+            </button>
+
+                <button type="button"
+                        class="request-delete"
+                        th:hx-delete="@{'/stock-requests/' + ${req.id}}"
+                        hx-target="closest .request-row"
+                        hx-swap="outerHTML">
+                    삭제
+                </button>
+            </div>
+
+            <!-- 문자 / 카톡 -->
+            <div class="request-actions">
+                <button class="action-button"
+                        onclick="sendStockRequestsSms()">문자</button>
+                <button class="action-button">카톡</button>
+            </div>
+        </section>
+
+
+        <!-- 오른쪽: Item 목록 -->
+        <section class="stock-right">
+
+            <!-- 카테고리 필터 -->
+            <div class="filters">
+                <button class="chip"
+                        hx-get="/items?category=전체"
+                        hx-target=".item-grid"
+                        hx-swap="innerHTML">
+                    전체
+                </button>
+
+                <button class="chip"
+                        hx-get="/items?category=케이크"
+                        hx-target=".item-grid"
+                        hx-swap="innerHTML">
+                    케이크
+                </button>
+
+                <button class="chip"
+                        hx-get="/items?category=음료"
+                        hx-target=".item-grid"
+                        hx-swap="innerHTML">
+                    음료
+                </button>
+
+                <button class="chip"
+                        hx-get="/items?category=스티커"
+                        hx-target=".item-grid"
+                        hx-swap="innerHTML">
+                    스티커
+                </button>
+
+                <button class="chip"
+                        hx-get="/items?category=베이킹"
+                        hx-target=".item-grid"
+                        hx-swap="innerHTML">
+                    베이킹
+                </button>
+            </div>
+
+            <!-- 아이템 grid -->
+            <div class="item-grid"
+                 th:replace="~{stock/fragments-item-grid :: itemGridAll(${top8Items}, ${itemsExceptTop8})}">
+
+                <!-- 🔥 1) 인기 TOP 8 -->
+                <form th:each="item : ${top8Items}"
+                      hx-post="/stock-requests"
+                      hx-swap="none">
+                    <input type="hidden" name="itemId" th:value="${item.id}"/>
+
+                    <button type="submit"
+                            class="item-button item-button--popular"
+                            th:text="${item.itemName}">
+                    </button>
+                </form>
+
+                <div class="item-separator"></div>
+
+
+                <!-- 🔤 2) 나머지 가나다순 -->
+                <form th:each="item : ${itemsExceptTop8}"
+                      hx-post="/stock-requests"
+                      hx-swap="none">
+                    <input type="hidden" name="itemId" th:value="${item.id}"/>
+
+                    <button type="submit"
+                            class="item-button"
+                            th:text="${item.itemName}">
+                    </button>
+                </form>
+
+            </div>
+
+        </section>
+    </section>
+
+    <footer class="footer">© Lois by Auntie Jin</footer>
+
+    <script>
+        document.body.addEventListener("alreadyRequested", function () {
+            alert("이미 요청된 아이템입니다!");
+        });
+    </script>
+    <script>
+        document.body.addEventListener("htmx:beforeRequest", function (event) {
+            const btn = event.target;   // 클릭한 버튼
+            if (!btn.matches(".request-main")) return;
+
+            const row = btn.closest(".request-row");
+            const next = row.nextElementSibling;
+
+            // 이미 상세가 열려 있는 경우: 상세 div이면 접기
+            if (next && next.classList.contains("request-detail-card")) {
+                next.remove();           // 상세 DOM 삭제
+                event.preventDefault();  // 서버 요청 취소 → 접기
+            }
+        });
+    </script>
+</main>
+</body>
+</html>

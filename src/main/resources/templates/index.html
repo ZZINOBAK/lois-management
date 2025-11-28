@@ -37,7 +37,7 @@
         </div>
 
         <!-- 나머지는 준비중 알림만 -->
-        <div class="card" onclick="showPreparing()">
+        <div class="card" th:onclick="|location.href='@{/stock-requests}'|">
             <div class="card__title">Stock Request</div>
             <div class="card__sub">재고 주문 요청</div>
         </div>

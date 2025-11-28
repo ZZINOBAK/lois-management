@@ -7,30 +7,25 @@ import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
 @Mapper
-public interface ItemMapper {
+public interface StockRequestMapper {
+
     //CRUD
     //C : 생성하기
-    void insert(Item item);
+    void insert(StockRequest stockRequest);
 
     //R : 조회하기
     //전체 조회
-    List<Item> findAll();
-
-    List<Item> findAllOrderByPopularity();
-
-    List<Item> findAllOrderByNameAsc();
-
-    List<Item> findByCategory(String category);
-
+    List<StockRequest> findAll();
     //아이디로 조회
-    Item findById(Long id);
+    StockRequest findById(Long id);
+
+    int existsRequestedByItemId(StockRequest req);
+
 
     //U : 수정하기
-    int update(Item item);
+    int update(StockRequest stockRequest);
 
     //D : 삭제하기
-    int delete(Long id);
-
-
+    void delete(Long id);
 
 }
