@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <title>Lois – Cake Reservations</title>
     <link rel="stylesheet" th:href="@{/css/index.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
@@ -10,6 +10,66 @@
     <script>
         function showPreparing(){ alert("준비 중입니다."); }
 
+    </script>
+
+
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+
+    <!--    상세용 추가 코드-->
+    <style>
+        .detail-row.hidden {
+            display: none;
+        }
+        .detail-row {
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #ddd;
+            margin-bottom: 10px;
+        }
+
+        /* 맛 버튼 */
+        .flavor-btn {
+            min-width: 90px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid #dde2dd;
+            background-color: #f8f8f8;
+            font-size: 0.9rem;
+            line-height: 1.2;
+        }
+        .flavor-btn.ready {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        /* 결제 뱃지 */
+        .badge-paid {
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #2f7d4a;
+            color: #fff;
+            font-size: 0.75rem;
+        }
+        .badge-unpaid {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid #ccc;
+            font-size: 0.75rem;
+        }
+
+    </style>
+    <script>
+        function toggleDetailRow(event, id) {
+        // 버튼이나 버튼 안쪽을 클릭한 경우는 상세 토글 안함
+        if (event.target.closest('button')) {
+            return;
+        }
+
+        const detail = document.getElementById('detail-' + id);
+        if (detail) {
+            detail.classList.toggle('hidden');
+        }
+    }
     </script>
 </head>
 
@@ -34,43 +94,179 @@
             <div>
                 <h2 class="section-title">케이크 예약 리스트</h2>
                 <div class="filters">
-                    <button class="chip" type="button" onclick="showPreparing()">전체</button>
+                    <!-- 전체: scope=all -->
+                    <button class="chip"
+                            type="button"
+                            hx-get="/reservations/sort?scope=all"
+                            hx-target="#list"
+                            hx-swap="innerHTML">
+                        전체
+                    </button>
                     <button class="chip" type="button" onclick="showPreparing()">날짜</button>
-                    <button class="chip" type="button" onclick="showPreparing()">오늘</button>
+                    <!-- 오늘: scope=today -->
+                    <button class="chip"
+                            type="button"
+                            hx-get="/reservations/sort?scope=today"
+                            hx-target="#list"
+                            hx-swap="innerHTML">
+                        오늘
+                    </button>
                 </div>
             </div>
 
-            <!-- 예약하기 버튼 -->
-            <a class="cta" th:href="@{/reservations/new}" href="/reservations/new" role="button">
-                <div class="title">예약하기</div>
-            </a>
+            <!-- 오른쪽 영역 묶기 -->
+            <div class="actions-right">
+                <!-- 예약하기 버튼 -->
+                <a class="cta" th:href="@{/reservations/new}" role="button">
+                    <div class="title">예약하기</div>
+                </a>
+
+                <!-- 샘플 버튼 (작게) -->
+                <form th:action="@{/reservations/sample}" method="post">
+                    <button class="cta-sample" type="submit">샘플</button>
+                </form>
+            </div>
         </div>
 
         <div class="thead">
+            <div>연번</div>
             <div>날짜</div>
             <div>시간</div>
             <div>맛</div>
             <div>호수</div>
             <div>연락처</div>
-            <div style="text-align:right">수정/삭제</div>
+            <div>결제</div>
+            <div>픽업</div>
+<!--            <div style="text-align:right">수정/삭제</div>-->
+            <div>수정/삭제</div>
         </div>
 
-        <div id="list">
-            <div th:each="r : ${reservations}" class="row">
-                <div th:text="${#temporals.format(r.resDate, 'yyyy-MM-dd')}"></div>
-                <div th:text="${#temporals.format(r.resTime, 'HH:mm')}"></div>
-                <div class="ellipsis" th:text="${r.cakeFlavor}"></div>
-                <div th:text="${r.cakeSize}"></div>
-                <div class="ellipsis" th:text="${r.contact}"></div>
-                <div class="actions">
-                    <button class="btn" onclick="showPreparing()">수정</button>
-                    <button class="btn" onclick="showPreparing()">삭제</button>
+        <div id="list" th:fragment="list">
+            <!--        <div id="list">-->
+            <!--        <div th:each="r : ${reservations}" class="row">-->
+            <!--        여기부터-->
+            <div th:each="r : ${reservations}"
+                 th:insert="~{reservation/dashboard :: rowFragment(r=${r})}">
+
+            <!--                 th:insert="~{reservation/dashboard :: rowFragment(r=${r})}">-->
+                <div th:fragment="rowFragment(r)" th:id="'row-block-' + ${r.id}">
+
+                <!-- 요약 행 -->
+                    <div class="row summary-row"
+                         th:id="'row-' + ${r.id}"
+                         th:onclick="|toggleDetailRow(event, ${r.id})|"
+                         th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked' : ''">
+                        <!-- 여기까지 행 프레그먼트 추가코드 -->
+                        <div th:text="${r.rowNumber}"></div><!-- 연번 -->
+                        <div th:text="${#temporals.format(r.resDate, 'yyyy-MM-dd')}"></div>
+                        <div th:text="${#temporals.format(r.resTime, 'HH:mm')}"></div>
+                        <!--                        <div class="ellipsis" th:text="${r.cakeFlavor}"></div>-->
+                        <button
+                                type="button"
+                                class="flavor-btn ellipsis"
+                                th:text="${r.cakeFlavor}"
+                                th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"
+                                th:attr="
+                                            hx-patch=@{/reservations/{id}/make-toggle(id=${r.id})},
+                                            hx-target='#row-' + ${r.id}
+                                        "
+                                hx-swap="outerHTML">
+                        </button>
+                        <div th:text="${r.cakeSize}"></div>
+<!--                        <div class="ellipsis" th:text="${r.contact}"></div>-->
+                        <div class="phone" th:text="${r.contact}"></div>
+                        <div>
+                            <span th:classappend="${r.paid} ? 'badge-paid' : 'badge-unpaid'">
+                                <span th:text="${r.paid} ? '결제완료' : '미결제'"></span>
+                            </span>
+                        </div>
+                        <div class="pickup-cell">
+                            <button
+                                    class="btn pickup-btn"
+                                    th:attr="hx-patch=@{/reservations/{id}/pickup-toggle(id=${r.id})},
+                                                hx-target='#row-' + ${r.id}"
+
+                                    hx-swap="outerHTML">
+                                <span th:text="${r.pickupStatus == 'PICKED' ? '픽업완료' : '픽업예정'}"></span>
+                            </button>
+
+                        </div>
+                        <div class="actions">
+                            <button class="btn"
+                                    type="button"
+                                    th:onclick="|location.href='@{/reservations/{id}/edit(id=${r.id})}'|">
+                                수정
+                            </button>
+                            <button
+                                    class="btn"
+                                    type="button"
+                                    th:onclick="|openConfirmModal('@{/reservations/{id}(id=${r.id})}')|">
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 상세 행 -->
+                    <div class="detail-row hidden"
+                         th:id="'detail-' + ${r.id}">
+                        <div><b>요청사항:</b> <span th:text="${r.note}"></span></div>
+                        <div><b>초:</b> <span th:text="${r.candles}"></span></div>
+                        <div><b>픽업시간:</b> <span th:text="${r.pickedUpAt}"></span></div>
+                        <div><b>생성일:</b> <span th:text="${r.createdAt}"></span></div>
+
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <footer class="footer">© Lois by Auntie Jin</footer>
+
+    <!-- 삭제 확인 모달 -->
+    <div id="confirm-modal" class="confirm-modal hidden">
+
+        <div class="confirm-modal__content">
+            <p class="confirm-modal__text">정말 이 예약을 삭제하시겠어요?</p>
+
+            <div class="confirm-modal__actions">
+                <button id="confirm-yes"
+                        class="confirm-modal__btn confirm-modal__btn--yes">
+                    예
+                </button>
+                <button id="confirm-no"
+                        class="confirm-modal__btn confirm-modal__btn--no">
+                    아니오
+                </button>
+            </div>
+        </div>
+    </div>
 </main>
+
+
+<script>
+    let pendingDeleteUrl = null;
+
+    function openConfirmModal(url) {
+
+        pendingDeleteUrl = url;
+        document.getElementById("confirm-modal").classList.remove("hidden");
+    }
+
+    function closeConfirmModal() {
+        pendingDeleteUrl = null;
+        document.getElementById("confirm-modal").classList.add("hidden");
+    }
+
+    document.getElementById("confirm-yes").addEventListener("click", function() {
+        if (pendingDeleteUrl) {
+            htmx.ajax('DELETE', pendingDeleteUrl, {
+                target: '#list',
+                swap: 'innerHTML'
+            });
+        }
+        closeConfirmModal();
+    });
+
+    document.getElementById("confirm-no").addEventListener("click", closeConfirmModal);
+</script>
 </body>
 </html>
