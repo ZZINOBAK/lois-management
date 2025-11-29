@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lois.management.mapper.ItemMapper">
+
+    <select id="findAll" resultType="Item">
+        SELECT *
+        FROM items
+        ORDER BY id DESC
+    </select>
+
+    <select id="findAllOrderByPopularity" resultType="Item">
+        SELECT
+            i.id,
+            i.item_name AS itemName,
+            COALESCE(COUNT(sr.id), 0) AS requestCount
+        FROM items i
+        LEFT JOIN stock_requests sr
+            ON i.id = sr.item_id
+        GROUP BY i.id, i.item_name
+        ORDER BY requestCount DESC, itemName ASC;
+    </select>
+
+
+    <select id="findAllOrderByNameAsc" resultType="Item">
+        SELECT
+            *
+        FROM items
+        ORDER BY item_name ASC;
+    </select>
+
+    <select id="findByCategory" resultType="Item">
+        SELECT
+        i.*
+        FROM items i
+        JOIN categories c ON i.category_id = c.id
+        WHERE c.category_name = #{category}
+        ORDER BY i.item_name ASC;
+    </select>
+
+
+    <select id="findById" parameterType="long" resultType="Item">
+        SELECT id, res_date, res_time, cake_id, cake_size, contact
+        FROM items
+        WHERE id = #{id}
+    </select>
+
+
+    <insert id="insert" parameterType="Item" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO items (item_name, category_id)
+        VALUES (#{itemName}, #{categoryId})
+    </insert>
+
+
+
+
+</mapper>

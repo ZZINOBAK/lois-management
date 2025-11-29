@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Lois – Cake Reservations</title>
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+
+</head>
+
+<body>
+
+<!-- ✅ 전체(인기 TOP8 + 나머지 가나다)용 fragment -->
+<div class="item-grid"
+     th:fragment="itemGridAll(top8Items, itemsExceptTop8)">
+
+    <!-- 🔥 1) 인기 TOP 8 -->
+    <form th:each="item : ${top8Items}"
+          hx-post="/stock-requests"
+          hx-swap="none">
+        <input type="hidden" name="itemId" th:value="${item.id}"/>
+
+        <button type="submit"
+                class="item-button item-button--popular"
+                th:text="${item.itemName}">
+        </button>
+    </form>
+
+    <div class="item-separator"></div>
+
+    <!-- 🔤 2) 나머지 가나다순 -->
+    <form th:each="item : ${itemsExceptTop8}"
+          hx-post="/stock-requests"
+          hx-swap="none">
+        <input type="hidden" name="itemId" th:value="${item.id}"/>
+
+        <button type="submit"
+                class="item-button"
+                th:text="${item.itemName}">
+        </button>
+    </form>
+</div>
+
+
+<!-- ✅ 카테고리(케이크/음료/…)용 fragment -->
+<div class="item-grid"
+     th:fragment="itemGridCategory(items)">
+
+    <form th:each="item : ${items}"
+          hx-post="/stock-requests"
+          hx-swap="none">
+        <input type="hidden" name="itemId" th:value="${item.id}"/>
+
+        <button type="submit"
+                class="item-button"
+                th:text="${item.itemName}">
+        </button>
+    </form>
+
+</div>
+
+
+</body>
+</html>
