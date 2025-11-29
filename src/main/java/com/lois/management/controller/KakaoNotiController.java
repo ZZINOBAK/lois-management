@@ -1,14 +1,14 @@
 //package com.lois.management.controller;
-
-import com.lois.management.service.KakaoNotiService;
-import lombok.RequiredArgsConstructor;
-import net.nurigo.sdk.message.response.SingleMessageSentResponse;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-//@RestController
-//@RequestMapping("/kakao")
+//
+//import com.lois.management.service.KakaoNotiService;
+//import lombok.RequiredArgsConstructor;
+//import net.nurigo.sdk.message.response.SingleMessageSentResponse;
+//import org.springframework.web.bind.annotation.PostMapping;
+//import org.springframework.web.bind.annotation.RequestMapping;
+//import org.springframework.web.bind.annotation.RestController;
+//
+////@RestController
+////@RequestMapping("/kakao")
 //@RequiredArgsConstructor
 //public class KakaoNotiController {
 //

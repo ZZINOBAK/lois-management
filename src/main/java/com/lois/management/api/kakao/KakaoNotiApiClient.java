@@ -9,14 +9,14 @@
 //import org.springframework.beans.factory.annotation.Value;
 //import org.springframework.stereotype.Component;
 //
-//@Component
+////@Component
 //public class KakaoNotiApiClient {
 //
 //    // 🔐 환경 변수로 API Key 설정
-//    @Value("${solapi.api.key}")
+////    @Value("${solapi.api.key}")
 //    private String apiKey;
 //
-//    @Value("${solapi.api.secret}")
+////    @Value("${solapi.api.secret}")
 //    private String apiSecret;
 //
 //    DefaultMessageService messageService;
