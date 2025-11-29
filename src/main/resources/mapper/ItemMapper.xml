@@ -48,8 +48,8 @@
 
 
     <insert id="insert" parameterType="Item" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO stock_request (req_qty, status, note)
-        VALUES (#{reqQty}, #{status}, #{note})
+        INSERT INTO items (item_name, category_id)
+        VALUES (#{itemName}, #{categoryId})
     </insert>
 
 

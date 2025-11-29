@@ -1,12 +1,15 @@
 package com.lois.management.controller;
 
+import com.lois.management.domain.Category;
 import com.lois.management.domain.Item;
-import com.lois.management.domain.StockRequest;
+import com.lois.management.service.CategoryService;
 import com.lois.management.service.ItemService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
@@ -14,12 +17,24 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/items")
+@Slf4j
 @RequiredArgsConstructor
 public class ItemController {
 
     private final ItemService itemService;
+    private final CategoryService categoryService;
+
 
     @GetMapping
+    public String showDashboard(Model model) {
+        List<Item> items = findAll();
+        List<Category> categories = categoryService.findAll();
+        log.debug("상품 전체 조회={}", items.get(2));
+        model.addAttribute("items", items);
+        model.addAttribute("categories", categories);
+        return "item/dashboard";
+    }
+
     public List<Item> findAll() {
         return itemService.findAll();
     }
@@ -63,9 +78,12 @@ public class ItemController {
         return "stock/fragments-item-grid :: itemGridCategory";
     }
 
+
     @PostMapping
-    public void create(@RequestBody Item req) {
-        itemService.create(req);
+    public String create(Item item, @RequestParam("imageFile")MultipartFile file) {
+        itemService.create(item);
+        return "redirect:/items";
+
     }
 
 }

@@ -24,7 +24,10 @@
 
         <nav class="nav">
             <button type="button" onclick="showPreparing()">직원 관리</button>
-            <button type="button" onclick="showPreparing()">상품 관리</button>
+            <button type="button"
+                    th:onclick="|location.href='@{/items}'|">
+                상품 관리
+            </button>
             <button type="button" onclick="showPreparing()">케이크 관리</button>
         </nav>
     </header>
