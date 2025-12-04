@@ -45,7 +45,7 @@ public class StockRequestController {
                 .toList();
 
         log.debug("top8Items={}", top8Items.size());
-        log.debug("요청 기간={}", stockRequests.get(0).getDaysSinceRequest());
+//        log.debug("요청 기간={}", stockRequests.get(0).getDaysSinceRequest());
         model.addAttribute("stockRequests", stockRequests);
         model.addAttribute("top8Items", top8Items);
         model.addAttribute("itemsExceptTop8", itemsExceptTop8);

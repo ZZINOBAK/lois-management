@@ -138,11 +138,19 @@
                     text: "테스트 메시지입니다"   // 메시지 내용
                 })
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {               // 200~299 아니면
+                    throw new Error("서버 오류: " + res.status);
+                }
+                return res.json();
+            })
             .then(data => {
                 alert("문자 전송 완료!");
             })
-            .catch(err => alert("문자 전송 실패"));
+            .catch(err => {
+                console.error(err);
+                alert("문자 전송 실패");
+            });
         }
     </script>
 
