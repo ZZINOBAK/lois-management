@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>IP 접근 요청 관리</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<h1>IP 접근 요청 (PENDING)</h1>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>IP</th>
+        <th>이름</th>
+        <th>연락처</th>
+        <th>메모</th>
+        <th>요청일</th>
+        <th>액션</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="req : ${pendingList}">
+        <td th:text="${req.id}"></td>
+        <td th:text="${req.ipAddress}"></td>
+        <td th:text="${req.name}"></td>
+        <td th:text="${req.contact}"></td>
+        <td th:text="${req.memo}"></td>
+        <td th:text="${#temporals.format(req.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+        <td>
+            <form th:action="@{'/admin/ip-access/' + ${req.id} + '/approve'}" method="post" style="display:inline;">
+                <button type="submit">승인</button>
+            </form>
+            <form th:action="@{'/admin/ip-access/' + ${req.id} + '/reject'}" method="post" style="display:inline;">
+                <button type="submit">거절</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

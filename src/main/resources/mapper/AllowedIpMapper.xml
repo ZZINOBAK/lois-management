@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lois.management.mapper.AllowedIpMapper">
+
+    <resultMap id="AllowedIpMap" type="com.lois.management.domain.AllowedIp">
+        <id property="id" column="id"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="name" column="name"/>
+        <result property="contact" column="contact"/>
+        <result property="memo" column="memo"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="countApprovedByIp" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM allowed_ips
+        WHERE ip_address = #{ip}
+        AND status = 'APPROVED'
+    </select>
+
+    <select id="countPendingByIp" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM allowed_ips
+        WHERE ip_address = #{ip}
+        AND status = 'PENDING'
+    </select>
+
+    <insert id="insert" parameterType="com.lois.management.domain.AllowedIp">
+        INSERT INTO allowed_ips (ip_address, name, contact, memo, status)
+        VALUES (#{ipAddress}, #{name}, #{contact}, #{memo}, #{status})
+    </insert>
+
+    <select id="findByStatus" parameterType="string"
+            resultMap="AllowedIpMap">
+        SELECT *
+        FROM allowed_ips
+        WHERE status = #{status}
+        ORDER BY created_at DESC
+    </select>
+
+    <update id="updateStatus">
+        UPDATE allowed_ips
+        SET status = #{status},
+        updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>
