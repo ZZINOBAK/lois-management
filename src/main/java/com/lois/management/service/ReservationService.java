@@ -148,4 +148,13 @@ public class ReservationService {
                 ))
                 .toList();
     }
+
+    public List<Reservation> findByContactSuffix(String contactSuffix) {
+        return reservationMapper.findByContactSuffix(contactSuffix);
+
+    }
+
+    public List<Reservation> findByPickupStatus(String pickupStatus) {
+        return reservationMapper.findByPickupStatus(pickupStatus);
+    }
 }

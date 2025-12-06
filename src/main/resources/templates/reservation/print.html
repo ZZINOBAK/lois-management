@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>케이크 픽업 리스트</title>
+
+    <style>
+        @media print {
+            @page {
+                size: 80mm auto;        /* 영수증 프린터 폭 */
+                margin: 5mm 3mm;
+            }
+
+            html, body {
+                width: 80mm;
+                margin: 0;
+                padding: 0;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            font-size: 22px;             /* ⭐ 글씨 크게 */
+            line-height: 1.8;            /* ⭐ 행 간격 넉넉하게 */
+        }
+
+        .title {
+            text-align: center;
+            font-size: 26px;              /* 타이틀 크게 */
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .date {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 8px 0 12px;
+        }
+
+        .item-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+
+        /* ⭐ 연번 칼럼 */
+        .item-no {
+            width: 10mm;              /* 숫자 공간 */
+            text-align: left;
+            font-weight: 600;
+        }
+
+
+        /* ⭐ 시간 폭 넓게 */
+        .item-time {
+            width: 40mm;
+            font-weight: 600;
+        }
+
+        /* ⭐ 맛 글씨 크게 + 좌측 여백 */
+        .item-flavor {
+            flex: 1;
+            padding-left: 2mm;
+        }
+    </style>
+</head>
+
+<body onload="window.print()">
+
+<div class="title">케이크 픽업 리스트</div>
+<div class="date" th:text="${#temporals.format(today, 'yyyy-MM-dd')}"></div>
+<div class="divider"></div>
+
+<!-- ⭐ 연번 stat.count 추가 -->
+<div th:each="r, stat : ${reservations}" class="item-row">
+
+    <!-- 연번 -->
+    <div class="item-no" th:text="${stat.count}"></div>
+
+    <!-- ⭐ 오후/오전 한국식 시간 표현 -->
+    <div class="item-time"
+         th:text="${#temporals.format(r.resTime, 'a h시 m분')
+                       .replace('AM','오전')
+                       .replace('PM','오후')}">
+    </div>
+
+    <div class="item-flavor" th:text="${r.cakeFlavor}"></div>
+</div>
+
+</body>
+</html>

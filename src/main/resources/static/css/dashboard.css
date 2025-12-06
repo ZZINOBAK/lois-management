@@ -147,6 +147,14 @@
           min-width: 80px;
           text-align: center;
         }
+
+        /* 픽업완료일 때 스타일 */
+        .pickup-btn.picked-btn {
+            opacity: 0.6;
+            /* 살짝 더 어둡게 하고 싶으면 예를 들어 */
+            background-color: #eeeeee;
+        }
+
         .pickup-cell {
           display: flex;
           justify-content: center;
@@ -176,7 +184,7 @@
 
 /* 픽업 완료된 행 전체 회색 처리 */
 .row.picked {
-  background: #e5e5e5 !important; /* 연한 회색 */
+  background: #8C8C8C !important; /* 연한 회색 */
   opacity: 0.85;
 }
 
@@ -270,4 +278,90 @@
 .cta-sample:hover {
     transform: translateY(-1px);
     box-shadow: var(--hover-shadow);
+}
+
+/* 상단 legend */
+.reservation-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.legend-chip {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* 당일 예약 색 (칩 + 행 모두 동일 톤) */
+.legend-sameday {
+    background-color: #fff8e1;   /* 연한 노랑 */
+    border-color: #ffb300;
+}
+
+
+/* 당일 생성된 예약 행 강조 */
+.summary-row[data-sameday="true"] {
+    background-color: #fff8e1;   /* 연한 노랑 */
+}
+
+/* 검색 영역 */
+.reservation-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.search-label {
+    color: #555;
+    white-space: nowrap;
+}
+
+.search-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid #dde2dd;
+    background-color: #f8f8f8;
+}
+
+.search-prefix {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.search-input {
+    width: 52px;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.search-input::placeholder {
+    color: #ccc;
+}
+
+.search-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: none;
+    background-color: #4e6cff;
+    color: #fff;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.search-btn:hover {
+    background-color: #3d56cc;
 }

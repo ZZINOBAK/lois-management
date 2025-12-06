@@ -40,4 +40,7 @@ public interface ReservationMapper {
     List<Reservation> findAllOrderByPickUpTime();
 
 
+    List<Reservation> findByContactSuffix(String contactSuffix);
+
+    List<Reservation> findByPickupStatus(String pickupStatus);
 }

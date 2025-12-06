@@ -61,6 +61,8 @@
                 <button type="button" class="cal-nav" id="cal-prev" aria-label="이전 달">◀</button>
                 <div class="cal-title" id="cal-title">2025년 11월</div>
                 <button type="button" class="cal-nav" id="cal-next" aria-label="다음 달">▶</button>
+                <!-- 오늘 버튼 추가 -->
+                <button type="button" class="btn-today" id="cal-today">오늘</button>
             </div>
 
             <div class="cal-weekdays">
@@ -73,29 +75,62 @@
         </div>
     </form>
 
+
+    <!-- 날짜 비활성화 표시용 CSS -->
+    <style>
+        .cal-cell.disabled {
+            cursor: not-allowed;
+            color: #cccccc !important;
+            background: #f4f4f4 !important;
+            opacity: 0.6;
+        }
+    </style>
+
     <!-- 스텝2 전용 스크립트 (프래그먼트 안에서만 동작) -->
     <script>
         (function () {
-          // 상태
+          // ===== 설정값 =====
+          const MAX_MONTHS = 3;        // 오늘로부터 3개월 후까지
+          const CLOSED_WEEKDAY = 0;    // 0 = 일요일 휴무
+
+          // ===== 날짜 유틸 =====
+          const pad = n => String(n).padStart(2, '0');
+          function fmt(date) {
+            return date.getFullYear() + '-' + pad(date.getMonth()+1) + '-' + pad(date.getDate());
+          }
+          function startOfDay(d) {
+            const x = new Date(d);
+            x.setHours(0,0,0,0);
+            return x;
+          }
+
+          const TODAY = startOfDay(new Date());
+          const maxDate = (function () {
+            const d = startOfDay(new Date());
+            d.setMonth(d.getMonth() + MAX_MONTHS);
+            return d;
+          })();
+
+          function isBefore(a, b) { return a.getTime() < b.getTime(); }
+          function isAfter(a, b)  { return a.getTime() > b.getTime(); }
+
+          // ===== 상태 =====
           const state = {
-            viewYear: new Date().getFullYear(),
-            viewMonth: new Date().getMonth(), // 0~11
-            selected: null // Date 객체
+            viewYear: TODAY.getFullYear(),
+            viewMonth: TODAY.getMonth(), // 0~11
+            selected: null               // Date 객체
           };
 
-          // 엘리먼트
-          const $title = document.getElementById('cal-title');
-          const $grid  = document.getElementById('cal-grid');
-          const $prev  = document.getElementById('cal-prev');
-          const $next  = document.getElementById('cal-next');
-          const $hidden = document.getElementById('picked-date');
-          const $btnNext = document.getElementById('btn-next-step2');
+          // ===== 엘리먼트 =====
+          const $title    = document.getElementById('cal-title');
+          const $grid     = document.getElementById('cal-grid');
+          const $prev     = document.getElementById('cal-prev');
+          const $next     = document.getElementById('cal-next');
+          const $btnToday = document.getElementById('cal-today');
+          const $hidden   = document.getElementById('picked-date');
+          const $btnNext  = document.getElementById('btn-next-step2');
 
-          // 유틸: YYYY-MM-DD
-          const pad = n => String(n).padStart(2, '0');
-          function fmt(date) { return date.getFullYear() + '-' + pad(date.getMonth()+1) + '-' + pad(date.getDate()); }
-
-          // 렌더
+          // ===== 렌더 =====
           function render() {
             const y = state.viewYear, m = state.viewMonth;
             $title.textContent = `${y}년 ${m+1}월`;
@@ -114,46 +149,64 @@
             }
 
             // 날짜 셀
-            const today = new Date();
             for (let d=1; d<=daysInMonth; d++) {
               const cell = document.createElement('button');
               cell.type = 'button';
               cell.className = 'cal-cell day';
               cell.textContent = d;
-              cell.dataset.date = fmt(new Date(y, m, d));
+
+              const cellDate = startOfDay(new Date(y, m, d));
+              cell.dataset.date = fmt(cellDate);
 
               // 오늘 표시
-              if (y === today.getFullYear() && m === today.getMonth() && d === today.getDate()) {
+              if (cellDate.getTime() === TODAY.getTime()) {
                 cell.classList.add('today');
               }
+
               // 선택 표시
-              if (state.selected && state.selected.getFullYear() === y
-                  && state.selected.getMonth() === m
-                  && state.selected.getDate() === d) {
+              if (state.selected && startOfDay(state.selected).getTime() === cellDate.getTime()) {
                 cell.classList.add('selected');
+              }
+
+              // ===== 예약 불가 조건 =====
+              let disabled = false;
+
+              // 1) 오늘 이전
+              if (isBefore(cellDate, TODAY)) disabled = true;
+
+              // 2) 최대 예약일 이후
+              if (isAfter(cellDate, maxDate)) disabled = true;
+
+              // 3) 휴무일(일요일)
+              if (cellDate.getDay() === CLOSED_WEEKDAY) disabled = true;
+
+              if (disabled) {
+                cell.classList.add('disabled');
+                cell.disabled = true; // 버튼 자체 비활성화
               }
 
               $grid.appendChild(cell);
             }
           }
 
-          // 이벤트
+          // ===== 이벤트: 이전/다음 달 =====
           $prev.addEventListener('click', () => {
             state.viewMonth--;
             if (state.viewMonth < 0) { state.viewMonth = 11; state.viewYear--; }
             render();
           });
+
           $next.addEventListener('click', () => {
             state.viewMonth++;
             if (state.viewMonth > 11) { state.viewMonth = 0; state.viewYear++; }
             render();
           });
 
+          // ===== 이벤트: 날짜 클릭 =====
           $grid.addEventListener('click', (e) => {
             const btn = e.target.closest('.cal-cell.day');
-            if (!btn) return;
+            if (!btn || btn.disabled) return; // 비활성 셀 클릭 방지
 
-            // 선택 업데이트
             const [yy, mm, dd] = btn.dataset.date.split('-').map(Number);
             state.selected = new Date(yy, mm-1, dd);
 
@@ -162,8 +215,33 @@
             $btnNext.disabled = false;
 
             // 선택 클래스 갱신
-            $grid.querySelectorAll('.cal-cell.day.selected').forEach(n => n.classList.remove('selected'));
+            $grid.querySelectorAll('.cal-cell.day.selected')
+                 .forEach(n => n.classList.remove('selected'));
             btn.classList.add('selected');
+          });
+
+          // ===== 이벤트: 오늘 버튼 =====
+          $btnToday.addEventListener('click', () => {
+            const today = new Date(TODAY);
+
+            // 뷰를 오늘 달로 이동
+            state.viewYear  = today.getFullYear();
+            state.viewMonth = today.getMonth();
+
+            // 오늘이 휴무 / 범위 밖이면 선택은 못하게만 하고, 달만 보여줌
+            const disabled = (today.getDay() === CLOSED_WEEKDAY || isAfter(today, maxDate));
+
+            if (disabled) {
+              render();
+              alert('오늘은 예약이 불가한 날입니다.');
+              return;
+            }
+
+            // 선택 가능하면 바로 선택
+            state.selected = today;
+            $hidden.value = fmt(today);
+            $btnNext.disabled = false;
+            render();
           });
 
           // 초기 렌더

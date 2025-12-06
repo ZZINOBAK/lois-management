@@ -71,6 +71,7 @@
         }
     }
     </script>
+
 </head>
 
 <body>
@@ -128,6 +129,47 @@
             </div>
         </div>
 
+        <div class="reservation-legend">
+            <span class="legend-chip legend-sameday"></span>
+            <span>오늘 생성된 예약</span>
+        </div>
+        <!-- 오른쪽: 검색폼 -->
+        <form class="reservation-search"
+              method="get"
+              th:action="@{/reservations/search}"
+              th:attr="hx-get=@{/reservations/search}"
+              hx-target="#list"
+              hx-swap="innerHTML">
+
+            <label for="contactSuffix" class="search-label">휴대폰 뒷자리</label>
+
+            <div class="search-input-wrap">
+                <span class="search-prefix">****-****-</span>
+                <input id="contactSuffix"
+                       name="contactSuffix"
+                       type="text"
+                       inputmode="numeric"
+                       pattern="[0-9]{4}"
+                       maxlength="4"
+                       minlength="4"
+                       class="search-input"
+                       placeholder="1234"
+                       required>
+            </div>
+
+            <button type="submit" class="search-btn">검색</button>
+        </form>
+
+        <!-- 📦 픽업예정만 보기 버튼 -->
+        <button type="button"
+                class="pickup-filter-btn"
+                th:attr="hx-get=@{/reservations/filter(pickupStatus='WAITING')}"
+                hx-target="#list"
+                hx-swap="innerHTML">
+            픽업예정만
+        </button>
+
+
         <div class="thead">
             <div>연번</div>
             <div>날짜</div>
@@ -144,6 +186,9 @@
         <div id="list" th:fragment="list">
             <!--        <div id="list">-->
             <!--        <div th:each="r : ${reservations}" class="row">-->
+
+
+
             <!--        여기부터-->
             <div th:each="r : ${reservations}"
                  th:insert="~{reservation/dashboard :: rowFragment(r=${r})}">
@@ -155,23 +200,17 @@
                     <div class="row summary-row"
                          th:id="'row-' + ${r.id}"
                          th:onclick="|toggleDetailRow(event, ${r.id})|"
-                         th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked' : ''">
+                         th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked' : ''"
+                         th:attr="data-sameday=${r.createdAt != null
+                             and #temporals.format(r.createdAt, 'yyyy-MM-dd') == #temporals.format(today, 'yyyy-MM-dd')}">
+
                         <!-- 여기까지 행 프레그먼트 추가코드 -->
                         <div th:text="${r.rowNumber}"></div><!-- 연번 -->
                         <div th:text="${#temporals.format(r.resDate, 'yyyy-MM-dd')}"></div>
                         <div th:text="${#temporals.format(r.resTime, 'HH:mm')}"></div>
                         <!--                        <div class="ellipsis" th:text="${r.cakeFlavor}"></div>-->
-                        <button
-                                type="button"
-                                class="flavor-btn ellipsis"
-                                th:text="${r.cakeFlavor}"
-                                th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"
-                                th:attr="
-                                            hx-patch=@{/reservations/{id}/make-toggle(id=${r.id})},
-                                            hx-target='#row-' + ${r.id}
-                                        "
-                                hx-swap="outerHTML">
-                        </button>
+                        <!-- 🍰 맛 / 제작 상태 버튼 -->
+                        <button th:replace="~{reservation/dashboard :: makeButton(r=${r})}"></button>
                         <div th:text="${r.cakeSize}"></div>
 <!--                        <div class="ellipsis" th:text="${r.contact}"></div>-->
                         <div class="phone" th:text="${r.contact}"></div>
@@ -181,15 +220,10 @@
                             </span>
                         </div>
                         <div class="pickup-cell">
-                            <button
-                                    class="btn pickup-btn"
-                                    th:attr="hx-patch=@{/reservations/{id}/pickup-toggle(id=${r.id})},
-                                                hx-target='#row-' + ${r.id}"
-
-                                    hx-swap="outerHTML">
-                                <span th:text="${r.pickupStatus == 'PICKED' ? '픽업완료' : '픽업예정'}"></span>
-                            </button>
-
+                            <div class="pickup-cell">
+                                <!-- 📦 픽업 상태 버튼 -->
+                                <button th:replace="~{reservation/dashboard :: pickupButton(r=${r})}"></button>
+                            </div>
                         </div>
                         <div class="actions">
                             <button class="btn"
@@ -205,6 +239,8 @@
                             </button>
                         </div>
                     </div>
+
+
                     <!-- 상세 행 -->
                     <div class="detail-row hidden"
                          th:id="'detail-' + ${r.id}">
@@ -215,6 +251,42 @@
 
                     </div>
                 </div>
+
+
+                <!-- ========================= -->
+                <!--  제작 상태 토글 버튼 조각 -->
+                <!-- ========================= -->
+                <button
+                        th:fragment="makeButton(r)"
+                        type="button"
+                        class="flavor-btn ellipsis"
+                        th:text="${r.cakeFlavor}"
+                        th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"
+                        th:attr="hx-patch=@{/reservations/{id}/make-toggle(id=${r.id})}"
+                        hx-swap="outerHTML">
+                </button>
+
+                <!-- ========================= -->
+                <!--  픽업 상태 토글 버튼 조각 -->
+                <!-- ========================= -->
+                <button
+                        th:fragment="pickupButton(r)"
+                        class="btn pickup-btn"
+                        th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked-btn' : ''"
+                        th:attr="hx-patch=@{/reservations/{id}/pickup-toggle(id=${r.id})}"
+                        hx-swap="outerHTML">
+                    <span th:text="${r.pickupStatus == 'PICKED' ? '픽업완료' : '픽업예정'}"></span>
+                </button>
+            </div>
+            <!-- ✅ 오늘(scope == 'today')일 때만 인쇄 버튼 보이기 -->
+            <div th:if="${scope == 'today'}"
+                 class="list-print-actions"
+                 style="display:flex; justify-content:flex-end; margin: 8px 0;">
+                <button type="button"
+                        class="chip"
+                        onclick="window.open('/reservations/print', '_blank')">
+                    오늘 케이크 리스트 인쇄
+                </button>
             </div>
         </div>
     </section>
@@ -267,6 +339,18 @@
     });
 
     document.getElementById("confirm-no").addEventListener("click", closeConfirmModal);
+</script>
+<script>
+    // 픽업 버튼 눌렀을 때 행에 picked 클래스 토글
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('.pickup-btn');
+      if (!btn) return;
+
+      const row = btn.closest('.summary-row');
+      if (!row) return;
+
+      row.classList.toggle('picked');
+    });
 </script>
 </body>
 </html>

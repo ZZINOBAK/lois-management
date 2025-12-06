@@ -28,6 +28,29 @@
         WHERE r.id = #{id}
     </select>
 
+    <select id="findByContactSuffix" resultType="Reservation">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.id DESC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.contact LIKE CONCAT('%', #{suffix})
+        ORDER BY r.id DESC
+    </select>
+
+    <select id="findByPickupStatus" resultType="Reservation">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.res_date ASC, r.res_time ASC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.pickup_status = #{pickupStatus}
+        AND r.res_date = CURRENT_DATE()
+        ORDER BY r.res_date ASC, r.res_time ASC
+    </select>
+
     <select id="sortByPickUpTime" resultType="Reservation">
         SELECT id, res_date, res_time, cake_id, cake_size, contact
         FROM reservations
@@ -36,13 +59,9 @@
 
     <select id="findTodayOrderByPickUpTime" resultType="Reservation">
         SELECT
-        r.id,
-        r.res_date  AS resDate,
-        r.res_time  AS resTime,
-        r.cake_id   AS cakeId,
-        c.flavor    AS cakeFlavor,
-        r.cake_size AS cakeSize,
-        r.contact   AS contact
+        ROW_NUMBER() OVER (ORDER BY r.res_time ASC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
         WHERE r.res_date = CURRENT_DATE()
@@ -51,16 +70,12 @@
 
     <select id="findAllOrderByPickUpTime" resultType="Reservation">
         SELECT
-        r.id,
-        r.res_date  AS resDate,
-        r.res_time  AS resTime,
-        r.cake_id   AS cakeId,
-        c.flavor    AS cakeFlavor,
-        r.cake_size AS cakeSize,
-        r.contact   AS contact
+        ROW_NUMBER() OVER (ORDER BY r.res_date DESC, r.res_time DESC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
-        ORDER BY r.res_date ASC, r.res_time ASC
+        ORDER BY r.res_date DESC, r.res_time DESC
     </select>
 
     <insert id="insert" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">

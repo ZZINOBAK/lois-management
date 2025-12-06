@@ -5,12 +5,14 @@ import com.lois.management.domain.Reservation;
 import com.lois.management.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -53,6 +55,10 @@ public class ReservationController {
             throw e; // 오류 재발생
         }
 
+        // ✅ 오늘 날짜 추가
+        model.addAttribute("today", LocalDate.now());
+
+
         if (true) {   // 강제 WARN
             log.warn("⚠ 테스트 WARN 로그입니다. (실제 오류 아님)");
         }
@@ -82,6 +88,12 @@ public class ReservationController {
 
         model.addAttribute("reservations", reservations);
 
+        // ✅ showDashboard랑 똑같이 today도 내려주기
+        model.addAttribute("today", LocalDate.now());
+
+        // 🔥 이 한 줄 추가 (중요)
+        model.addAttribute("scope", scope);
+
         // 🔥 list fragment만 리턴 (대시보드 템플릿의 th:fragment="list")
         return "reservation/dashboard :: list";
     }
@@ -93,6 +105,45 @@ public class ReservationController {
     @GetMapping("/{id}") //케이크 예약(id) 상세 조회
     public Reservation findById(@PathVariable("id") Long id) {
         return reservationService.findById(id);
+    }
+
+    @GetMapping("/search") //번호로 예약 검색
+    public String findByContact(@RequestParam("contactSuffix") String contactSuffix, Model model) {
+
+        List<Reservation> reservations = reservationService.findByContactSuffix(contactSuffix);
+
+
+        model.addAttribute("reservations", reservations);
+
+        // ✅ showDashboard랑 똑같이 today도 내려주기
+        model.addAttribute("today", LocalDate.now());
+
+        // 🔥 list fragment만 리턴 (대시보드 템플릿의 th:fragment="list")
+        return "reservation/dashboard :: list";
+    }
+
+    @GetMapping("/filter")
+    public String filterByPickupStatus(@RequestParam("pickupStatus") String pickupStatus,
+                                       Model model) {
+        List<Reservation> reservations = reservationService.findByPickupStatus(pickupStatus);
+        model.addAttribute("reservations", reservations);
+        model.addAttribute("today", LocalDate.now());
+        return "reservation/dashboard :: list";
+    }
+
+    @GetMapping("/print")
+    public String printTodayReservations(Model model) {
+
+        LocalDate today = LocalDate.now();
+
+        // ✅ 오늘 예약 + 픽업 시간 오름차순 정렬
+        List<Reservation> reservations = reservationService.findTodayOrderByPickUpTime();
+
+        model.addAttribute("reservations", reservations);
+        model.addAttribute("today", today);
+
+        // 프린트 전용 템플릿
+        return "reservation/print";
     }
 
     @GetMapping("/new") //케이크 예약 - 예약하기 버튼
@@ -124,12 +175,45 @@ public class ReservationController {
         return "reservation/steps :: step2";
     }
 
-    @PostMapping("/step/2") //케이크 예약 - 날짜 선택
-    public String submitStep2(@RequestParam("date")  LocalDate date,
-                              @ModelAttribute("reserve") Reservation reserve,
-                              Model model) {
+//    @PostMapping("/step/2") //케이크 예약 - 날짜 선택
+//    public String submitStep2(@RequestParam("date")  LocalDate date,
+//                              @ModelAttribute("reserve") Reservation reserve,
+//                              Model model) {
+//        reserve.setResDate(date);
+//        model.addAttribute("stepNo", 3);
+//        return "reservation/steps :: step3";
+//    }
+
+    @PostMapping("/step/2") // 케이크 예약 - 날짜 선택, 12월 5일 수정
+    public String submitStep2(
+            @RequestParam("date")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @ModelAttribute("reserve") Reservation reserve,
+            Model model
+    ) {
+        LocalDate today = LocalDate.now();
+        LocalDate max   = today.plusMonths(3);   // 최대 3개월 후까지
+
+        // 유효성 검사: 오늘 이전, 최대일 이후, 일요일(휴무)인 경우
+        if (date.isBefore(today)
+                || date.isAfter(max)
+                || date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+
+            // 스텝2로 다시 돌려보내기
+            model.addAttribute("stepNo", 2);
+            model.addAttribute("errorMessage", "예약이 불가능한 날짜입니다. 다시 선택해주세요.");
+
+            // 날짜 선택 화면(스텝2) 조각 다시 렌더링
+            return "reservation/steps :: step2";
+        }
+
+        // 통과하면 예약 객체에 날짜 세팅
         reserve.setResDate(date);
+
+        // 다음 스텝 번호 세팅
         model.addAttribute("stepNo", 3);
+
+        // 스텝3 조각 반환
         return "reservation/steps :: step3";
     }
 
@@ -228,33 +312,25 @@ public class ReservationController {
         return "redirect:/reservations";
     }
 
-    @PatchMapping("/{id}/pickup-toggle") //케이크 예약(id) 픽업(완료) DB 업데이트
+    @PatchMapping("/{id}/pickup-toggle") // 픽업 상태 토글
     public String togglePickup(@PathVariable("id") Long id, Model model) {
         reservationService.togglePickupStatus(id);
         Reservation updated = reservationService.findById(id);
         model.addAttribute("r", updated);
 
-        log.debug("픽업 상태 pickupStatus={}", updated.getPickupStatus());
-        log.debug("픽업 후 맛 cakeFlavor={}", updated.getCakeFlavor());
-
-        // row.html 안의 rowFragment를 반환
-        return "reservation/dashboard :: rowFragment(r=${r})";
-
+        // ✅ 픽업 버튼 fragment만 반환
+        return "reservation/dashboard :: pickupButton(r=${r})";
     }
 
-
-    @PatchMapping("/{id}/make-toggle") //케이크 예약(id) 제작(완료) DB 업데이트
+    @PatchMapping("/{id}/make-toggle") // 제작 상태 토글
     public String toggleMake(@PathVariable("id") Long id, Model model) {
         reservationService.toggleMakeStatus(id);
         Reservation updated = reservationService.findById(id);
         model.addAttribute("r", updated);
-        log.debug("제작 상태 pickupStatus={}", updated.getMakeStatus());
-        log.debug("제작 후 맛 cakeFlavor={}", updated.getCakeFlavor());
 
-        // row.html 안의 rowFragment를 반환
-        return "reservation/dashboard :: rowFragment(r=${r})";
+        // ✅ 맛/제작 버튼 fragment만 반환
+        return "reservation/dashboard :: makeButton(r=${r})";
     }
-
 
     @DeleteMapping("/{id}") //케이크 예약(id) 삭제 DB 업데이트
     public String delete(@PathVariable("id") Long id, Model model) {
