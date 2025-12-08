@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>lois-cake-reserve</title>
     <!-- HTMX: 부분 갱신용 (CDN) -->
     <script src="https://unpkg.com/htmx.org@1.9.11"></script>
@@ -15,32 +16,28 @@
 
 </head>
 <body>
-<main class="wrap">
 
-<header>
-    <a th:href="@{/}">
-        <img th:src="@{/images/logo_lois.png}" src="/images/logo_lois.png" alt="Lois by Auntie Jin" class="logo">
-    </a>
-    <div class="header-center">Management</div>
+<div class="wrap">
 
-    <nav class="nav">
-        <button type="button" onclick="showPreparing()">직원 관리</button>
-        <button type="button" onclick="showPreparing()">상품 관리</button>
-        <button type="button" onclick="showPreparing()">케이크 관리</button>
-    </nav>
-</header>
 
-<div id="step-container"
-     hx-get="/reservations/step/1"
-    hx-trigger="load"
-    hx-target="#step-container"
-    hx-swap="innerHTML">
-    <!-- 조각(fragment)이 삽입됨 -->
+    <!-- ✨ 공통 헤더 -->
+    <header th:replace="~{fragments/header :: site-header}"></header>
+
+    <main>
+
+        <div id="step-container"
+             hx-get="/reservations/step/1"
+            hx-trigger="load"
+            hx-target="#step-container"
+            hx-swap="innerHTML">
+            <!-- 조각(fragment)이 삽입됨 -->
+        </div>
+    </main>
+
+    <!-- ✨ 공통 푸터 -->
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+
 </div>
-<footer class="footer">
-    © Lois by Auntie Jin
-</footer>
-</main>
 
 </body>
 </html>

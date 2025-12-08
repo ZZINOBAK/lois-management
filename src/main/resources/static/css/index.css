@@ -23,11 +23,7 @@
    letter-spacing: 0.2px;
  }
 
- .wrap {
-   max-width: 900px;
-   margin: 60px auto 40px;
-   padding: 0 20px;
- }
+
 
  header {
    display: flex;
@@ -120,9 +116,3 @@
    margin-top: 4px;
  }
 
- .footer {
-   margin-top: 40px;
-   text-align: right;
-   font-size: 12px;
-   color: var(--muted);
- }

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Lois Management</title>
 
+    <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/index.css}">
 
     <!-- ✅ 준비중 알림 함수 -->
@@ -16,21 +17,14 @@
 </head>
 
 <body>
-<main class="wrap">
 
-    <header>
-        <img th:src="@{/images/logo_lois.png}" alt="Lois by Auntie Jin" class="logo">
-        <div class="header-center">Management</div>
+<div class="wrap">
 
-        <nav class="nav">
-            <button type="button" onclick="showPreparing()">직원 관리</button>
-            <button type="button"
-                    th:onclick="|location.href='@{/items}'|">
-                상품 관리
-            </button>
-            <button type="button" onclick="showPreparing()">케이크 관리</button>
-        </nav>
-    </header>
+
+<!-- ✨ 공통 헤더 -->
+<header th:replace="~{fragments/header :: site-header}"></header>
+
+<main>
 
     <section class="grid">
         <div class="card" th:onclick="|location.href='@{/reservations}'|">
@@ -55,10 +49,12 @@
         </div>
     </section>
 
-    <footer class="footer">
-        © Lois by Auntie Jin
-    </footer>
-
 </main>
+
+    <!-- ✨ 공통 푸터 -->
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+
+</div>
+
 </body>
 </html>

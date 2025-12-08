@@ -2,17 +2,37 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>lois-employee-main</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>lois-employee-dashboard</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
 </head>
 <body>
-<h1>직원 관리 페이지</h1>
-<button type="button"
-        th:onclick="|location.href='@{/employees/new}'|">
-    직원 등록
-</button>
+
+<div class="wrap">
+
+    <!-- ✨ 공통 헤더 -->
+    <header th:replace="~{fragments/header :: site-header}"></header>
+
+    <main>
+
+    <h1>직원 관리 페이지</h1>
+    <button type="button"
+            th:onclick="|location.href='@{/employees/new}'|">
+        직원 등록
+    </button>
 
 
+    </main>
 
+    <!-- ✨ 공통 푸터 -->
+    <header th:replace="~{fragments/footer :: site-footer}"></header>
+
+</div>
 
 </body>
 </html>
+

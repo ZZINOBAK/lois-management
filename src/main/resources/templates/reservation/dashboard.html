@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>Lois – Cake Reservations</title>
+
     <link rel="stylesheet" th:href="@{/css/index.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 
@@ -75,19 +79,13 @@
 </head>
 
 <body>
-<main class="wrap">
-    <header>
-        <a th:href="@{/}">
-            <img th:src="@{/images/logo_lois.png}" src="/images/logo_lois.png" alt="Lois by Auntie Jin" class="logo">
-        </a>
-        <div class="header-center">Management</div>
+<div class="wrap">
 
-        <nav class="nav">
-            <button type="button" onclick="showPreparing()">직원 관리</button>
-            <button type="button" onclick="showPreparing()">상품 관리</button>
-            <button type="button" onclick="showPreparing()">케이크 관리</button>
-        </nav>
-    </header>
+
+    <!-- ✨ 공통 헤더 -->
+    <header th:replace="~{fragments/header :: site-header}"></header>
+
+    <main>
 
 
     <section class="content">
@@ -129,38 +127,44 @@
             </div>
         </div>
 
-        <div class="reservation-legend">
-            <span class="legend-chip legend-sameday"></span>
-            <span>오늘 생성된 예약</span>
-        </div>
-        <!-- 오른쪽: 검색폼 -->
-        <form class="reservation-search"
-              method="get"
-              th:action="@{/reservations/search}"
-              th:attr="hx-get=@{/reservations/search}"
-              hx-target="#list"
-              hx-swap="innerHTML">
-
-            <label for="contactSuffix" class="search-label">휴대폰 뒷자리</label>
-
-            <div class="search-input-wrap">
-                <span class="search-prefix">****-****-</span>
-                <input id="contactSuffix"
-                       name="contactSuffix"
-                       type="text"
-                       inputmode="numeric"
-                       pattern="[0-9]{4}"
-                       maxlength="4"
-                       minlength="4"
-                       class="search-input"
-                       placeholder="1234"
-                       required>
+        <!-- 🔹 레전드(왼쪽) + 검색폼(오른쪽) 한 줄 -->
+        <div class="reservation-toolbar">
+            <div class="reservation-legend">
+                <span class="legend-chip legend-sameday"></span>
+                <span>오늘 생성된 예약</span>
             </div>
 
-            <button type="submit" class="search-btn">검색</button>
-        </form>
+            <form class="reservation-search phone-search-form"
+                  method="get"
+                  th:action="@{/reservations/search}"
+                  th:attr="hx-get=@{/reservations/search}"
+                  hx-target="#list"
+                  hx-swap="innerHTML">
 
-        <!-- 📦 픽업예정만 보기 버튼 -->
+                <label for="contactSuffix" class="search-label phone-search-label">
+                    휴대폰 뒷자리
+                </label>
+
+                <div class="phone-search-inline">
+                    <input id="contactSuffix"
+                           name="contactSuffix"
+                           type="text"
+                           inputmode="numeric"
+                           pattern="[0-9]{4}"
+                           maxlength="4"
+                           minlength="4"
+                           class="phone-input"
+                           required>
+
+                    <button type="submit"
+                            class="phone-search-btn">
+                        검색
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 📦 픽업예정만 보기 버튼 (이건 그대로 아래에 둠) -->
         <button type="button"
                 class="pickup-filter-btn"
                 th:attr="hx-get=@{/reservations/filter(pickupStatus='WAITING')}"
@@ -291,7 +295,6 @@
         </div>
     </section>
 
-    <footer class="footer">© Lois by Auntie Jin</footer>
 
     <!-- 삭제 확인 모달 -->
     <div id="confirm-modal" class="confirm-modal hidden">
@@ -311,8 +314,12 @@
             </div>
         </div>
     </div>
-</main>
+    </main>
 
+    <!-- ✨ 공통 푸터 -->
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+
+</div>
 
 <script>
     let pendingDeleteUrl = null;

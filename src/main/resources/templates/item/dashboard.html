@@ -4,8 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Lois – Cake Reservations</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/index.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 
     <script>
@@ -129,19 +132,13 @@
 </head>
 
 <body>
-<main class="wrap">
-    <header>
-        <a th:href="@{/}">
-            <img th:src="@{/images/logo_lois.png}" src="/images/logo_lois.png" alt="Lois by Auntie Jin" class="logo">
-        </a>
-        <div class="header-center">Management</div>
+<div class="wrap">
 
-        <nav class="nav">
-            <button type="button" onclick="showPreparing()">직원 관리</button>
-            <button type="button" onclick="showPreparing()">상품 관리</button>
-            <button type="button" onclick="showPreparing()">케이크 관리</button>
-        </nav>
-    </header>
+
+    <!-- ✨ 공통 헤더 -->
+    <header th:replace="~{fragments/header :: site-header}"></header>
+
+    <main>
 
 
     <!-- ✨ 본문 두 단 구성 -->
@@ -252,9 +249,12 @@
         </section>
     </section>
 
-    <footer class="footer">© Lois by Auntie Jin</footer>
 
+    </main>
+    <!-- ✨ 공통 푸터 -->
+    <header th:replace="~{fragments/footer :: site-footer}"></header>
 
-</main>
+</div>
+
 </body>
 </html>

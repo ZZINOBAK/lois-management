@@ -1,10 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>register</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+
+    <!-- ✅ 준비중 알림 함수 -->
+    <script>
+        function showPreparing() {
+          alert("준비 중입니다.");
+        }
+    </script>
+
+
 </head>
 <body>
+
+<div class="wrap">
+
+    <!-- ✨ 공통 헤더 -->
+    <header th:replace="~{fragments/header :: site-header}"></header>
+
+    <main>
+
+
+
+    </main>
+
+    <!-- ✨ 공통 푸터 -->
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+
+</div>
+
+
 
 </body>
 </html>

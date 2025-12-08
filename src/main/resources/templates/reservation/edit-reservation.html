@@ -17,19 +17,13 @@
 </head>
 
 <body>
-<main class="wrap">
-    <header>
-        <a th:href="@{/}">
-            <img th:src="@{/images/logo_lois.png}" src="/images/logo_lois.png" alt="Lois by Auntie Jin" class="logo">
-        </a>
-        <div class="header-center">Management</div>
+<div class="wrap">
 
-        <nav class="nav">
-            <button type="button" onclick="showPreparing()">직원 관리</button>
-            <button type="button" onclick="showPreparing()">상품 관리</button>
-            <button type="button" onclick="showPreparing()">케이크 관리</button>
-        </nav>
-    </header>
+
+    <!-- ✨ 공통 헤더 -->
+    <header th:replace="~{fragments/header :: site-header}"></header>
+
+    <main>
 
 
     <section class="content">
@@ -145,10 +139,12 @@
 
     </section>
 
-    <footer class="footer">© Lois by Auntie Jin</footer>
+    </main>
 
+    <!-- ✨ 공통 푸터 -->
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
 
-</main>
+</div>
 
 
 </body>

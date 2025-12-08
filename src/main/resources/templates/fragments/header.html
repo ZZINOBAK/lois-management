@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="site-header">
+
+    <a th:href="@{/}">
+        <img th:src="@{/images/logo_lois.png}" src="/images/logo_lois.png" alt="Lois by Auntie Jin" class="logo">
+    </a>
+    <div class="header-center">Management</div>
+
+    <nav class="nav">
+        <button type="button" onclick="showPreparing()">직원 관리</button>
+        <button type="button"
+                th:onclick="|location.href='@{/items}'|">
+            상품 관리
+        </button>
+        <button type="button" onclick="showPreparing()">케이크 관리</button>
+    </nav>
+
+</header>
+</body>
+</html>
