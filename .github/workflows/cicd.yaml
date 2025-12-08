@@ -1,5 +1,10 @@
 name: lois-docker-cicd
 
+
+permissions:
+  contents: read
+  packages: write   # 🔥 GHCR에 이미지 push 하려면 꼭 필요
+
 on:
   push:
     branches: [ "main" ]  # main에 푸시될 때마다 실행
