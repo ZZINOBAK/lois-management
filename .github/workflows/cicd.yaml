@@ -15,14 +15,14 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }} # GitHub 제공
+          username: ${{ github.actor }}        # GitHub 제공
           password: ${{ secrets.GITHUB_TOKEN }} # GitHub 제공
 
       - name: Build and push Docker image
@@ -30,7 +30,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}/lois-management:latest
+          # 🔥 여기 수정: 전부 소문자로 된 owner/이미지이름 직접 지정
+          tags: ghcr.io/zzinobak/lois-management:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -44,9 +45,10 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull ghcr.io/${{ github.repository }}/lois-management:latest || true
+            # 🔥 여기도 똑같이 동일한 태그 사용
+            docker pull ghcr.io/zzinobak/lois-management:latest || true
             docker stop lois || true
             docker rm lois || true
             docker run -d --name lois -p 8080:8080 \
               --env-file /home/ec2-user/lois.env \
-              ghcr.io/${{ github.repository }}/lois-management:latest
+              ghcr.io/zzinobak/lois-management:latest
