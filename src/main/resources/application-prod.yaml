@@ -18,3 +18,16 @@ logging:
   level:
     root: INFO
     com.lois: INFO
+
+lois:
+  ip-whitelist:
+    enabled: true
+    allowed: ${ALLOWED_IPS}
+    public-paths:
+      - /
+      - /reservations
+      - /api/reservations
+      - /css
+      - /js
+      - /images
+      - /access-request
