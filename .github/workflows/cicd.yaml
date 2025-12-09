@@ -50,7 +50,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # EC2에 로그 저장할 디렉토리 생성
+          # EC2에 로그 저장할 디렉토리 생성
             mkdir -p /home/ec2-user/lois-logs
 
           # 🔥 여기도 똑같이 동일한 태그 사용
