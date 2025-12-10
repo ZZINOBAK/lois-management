@@ -62,11 +62,20 @@ jobs:
               --env-file /home/ec2-user/lois.env \
               ghcr.io/zzinobak/lois-management:latest
             
-            # 🔍 헬스 체크 (10초 정도 기다렸다가 확인)
-            sleep 10
-            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health)
-            if [ "$status" -ne 200 ]; then
-              echo "Health check failed with HTTP $status"
-              docker logs lois
-              exit 1
-            fi
+            # 🔍 헬스 체크 (최대 10번, 5초 간격 재시도)
+            sleep 5
+            for i in {1..10}; do
+              status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+              echo "Health check attempt $i: HTTP $status"
+  
+              if [ "$status" -eq 200 ]; then
+                echo "Health check passed."
+                exit 0
+              fi
+  
+              sleep 5
+            done
+  
+            echo "Health check failed after 10 attempts."
+            docker logs lois
+            exit 1
