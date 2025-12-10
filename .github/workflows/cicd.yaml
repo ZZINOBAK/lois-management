@@ -61,3 +61,7 @@ jobs:
               -v /home/ec2-user/lois-logs:/app/logs \
               --env-file /home/ec2-user/lois.env \
               ghcr.io/zzinobak/lois-management:latest
+            
+            # 🔍 헬스 체크 (10초 정도 기다렸다가 확인)
+            sleep 10
+            curl -f http://localhost:8080/actuator/health || (echo "Health check failed" && docker logs lois && exit 1)
