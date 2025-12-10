@@ -31,3 +31,12 @@ lois:
       - /js
       - /images
       - /access-request
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health       # health 엔드포인트 웹으로 노출
+  endpoint:
+    health:
+      show-details: never     # 상태만 UP/DOWN 보이게

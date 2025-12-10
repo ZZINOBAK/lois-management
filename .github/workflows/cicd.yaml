@@ -64,4 +64,9 @@ jobs:
             
             # 🔍 헬스 체크 (10초 정도 기다렸다가 확인)
             sleep 10
-            curl -f http://localhost:8080/actuator/health || (echo "Health check failed" && docker logs lois && exit 1)
+            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health)
+            if [ "$status" -ne 200 ]; then
+              echo "Health check failed with HTTP $status"
+              docker logs lois
+              exit 1
+            fi
