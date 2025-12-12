@@ -62,6 +62,17 @@
             font-size: 0.75rem;
         }
 
+        .date-popover {
+  position: absolute;
+  z-index: 1000;
+  margin-top: 6px;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.1);
+}
+.date-popover.hidden { display: none; }
     </style>
     <script>
         function toggleDetailRow(event, id) {
@@ -102,7 +113,14 @@
                             hx-swap="innerHTML">
                         전체
                     </button>
-                    <button class="chip" type="button" onclick="showPreparing()">날짜</button>
+                    <!-- 오늘 이후 전체: scope=fromToday -->
+                    <button class="chip"
+                            type="button"
+                            hx-get="/reservations/sort?scope=fromToday"
+                            hx-target="#list"
+                            hx-swap="innerHTML">
+                        오늘부터
+                    </button>
                     <!-- 오늘: scope=today -->
                     <button class="chip"
                             type="button"
@@ -111,6 +129,22 @@
                             hx-swap="innerHTML">
                         오늘
                     </button>
+                    <!-- 날짜 선택 버튼 -->
+                    <button class="chip" type="button" onclick="toggleDatePicker()">날짜</button>
+
+                    <!-- 작은 달력 팝오버 -->
+                    <div id="date-popover" class="date-popover hidden">
+                        <input type="date"
+                               id="pickDate"
+                               name="date"
+                               hx-get="/reservations/sort?scope=byDate"
+                               hx-target="#list"
+                               hx-swap="innerHTML"
+                               hx-trigger="change"
+                               autocomplete="off"
+                               hx-on="change: document.getElementById('date-popover').classList.add('hidden');
+              htmx:afterSwap: document.getElementById('date-popover').classList.add('hidden')">
+                    </div>
                 </div>
             </div>
 
@@ -242,6 +276,7 @@
                                     th:onclick="|openConfirmModal('@{/reservations/{id}(id=${r.id})}')|">
                                 삭제
                             </button>
+
                         </div>
                     </div>
 
@@ -358,6 +393,35 @@
       if (!row) return;
 
       row.classList.toggle('picked');
+    });
+</script>
+<script>
+    function toggleDatePicker() {
+      const pop = document.getElementById('date-popover');
+      pop.classList.toggle('hidden');
+
+      if (!pop.classList.contains('hidden')) {
+        const input = document.getElementById('pickDate');
+
+        // 렌더 완료 직후 포커스 + 피커 강제 오픈
+        requestAnimationFrame(() => {
+          if (!input) return;
+          input.focus({ preventScroll: true });
+          if (typeof input.showPicker === 'function') {
+            input.showPicker();        // 크롬/사파리(16.4+) 등 최신 브라우저
+          } else {
+            input.click();             // 폴백
+          }
+        });
+      }
+    }
+
+    // (선택) 외부 클릭 시 닫기 로직을 쓰고 있다면, 버튼 클릭이 외부로 인식되지 않게 처리
+    document.addEventListener('click', function (e) {
+      const pop = document.getElementById('date-popover');
+      const btn = e.target.closest('[onclick="toggleDatePicker()"]');
+      if (!pop || pop.classList.contains('hidden')) return;
+      if (!pop.contains(e.target) && !btn) pop.classList.add('hidden');
     });
 </script>
 </body>

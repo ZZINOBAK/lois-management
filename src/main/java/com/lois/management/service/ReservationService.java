@@ -86,8 +86,9 @@ public class ReservationService {
         return reservationMapper.findTodayOrderByPickUpTime();
     }
 
-    public List<Reservation> findAllOrderByPickUpTime() {
-        return reservationMapper.findAllOrderByPickUpTime();
+    public List<Reservation> findFromTodayOrderByPickUpTime() {
+        return reservationMapper.findFromTodayOrderByPickUpTime(LocalDate.now());
+
     }
 
 
@@ -156,5 +157,18 @@ public class ReservationService {
 
     public List<Reservation> findByPickupStatus(String pickupStatus) {
         return reservationMapper.findByPickupStatus(pickupStatus);
+    }
+
+    public boolean existsExactSameReservation(Reservation reserve) {
+        return reservationMapper.existsExactSameReservation(reserve);
+
+    }
+
+    public boolean existsByContact(String contact) {
+        return reservationMapper.existsByContact(contact);
+    }
+
+    public List<Reservation> findByDateOrderByPickUpTime(LocalDate date) {
+        return reservationMapper.findByDateOrderByPickUpTime(date);
     }
 }
