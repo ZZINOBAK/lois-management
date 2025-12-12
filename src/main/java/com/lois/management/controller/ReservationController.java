@@ -1,11 +1,17 @@
 package com.lois.management.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.lois.management.domain.Cake;
 import com.lois.management.domain.Reservation;
 import com.lois.management.service.ReservationService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +22,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/reservations")
@@ -74,6 +81,7 @@ public class ReservationController {
 
     @GetMapping("/sort") //픽업 시간 순으로 정렬
     public String sortByPickUpTime(@RequestParam(name = "scope", defaultValue = "all") String scope,
+                                   @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                    Model model) {
 
         List<Reservation> reservations;
@@ -81,9 +89,15 @@ public class ReservationController {
         if ("today".equals(scope)) {
             // 오늘 날짜 + 시간 순 정렬
             reservations = reservationService.findTodayOrderByPickUpTime();
+        } else if ("byDate".equalsIgnoreCase(scope) && date != null) {
+            // ✅ 특정 날짜 예약 + 시간 오름차순
+            reservations = reservationService.findByDateOrderByPickUpTime(date);
+
+        } else if ("fromToday".equals(scope)){
+            // 전체 + 시간 순 정렬 / 오늘부터 전체조회
+            reservations = reservationService.findFromTodayOrderByPickUpTime();
         } else {
-            // 전체 + 시간 순 정렬
-            reservations = reservationService.findAllOrderByPickUpTime();
+            reservations = reservationService.findAll();
         }
 
         model.addAttribute("reservations", reservations);
@@ -228,9 +242,26 @@ public class ReservationController {
 
     @PostMapping("/step/4") //케이크 예약 - 연락처 입력
     public String submitStep4(@RequestParam("contact") String contact,
+                              @RequestParam(value = "force", defaultValue = "false") boolean force,
                               @ModelAttribute("reserve") Reservation reserve,
-                              Model model) {
+                              Model model,
+                              HttpServletResponse response) throws JsonProcessingException {
         reserve.setContact(contact);
+
+        // 2) 완전 동일 예약(연락처 + 픽업일시 + 케이크맛4개) 존재하면 "취소" (step5로 못 감)
+        if (reservationService.existsExactSameReservation(reserve)) {
+            response.setHeader("HX-Trigger", "{\"lois:alert\":{\"code\":\"DUP_EXACT\"}}");
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT); // 204
+            return null; // HTMX는 헤더만 처리, DOM 교체 안 함
+        }
+
+        // 3) 연락처만 동일한 예약이 이미 있으면 "확인(confirm)" 요구 (force=false일 때만)
+        if (!force && reservationService.existsByContact(contact)) {
+            response.setHeader("HX-Trigger", "{\"lois:confirm\":{\"code\":\"DUP_CONTACT\"}}");
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT); // 204
+            return null;
+        }
+
         model.addAttribute("stepNo", 5);
         return "reservation/steps :: step5";
     }

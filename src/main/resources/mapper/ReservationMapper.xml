@@ -78,6 +78,45 @@
         ORDER BY r.res_date DESC, r.res_time DESC
     </select>
 
+    <select id="findFromTodayOrderByPickUpTime" resultType="Reservation">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.res_date ASC, r.res_time ASC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.res_date >= #{fromDate}
+        ORDER BY r.res_date ASC, r.res_time ASC
+    </select>
+
+    <select id="findByDateOrderByPickUpTime"
+            parameterType="java.time.LocalDate"
+            resultType="Reservation">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.res_time ASC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.res_date = #{date}
+        ORDER BY r.res_time ASC
+    </select>
+
+    <select id="existsExactSameReservation" parameterType="Reservation" resultType="boolean">
+        SELECT COUNT(*)
+        FROM reservations
+        WHERE contact = #{contact}
+        AND res_date = #{resDate}
+        AND res_time = #{resTime}
+        AND cake_id = #{cakeId}
+    </select>
+
+    <select id="existsByContact" parameterType="string" resultType="boolean">
+        SELECT COUNT(*)
+        FROM reservations
+        WHERE contact = #{contact}
+    </select>
+
     <insert id="insert" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reservations (res_date, res_time, cake_id, contact, paid)
         VALUES (#{resDate}, #{resTime}, #{cakeId}, #{contact}, #{paid})

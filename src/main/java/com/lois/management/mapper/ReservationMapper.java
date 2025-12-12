@@ -5,6 +5,7 @@ import com.lois.management.domain.Reservation;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -43,4 +44,12 @@ public interface ReservationMapper {
     List<Reservation> findByContactSuffix(String contactSuffix);
 
     List<Reservation> findByPickupStatus(String pickupStatus);
+
+    boolean existsExactSameReservation(Reservation reserve);
+
+    boolean existsByContact(String contact);
+
+    List<Reservation> findFromTodayOrderByPickUpTime(LocalDate now);
+
+    List<Reservation> findByDateOrderByPickUpTime(LocalDate date);
 }
