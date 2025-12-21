@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <body>
 <header th:fragment="site-header">
 
@@ -10,11 +12,24 @@
 
     <nav class="nav">
         <button type="button" onclick="showPreparing()">직원 관리</button>
-        <button type="button"
-                th:onclick="|location.href='@{/items}'|">
+        <button type="button" th:onclick="|location.href='@{/items}'|">
             상품 관리
         </button>
         <button type="button" onclick="showPreparing()">케이크 관리</button>
+        <!-- 비로그인: 로그인 버튼 -->
+        <button type="button"
+                sec:authorize="isAnonymous()"
+                th:onclick="|location.href='@{/login}'|">
+            로그인
+        </button>
+
+        <!-- 로그인: 로그아웃 버튼 (POST 권장) -->
+        <form sec:authorize="isAuthenticated()"
+              th:action="@{/logout}"
+              method="post"
+              style="display:inline;">
+            <button type="submit">로그아웃</button>
+        </form>
     </nav>
 
 </header>

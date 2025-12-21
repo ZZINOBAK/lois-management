@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <title>after-login</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+</head>
+<body>
+
+<div class="wrap">
+    <!-- 공통 헤더 -->
+    <header th:replace="~{fragments/header :: site-header}"></header>
+
+    <!-- 이 페이지 내용 -->
+    <main>
+        <p>로그인 처리 중...</p>
+
+
+    </main>
+
+    <!-- 공통 푸터 -->
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+</div>
+<script>
+    const KEY = "lois_access_token";
+
+    function csrfHeaders() {
+      const token = document.querySelector('meta[name="_csrf"]')?.content;
+      const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+      return (token && header) ? { [header]: token } : {};
+    }
+
+    async function issueTokenOnce() {
+      const res = await fetch("/auth/token", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: csrfHeaders()
+      });
+      if (!res.ok) throw new Error("issue token failed: " + res.status);
+      const data = await res.json();
+      sessionStorage.setItem(KEY, data.accessToken);
+    }
+(async () => {
+    const params = new URLSearchParams(location.search);
+    const next = params.get("next") || "/";
+
+    try {
+      await issueTokenOnce();
+      location.replace(next);
+    } catch (e) {
+      sessionStorage.removeItem(KEY);
+      location.replace("/login?auth=required");
+    }
+  })();
+</script>
+
+
+  </body>
+  </html>

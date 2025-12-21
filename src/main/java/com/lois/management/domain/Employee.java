@@ -16,6 +16,9 @@ public class Employee {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private String Role;
+    private String Password;
+
     public void setEmployeeName(String employeeName) {
         this.employeeName = employeeName;
     }
