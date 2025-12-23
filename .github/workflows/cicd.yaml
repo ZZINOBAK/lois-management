@@ -57,10 +57,14 @@ jobs:
             docker pull ghcr.io/zzinobak/lois-management:latest || true
             docker stop lois || true
             docker rm lois || true
+            
             docker run -d --name lois -p 8080:8080 \
-              -v /home/ec2-user/lois-logs:/app/logs \
-              --env-file /home/ec2-user/lois.env \
-              ghcr.io/zzinobak/lois-management:latest
+            -e TZ=Asia/Seoul \
+            -v /etc/localtime:/etc/localtime:ro \
+            -v /etc/timezone:/etc/timezone:ro \
+            -v /home/ec2-user/lois-logs:/app/logs \
+            --env-file /home/ec2-user/lois.env \
+            ghcr.io/zzinobak/lois-management:latest
             
             # 🔍 헬스 체크 (최대 10번, 5초 간격 재시도)
             sleep 5
