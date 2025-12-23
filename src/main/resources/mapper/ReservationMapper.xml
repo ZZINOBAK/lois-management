@@ -104,6 +104,7 @@
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
         WHERE r.res_date = CURRENT_DATE()
+        AND (r.contact IS NULL OR r.contact != 'ON_SITE')
         ORDER BY r.res_time ASC
     </select>
 
@@ -128,6 +129,15 @@
         ORDER BY r.res_date ASC, r.res_time ASC
     </select>
 
+    <select id="findTodayForToMakeCalc" resultType="Reservation">
+        SELECT
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.res_date = CURRENT_DATE()
+    </select>
+
     <select id="findByDateOrderByPickUpTime"
             parameterType="java.time.LocalDate"
             resultType="Reservation">
@@ -138,6 +148,8 @@
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
         WHERE r.res_date = #{date}
+        AND (r.contact IS NULL OR r.contact != 'ON_SITE')
+
         ORDER BY r.res_time ASC
     </select>
 

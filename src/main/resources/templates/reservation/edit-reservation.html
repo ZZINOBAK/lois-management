@@ -47,8 +47,11 @@
         <div class="row" style="display:block; max-width: 520px;">
             <form th:object="${reservation}"
                   th:action="@{/reservations/{id}(id=*{id})}"
-                  th:method="patch"
+                  method="post"
                   style="display:flex; flex-direction:column; gap:14px;">
+
+                <input type="hidden" name="_method" value="patch"/>
+
 
                 <!-- id 숨김 -->
                 <input type="hidden" th:field="*{id}"/>

@@ -66,4 +66,7 @@ public interface ReservationMapper {
     List<Reservation> findByDateAndPickupStatusWaiting(LocalDate date);
 
     void insertOnSite(Reservation reservation);
+
+    List<Reservation> findTodayForToMakeCalc();
+    List<Reservation> findByDateForToMakeCalc(LocalDate date);
 }

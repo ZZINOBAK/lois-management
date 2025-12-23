@@ -67,7 +67,6 @@
         /* ⭐ 맛 글씨 크게 + 좌측 여백 */
         .item-flavor {
             flex: 1;
-            padding-left: 2mm;
         }
 
         /* ⭐ 연락처(뒷4자리) */
@@ -106,6 +105,20 @@
     line-height: 1.6;
     word-break: break-word;
   }
+        .pay-badge {
+  display: inline-block;
+  font-weight: 900;
+  font-size: 16px;
+  margin-left: 6px;
+}
+.pay-ok { }
+.pay-no { }
+
+        @media print {
+  .print-bottom-space {
+    height: 20mm;   /* 한두세 줄 정도 여백 */
+  }
+}
     </style>
 </head>
 
@@ -150,13 +163,13 @@
                   : '')}">
         </div>
 
-        <!-- ✅ 맛만 취소선 -->
         <div class="item-flavor"
              th:classappend="${r.pickupStatus != null and r.pickupStatus == 'PICKED'} ? ' done' : ''"
              th:with="
          digits=${r.contact != null ? r.contact.replaceAll('\\D','') : ''},
          last4=${#strings.length(digits) >= 4 ? #strings.substring(digits, #strings.length(digits) - 4) : ''},
-         label=${r.cakeFlavor + (last4 != '' ? ' (' + last4 + ')' : '')}"
+         payText=${r.paid != null and r.paid == 1 ? '결O' : '결X'},
+         label=${r.cakeFlavor + (last4 != '' ? ' (' + last4 + ')' : '') +  payText }"
              th:text="${label}">
         </div>
 
@@ -172,6 +185,7 @@
     </div>
 
 </div>
+<div class="print-bottom-space"></div>
 
 </body>
 </html>

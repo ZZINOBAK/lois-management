@@ -80,7 +80,7 @@
                                hx-target="#list"
                                hx-swap="innerHTML"
                                hx-trigger="change"
-                               hx-vals='{"range":"date"}'
+                               hx-vals='js:{range:"date", date: document.getElementById("pickDate").value}'
                                autocomplete="off"
                                hx-on="
                                    change: sessionStorage.setItem('reservationDate', this.value);
@@ -115,127 +115,31 @@
 
         </div>
 
-        <div class="mk-row">
-            <div class="mk-size">2호</div>
+
+        <div th:each="size : ${cakeSizes}" class="mk-row">
+            <div class="mk-size" th:text="${size + '호'}"></div>
 
             <div class="mk-flavors">
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-ganache" aria-hidden="true"></span>
-                    <span class="mk-name">가나슈</span>
-                    <span class="mk-qty">3</span>
-                </div>
+                <div class="mk-flavor"
+                     th:each="e : ${flavorCss.entrySet()}"
+                     th:with="name=${e.key}, css=${e.value}">
 
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-moka" aria-hidden="true"></span>
-                    <span class="mk-name">모카</span>
-                    <span class="mk-qty">1</span>
-                </div>
 
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-vanilla" aria-hidden="true"></span>
-                    <span class="mk-name">바닐라</span>
-                    <span class="mk-qty">2</span>
-                </div>
+                <span class="mk-chip"
+                      th:classappend="${css}"
+                      aria-hidden="true"></span>
 
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-lemon" aria-hidden="true"></span>
-                    <span class="mk-name">레몬</span>
-                    <span class="mk-qty">4</span>
-                </div>
+                    <span class="mk-name" th:text="${name}"></span>
 
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-strawberry" aria-hidden="true"></span>
-                    <span class="mk-name">딸기</span>
-                    <span class="mk-qty">5</span>
-                </div>
+                    <span class="mk-qty"
+                          th:text="${toMakeMap != null and toMakeMap.get(size) != null and toMakeMap.get(size).get(name) != null
+               ? toMakeMap.get(size).get(name)
+               : 0}">
+</span>
 
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-choco-strawberry" aria-hidden="true"></span>
-                    <span class="mk-name">초코딸기</span>
-                    <span class="mk-qty">1</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-tiramisu" aria-hidden="true"></span>
-                    <span class="mk-name">티라미슈</span>
-                    <span class="mk-qty">2</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-basque" aria-hidden="true"></span>
-                    <span class="mk-name">바스크</span>
-                    <span class="mk-qty">1</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-custom" aria-hidden="true"></span>
-                    <span class="mk-name">커스텀</span>
-                    <span class="mk-qty">0</span>
                 </div>
             </div>
         </div>
-
-
-        <div class="mk-row">
-            <div class="mk-size">1호</div>
-
-            <div class="mk-flavors">
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-ganache" aria-hidden="true"></span>
-                    <span class="mk-name">가나슈</span>
-                    <span class="mk-qty">3</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-moka" aria-hidden="true"></span>
-                    <span class="mk-name">모카</span>
-                    <span class="mk-qty">1</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-vanilla" aria-hidden="true"></span>
-                    <span class="mk-name">바닐라</span>
-                    <span class="mk-qty">2</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-lemon" aria-hidden="true"></span>
-                    <span class="mk-name">레몬</span>
-                    <span class="mk-qty">4</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-strawberry" aria-hidden="true"></span>
-                    <span class="mk-name">딸기</span>
-                    <span class="mk-qty">5</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-choco-strawberry" aria-hidden="true"></span>
-                    <span class="mk-name">초코딸기</span>
-                    <span class="mk-qty">1</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-tiramisu" aria-hidden="true"></span>
-                    <span class="mk-name">티라미슈</span>
-                    <span class="mk-qty">2</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-basque" aria-hidden="true"></span>
-                    <span class="mk-name">바스크</span>
-                    <span class="mk-qty">1</span>
-                </div>
-
-                <div class="mk-flavor">
-                    <span class="mk-chip mk-custom" aria-hidden="true"></span>
-                    <span class="mk-name">커스텀</span>
-                    <span class="mk-qty">0</span>
-                </div>
-            </div>
-        </div>
-
 
 
 
@@ -377,13 +281,12 @@
                 </button>
             </div>
             <!-- ✅ 오늘(scope == 'today')일 때만 인쇄 버튼 보이기 -->
-            <div th:if="${range == 'today'}"
-                 class="list-print-actions"
-                 style="display:flex; justify-content:flex-end; margin: 8px 0;">
+            <div th:if="${range == 'today' or range == 'date'}"
+                 class="list-print-actions">
                 <button type="button"
                         class="chip"
-                        onclick="window.open('/reservations/print', '_blank')">
-                    오늘 케이크 리스트 인쇄
+                        th:onclick="|window.open('@{/reservations/print(range=${range}, date=${date})}', '_blank')|">
+                    <span th:text="${range == 'today' ? '오늘 케이크 리스트 인쇄' : '선택일 케이크 리스트 인쇄'}"></span>
                 </button>
             </div>
         </div>

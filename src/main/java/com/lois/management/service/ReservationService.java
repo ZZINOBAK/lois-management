@@ -8,6 +8,7 @@ import com.lois.management.dto.reservation.ReservationSummaryRes;
 import com.lois.management.dto.reservation.ReservationUpdateReq;
 import com.lois.management.mapper.ReservationMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +16,13 @@ import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ReservationService {
     private final ReservationMapper reservationMapper;
@@ -29,24 +33,19 @@ public class ReservationService {
     }
 
     public void createOnSite(Reservation reservation) {
-        // 1️⃣ 날짜 / 시간 (현장판매 → 서버 기준)
-        if (reservation.getResDate() == null) {
-            reservation.setResDate(LocalDate.now());
-        }
+        // NOT NULL 필드 채우기
+        if (reservation.getResDate() == null) reservation.setResDate(LocalDate.now());
+        if (reservation.getResTime() == null) reservation.setResTime(LocalTime.now().withSecond(0).withNano(0));
 
-        if (reservation.getResTime() == null) {
-            reservation.setResTime(LocalTime.now());
-        }
+        // ✅ 핵심: 보정 row는 '추가 제작 필요'
+        reservation.setPickupStatus("WAITING");
+        reservation.setMakeStatus("RESERVED");
 
-        // 2️⃣ 연락처 (현장판매 기본값)
-        if (reservation.getContact() == null || reservation.getContact().isBlank()) {
-            reservation.setContact("010-0000-0000");
-        }
+        // ✅ 화면에서 숨길 표식
+        reservation.setContact("ON_SITE");
 
-        // 3️⃣ 결제 여부 (현장판매는 즉시 결제)
-        if (reservation.getPaid() == null) {
-            reservation.setPaid(true); // 또는 true (컬럼 타입에 맞게)
-        }
+        // paid 0/1 (원하는 기본값)
+        reservation.setPaid(true);
 
         reservationMapper.insertOnSite(reservation);
     }
@@ -223,4 +222,47 @@ public class ReservationService {
         return reservationMapper.findByDateAndPickupStatusWaiting(date);
 
     }
+
+    public Map<Integer, Map<String, Integer>> calcToMakeBySizeAndFlavor(List<Reservation> reservations) {
+
+        Map<Integer, Map<String, Integer>> result = new HashMap<>();
+
+        for (Reservation r : reservations) {
+            if (r.getCakeFlavor() == null) continue;
+
+            // WAITING만 집계 대상으로
+            if (r.getPickupStatus() == null || !"WAITING".equals(r.getPickupStatus())) {
+                continue;
+            }
+
+            int size = r.getCakeSize();
+            String flavor = r.getCakeFlavor();
+
+            // size map 준비
+            result.computeIfAbsent(size, k -> new HashMap<>());
+            Map<String, Integer> flavorMap = result.get(size);
+
+            // 기본 +1
+            flavorMap.put(flavor, flavorMap.getOrDefault(flavor, 0) + 1);
+
+            // READY면 -1
+            if (r.getMakeStatus() != null && "READY".equals(r.getMakeStatus())) {
+                flavorMap.put(flavor, flavorMap.getOrDefault(flavor, 0) - 1);
+            }
+        }
+
+        // 음수 방지(원하면)
+        for (Map<String, Integer> m : result.values()) {
+            for (Map.Entry<String, Integer> e : m.entrySet()) {
+                if (e.getValue() < 0) e.setValue(0);
+            }
+        }
+        log.info("계산한값: {}", result);
+        return result;
+    }
+
+    public List<Reservation> findTodayForToMakeCalc() {
+        return reservationMapper.findTodayForToMakeCalc();
+    }
+
 }

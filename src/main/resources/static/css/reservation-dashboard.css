@@ -149,3 +149,9 @@
 .mk-tiramisu {
   background: linear-gradient(90deg, #6f4e37 0 50%, #fff0c2 50% 100%);
 }
+
+.list-print-actions {
+    display: flex;
+    justify-content: flex-end; /* ⭐ 오른쪽 정렬 고정 */
+    margin: 8px 0;
+}
