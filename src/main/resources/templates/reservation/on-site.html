@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>on-site</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/reservation-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/on-site.css}">
+
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+</head>
+<body>
+
+<div class="wrap">
+    <!-- 공통 헤더 -->
+    <header th:replace="~{fragments/header :: site-header}"></header>
+
+    <!-- 이 페이지 내용 -->
+    <main>
+        <form th:action="@{/reservations/on-site}" method="post" class="step-form">
+
+            <!-- =========================
+                 1) 케이크 선택
+            ========================== -->
+            <div class="section-head">
+                <h2 class="title">케이크 선택</h2>
+            </div>
+
+            <div class="grid cake-grid">
+                <label class="option" th:each="c : ${cakes}">
+                    <input type="radio" name="cakeId" th:value="${c.id}" required />
+                    <div class="card">
+                        <div class="card__title" th:text="${c.flavor}">딸기 생크림</div>
+                    </div>
+                </label>
+            </div>
+
+
+            <!-- =========================
+                 2) 호수 선택
+            ========================== -->
+            <div class="section-head" style="margin-top: 18px;">
+                <h2 class="title">호수 선택</h2>
+            </div>
+
+            <div class="grid size-grid">
+                <label class="option">
+                    <input type="radio" name="cakeSize" value="1" required />
+                    <div class="card"><div class="card__title">1호</div></div>
+                </label>
+                <label class="option">
+                    <input type="radio" name="cakeSize" value="2" />
+                    <div class="card"><div class="card__title">2호</div></div>
+                </label>
+                <!-- 필요하면 4호/미니 등 추가 -->
+            </div>
+
+
+            <!-- =========================
+                 3) 메모
+            ========================== -->
+            <div class="section-head" style="margin-top: 18px;">
+                <h2 class="title">메모</h2>
+            </div>
+
+            <div class="note-box">
+                <textarea name="note" rows="4"
+                          placeholder="예) 초 5개, 문구: 생일축하해, 픽업 전 전화 부탁"
+                          class="note-input"></textarea>
+            </div>
+
+
+            <!-- =========================
+                 4) 완료 버튼
+            ========================== -->
+            <div class="actions">
+                <button type="submit" class="btn primary">완료</button>
+            </div>
+
+        </form>
+
+    </main>
+
+    <!-- 공통 푸터 -->
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+</div>
+
+</body>
+</html>

@@ -14,19 +14,23 @@
           grid-template-columns: 1fr auto;
           align-items: start;
           gap: 16px;
+              margin-bottom: 10px;
+
         }
+
 
         .section-title {
           font-size: 24px;
           font-weight: 700;
-          margin: 6px 0 10px;
+          margin: 0 0 0px 0;
           color: var(--ink);
         }
+
+
 
         .filters {
           display: flex;
           gap: 10px;
-          margin-bottom: 16px;
         }
 
         .chip {
@@ -48,11 +52,11 @@
 
         /* 예약하기 버튼 (크게 확대) */
         .cta {
-          align-self: start;
+          align-self: end;
           display: flex;
           align-items: center;
           justify-content: center;
-          height: 75px;
+          height: 40px;
           padding: 0 40px;
           background: var(--surface);
           border: none;
@@ -103,7 +107,7 @@
           display: grid;
           grid-template-columns:
               25px
-                                          90px
+                                          91px
                                           45px
                                           95px
                                           30px
@@ -257,8 +261,9 @@
 
 .actions-right {
     display: flex;
-    align-items: center;
-    gap: 12px;
+  flex-direction: column;   /* 🔥 세로 2행 */
+  align-items: flex-end;    /* 오른쪽 정렬 유지 */
+      gap: 12px;
 }
 
 /* 샘플 버튼: 작고 조용한 스타일 */
@@ -284,7 +289,6 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-bottom: 8px;
     font-size: 0.85rem;
     color: #666;
 }
@@ -315,6 +319,9 @@
             justify-content: space-between;
             align-items: center;
             gap: 1.5rem;
+                border-top: 1px solid #e5e7eb;
+                padding-top: 8px;
+                margin-top: 12px;
         }
 
    /* 폼 자체 – 기본 margin 없애서 위아래 간격만 내가 조절 */
@@ -322,6 +329,9 @@
        display: flex;
        align-items: center;
        gap: 0.75rem;
+       justify-content: flex-end;
+           margin-top: 5px;
+
    }
 
    /* 라벨 */
@@ -369,4 +379,26 @@
 
    .phone-search-btn:hover {
        background: #f5f5f5;
+   }
+
+
+   .list-header.grid-2x2{
+     display: grid;
+     grid-template-columns: 1fr auto;   /* 왼쪽 넓게, 오른쪽 필요한 만큼 */
+     grid-template-rows: auto auto;     /* 위/아래 2행 */
+     gap: 10px 16px;
+     align-items: start;
+   }
+
+   /* 오른쪽 칸들은 오른쪽 정렬 */
+   .list-header.grid-2x2 .tr,
+   .list-header.grid-2x2 .br{
+     justify-self: end;
+   }
+
+   /* 제목 기본 마진 제거 권장 */
+   .section-title{
+    margin-left: 5px;
+        margin-top: 7px;
+
    }

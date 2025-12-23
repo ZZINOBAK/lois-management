@@ -51,6 +51,45 @@
         ORDER BY r.res_date ASC, r.res_time ASC
     </select>
 
+    <select id="findTodayByPickupStatusWaiting" resultType="Reservation">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.res_date ASC, r.res_time ASC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.pickup_status = 'WAITING'
+        AND r.res_date = CURRENT_DATE()
+        ORDER BY r.res_date ASC, r.res_time ASC
+    </select>
+
+    <select id="findFromTodayByPickupStatusWaiting" resultType="Reservation">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.res_date ASC, r.res_time ASC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.pickup_status = 'WAITING'
+        AND r.res_date >= CURRENT_DATE()
+        ORDER BY r.res_date ASC, r.res_time ASC
+    </select>
+
+    <select id="findByDateAndPickupStatusWaiting"
+            parameterType="java.time.LocalDate"
+            resultType="Reservation">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.res_date ASC, r.res_time ASC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.pickup_status = 'WAITING'
+        AND r.res_date = #{date}
+        ORDER BY r.res_date ASC, r.res_time ASC
+    </select>
+
+
     <select id="sortByPickUpTime" resultType="Reservation">
         SELECT id, res_date, res_time, cake_id, cake_size, contact
         FROM reservations
@@ -102,6 +141,39 @@
         ORDER BY r.res_time ASC
     </select>
 
+    <select id="findTodayOrderByCreatedAtDesc" resultType="Reservation">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.created_at DESC, r.id DESC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.res_date = CURDATE()
+        ORDER BY r.created_at DESC, r.id DESC
+    </select>
+
+    <select id="findFromTodayOrderByCreatedAtDesc" resultType="Reservation">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.created_at DESC, r.id DESC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.res_date >= CURDATE()
+        ORDER BY r.created_at DESC, r.id DESC
+    </select>
+
+    <select id="findByDateOrderByCreatedAtDesc" parameterType="java.time.LocalDate" resultType="Reservation">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY r.created_at DESC, r.id DESC) AS rowNumber,
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.res_date = #{date}
+        ORDER BY r.created_at DESC, r.id DESC
+    </select>
+
     <select id="existsExactSameReservation" parameterType="Reservation" resultType="boolean">
         SELECT COUNT(*)
         FROM reservations
@@ -118,8 +190,13 @@
     </select>
 
     <insert id="insert" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO reservations (res_date, res_time, cake_id, contact, paid)
-        VALUES (#{resDate}, #{resTime}, #{cakeId}, #{contact}, #{paid})
+        INSERT INTO reservations (res_date, res_time, cake_id, contact, paid, note)
+        VALUES (#{resDate}, #{resTime}, #{cakeId}, #{contact}, #{paid}, #{note})
+    </insert>
+
+    <insert id="insertOnSite" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reservations (res_date, res_time, cake_id, cake_size, contact, paid, note)
+        VALUES (#{resDate}, #{resTime}, #{cakeId}, #{cakeSize}, #{contact}, #{paid}, #{note})
     </insert>
 
     <update id="updateApi" parameterType="com.lois.management.domain.Reservation"> <!-- ✅ id=update -->
@@ -141,6 +218,7 @@
         <set>
             <if test="reservation.resDate != null">res_date = #{reservation.resDate},</if>
             <if test="reservation.resTime != null">res_time = #{reservation.resTime},</if>
+            <if test="reservation.cakeSize != null">cake_size = #{reservation.cakeSize},</if>
             <if test="reservation.contact != null">contact = #{reservation.contact},</if>
             <if test="reservation.paid != null">paid = #{reservation.paid},</if>
             <if test="reservation.note != null">note = #{reservation.note},</if>

@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,82 +35,79 @@ public class ReservationController {
 
     @GetMapping //케이크 예약 버튼
     public String showDashboard(Model model) {
-        // 1) TRACE - 가장 상세한 내부 동작 (개발 중 흐름 확인용)
-        log.trace("대시보드 조회 시작 - 내부 흐름(trace)");
-
-        // 2) DEBUG - 디버깅용 상세 정보 (개발 단계에서 자주 사용)
-        log.debug("컨트롤러 진입 - showDashboard 호출됨(debug)");
-
-        // 3) INFO - 정상적인 '사건' 기록 (실제 운영 환경에서 남기는 로그)
         log.info("[GET /reservations] 예약 대시보드 조회 요청 받음(info)");
 
         List<Reservation> reservations = findAll();
-        // 4) DEBUG - 비즈니스 결과에 대한 상세 정보
-        log.debug("예약 조회 결과 size={}, firstItem={}, resDate={}",
-                reservations.size(),
-                reservations.isEmpty() ? "empty" : reservations.get(0).getId(),
-                reservations.get(0).getResDate());
+        log.debug("예약 조회 결과 size={}", reservations.size());
 
-        // 5) WARN - 위험하거나 예상 못한 상황 (예: 데이터 없음)
         if (reservations.isEmpty()) {
             log.warn("예약 데이터가 0개입니다. 화면이 비어있을 수 있습니다.(warn)");
         }
-        // 6) ERROR - 실제 오류 또는 치명적 문제
+
         try {
             model.addAttribute("reservations", reservations);
         } catch (Exception e) {
             log.error("모델에 데이터 추가 중 오류 발생(error). reservations={}", reservations, e);
             throw e; // 오류 재발생
         }
-
-        // ✅ 오늘 날짜 추가
+        // 오늘 날짜 추가
         model.addAttribute("today", LocalDate.now());
-
-
-        if (true) {   // 강제 WARN
-            log.warn("⚠ 테스트 WARN 로그입니다. (실제 오류 아님)");
-        }
-
-//        try {
-//            throw new RuntimeException("테스트 ERROR 발생");
-//        } catch (Exception e) {
-//            log.error("❌ 테스트 ERROR 로그입니다.", e);
-//        }
-//        model.addAttribute("reservations", reservations);
-        return "reservation/dashboard";
+        return "reservation/reservation-dashboard";
     }
 
-    @GetMapping("/sort") //픽업 시간 순으로 정렬
-    public String sortByPickUpTime(@RequestParam(name = "scope", defaultValue = "all") String scope,
+    @GetMapping("/list") // 필터 조회
+    public String sortByPickUpTime(@RequestParam(name = "range", defaultValue = "all") String range,
+                                   @RequestParam(name = "sort", required = false) String sort,
                                    @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                    Model model) {
 
-        List<Reservation> reservations;
+        List<Reservation> reservations = new ArrayList<>();
 
-        if ("today".equals(scope)) {
-            // 오늘 날짜 + 시간 순 정렬
-            reservations = reservationService.findTodayOrderByPickUpTime();
-        } else if ("byDate".equalsIgnoreCase(scope) && date != null) {
-            // ✅ 특정 날짜 예약 + 시간 오름차순
-            reservations = reservationService.findByDateOrderByPickUpTime(date);
+        // 1) sort 기본값 (없으면 null)
+        String s = (sort == null) ? "" : sort.trim().toLowerCase();
 
-        } else if ("fromToday".equals(scope)){
-            // 전체 + 시간 순 정렬 / 오늘부터 전체조회
-            reservations = reservationService.findFromTodayOrderByPickUpTime();
-        } else {
-            reservations = reservationService.findAll();
+        // 2) sort + range 조합 처리
+        switch (s) {
+            case "created-at": // 등록순(예: 최신등록순)
+                if ("today".equals(range)) {
+                    reservations = reservationService.findTodayOrderByCreatedAtDesc();
+                } else if ("from-today".equals(range)) {
+                    reservations = reservationService.findFromTodayOrderByCreatedAtDesc();
+                } else if ("date".equals(range) && date != null) {
+                    reservations = reservationService.findByDateOrderByCreatedAtDesc(date);
+                }
+                break;
+
+            case "waiting": // pickupStatus=WAITING만
+                if ("today".equals(range)) {
+                    reservations = reservationService.findTodayByPickupStatusWaiting();
+                } else {
+                    reservations = reservationService.findByPickupStatus("WAITING");
+                }
+                break;
+
+            default:
+                // sort 없거나 알 수 없는 값: 범위만 적용 (기본 정렬은 서비스에서 결정)
+                if ("today".equals(range)) {
+                    // 오늘 날짜 + 시간 순 정렬
+                    reservations = reservationService.findTodayOrderByPickUpTime();
+                } else if ("from-today".equals(range)) {
+                    // 전체 + 시간 순 정렬 / 오늘부터 전체조회
+                    reservations = reservationService.findFromTodayOrderByPickUpTime();
+                } else if ("date".equals(range) && date != null) {
+                    // 특정 날짜 예약 + 시간 오름차순
+                    reservations = reservationService.findByDateOrderByPickUpTime(date);
+                } else {
+                    reservations = reservationService.findAll();
+                }
         }
 
         model.addAttribute("reservations", reservations);
-
-        // ✅ showDashboard랑 똑같이 today도 내려주기
         model.addAttribute("today", LocalDate.now());
+        model.addAttribute("range", range);
 
-        // 🔥 이 한 줄 추가 (중요)
-        model.addAttribute("scope", scope);
-
-        // 🔥 list fragment만 리턴 (대시보드 템플릿의 th:fragment="list")
-        return "reservation/dashboard :: list";
+        // list fragment만 리턴 (대시보드 템플릿의 th:fragment="list")
+        return "reservation/reservation-dashboard :: list";
     }
 
     public List<Reservation> findAll() { //케이크 예약 전체 조회
@@ -133,7 +131,7 @@ public class ReservationController {
         model.addAttribute("today", LocalDate.now());
 
         // 🔥 list fragment만 리턴 (대시보드 템플릿의 th:fragment="list")
-        return "reservation/dashboard :: list";
+        return "reservation/reservation-dashboard :: list";
     }
 
     @GetMapping("/filter")
@@ -142,7 +140,7 @@ public class ReservationController {
         List<Reservation> reservations = reservationService.findByPickupStatus(pickupStatus);
         model.addAttribute("reservations", reservations);
         model.addAttribute("today", LocalDate.now());
-        return "reservation/dashboard :: list";
+        return "reservation/reservation-dashboard :: list";
     }
 
     @GetMapping("/print")
@@ -300,6 +298,12 @@ public class ReservationController {
         reservationService.create(reservation);
     }
 
+    @PostMapping("/on-site") //케이크 예약 DB 생성
+    public String createOnSite(Reservation reservation) {
+        reservationService.createOnSite(reservation);
+        return "redirect:/reservations";
+    }
+
     @PostMapping("/sample") //케이크 예약 임의 DB 생성
     public String createSampleReservation() {
 
@@ -340,7 +344,7 @@ public class ReservationController {
     @PatchMapping("/{id}") //케이크 예약(id) 수정 DB 업데이트
     public String update(@PathVariable("id") Long id, @ModelAttribute Reservation reservation) {
         reservationService.update(id, reservation);
-        return "redirect:/reservations";
+        return "redirect:/reservations#row-" + id;
     }
 
     @PatchMapping("/{id}/pickup-toggle") // 픽업 상태 토글
@@ -350,7 +354,7 @@ public class ReservationController {
         model.addAttribute("r", updated);
 
         // ✅ 픽업 버튼 fragment만 반환
-        return "reservation/dashboard :: pickupButton(r=${r})";
+        return "reservation/reservation-dashboard :: pickupButton(r=${r})";
     }
 
     @PatchMapping("/{id}/make-toggle") // 제작 상태 토글
@@ -360,14 +364,21 @@ public class ReservationController {
         model.addAttribute("r", updated);
 
         // ✅ 맛/제작 버튼 fragment만 반환
-        return "reservation/dashboard :: makeButton(r=${r})";
+        return "reservation/reservation-dashboard :: makeButton(r=${r})";
     }
 
     @DeleteMapping("/{id}") //케이크 예약(id) 삭제 DB 업데이트
     public String delete(@PathVariable("id") Long id, Model model) {
         reservationService.delete(id);
         model.addAttribute("reservations", reservationService.findAll());
-        return "reservation/dashboard :: list"; // 리스트 fragment만 반환
+        return "reservation/reservation-dashboard :: list"; // 리스트 fragment만 반환
     }
 
+    @GetMapping("/on-site") // 현장 판매
+    public String onSite(Model model) {
+        List<Cake> cakes = findAllCakeFlavor();
+        model.addAttribute("cakes", cakes);
+        model.addAttribute("reserve", new Reservation());
+        return "reservation/on-site";
+    }
 }

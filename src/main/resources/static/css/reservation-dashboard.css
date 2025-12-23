@@ -1,0 +1,151 @@
+.detail-row.hidden {
+    display: none;
+}
+.detail-row {
+    padding: 10px;
+    background: #f9f9f9;
+    border-left: 4px solid #ddd;
+    margin-bottom: 10px;
+}
+
+/* 맛 버튼 */
+.flavor-btn {
+    min-width: 90px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid #dde2dd;
+    background-color: #f8f8f8;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+.flavor-btn.ready {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+/* 결제 뱃지 */
+.badge-paid {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #2f7d4a;
+    color: #fff;
+    font-size: 0.75rem;
+}
+.badge-unpaid {
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid #ccc;
+    font-size: 0.75rem;
+}
+
+.date-popover {
+  position: absolute;
+  z-index: 1000;
+  margin-top: 6px;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.1);
+}
+
+.date-popover.hidden {
+    display: none;
+}
+
+.sorts {
+  display: flex;
+  gap: 10px;
+}
+
+.sorts > button {
+  padding: 5px 10px;
+}
+
+.hidden { display: none !important; }
+
+.slot.tr {
+    display: flex;
+    gap: 8px;          /* 버튼 사이 간격 */
+    align-items: center;
+}
+
+/* ===== 행 ===== */
+.mk-row {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  align-items: center;
+
+  padding: 10px 12px;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+
+/* 2호/1호 타이틀 */
+.mk-size {
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 맛 영역: 가로 나열 */
+.mk-flavors {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 14px;
+  align-items: center;
+
+  /* 화면이 좁으면 가로 스크롤로 안전하게 */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+
+/* 맛 하나 */
+.mk-flavor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* 전용 칩 */
+.mk-chip {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0,0,0,.1);
+}
+
+/* 이름 */
+.mk-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* 수량 */
+.mk-qty {
+  font-size: 13px;
+  font-weight: 800;
+  margin-left: 2px;
+}
+
+/* ===== 맛별 색상 ===== */
+.mk-ganache { background: #6A3E2B; }
+.mk-moka { background: #8B5A2B; }
+.mk-vanilla { background: #FFF4D6; }
+.mk-lemon { background: #FFD200; }
+.mk-strawberry { background: #ff6fae; }
+.mk-basque { background: #E6C48A; }
+.mk-custom { background: #111; }
+
+/* 반반 */
+.mk-choco-strawberry {
+  background: linear-gradient(90deg, #4b2e2a 0 50%, #ff6fae 50% 100%);
+}
+
+.mk-tiramisu {
+  background: linear-gradient(90deg, #6f4e37 0 50%, #fff0c2 50% 100%);
+}

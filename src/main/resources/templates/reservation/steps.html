@@ -591,9 +591,14 @@
                           th:text="${reserve.paid} ? '결제완료' : '미결제'">미결제</span>
                 </div>
 
-                <div class="summary-label" th:if="${reserve.note}">요청사항</div>
-                <div class="summary-value summary-note"
-                     th:if="${reserve.note}" th:text="${reserve.note}"></div>
+                <!-- ✅ 메모 입력 -->
+                <div class="summary-label">메모</div>
+                    <div class="summary-value">
+                      <textarea class="input-textarea"
+                                th:field="${reserve.note}"
+                                placeholder="요청사항/메모를 입력하세요 (선택)"
+                                rows="3"></textarea>
+                </div>
             </div>
         </div>
     </form>

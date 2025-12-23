@@ -1,0 +1,54 @@
+.cake-grid {
+    display: flex;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.grid {
+    display: flex;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    justify-items: center;
+}
+
+.card {
+    width: 100%;
+    max-width: 320px;
+    height: 50px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cake-grid .card {
+    width: 100%;
+    max-width: none;
+    height: 70px;
+}
+
+/* 라벨 전체가 클릭되도록 */
+.option {
+  display: block;
+  width: 100%;
+  max-width: none;      /* index.css의 320px 제한 해제 */
+}
+
+/* 라디오 숨김 */
+.option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 선택 시 하이라이트 */
+.option input[type="radio"]:checked + .card {
+  outline: 2px solid var(--accent);
+  box-shadow: var(--hover-shadow);
+  transform: translateY(-2px);
+}

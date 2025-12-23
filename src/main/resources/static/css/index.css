@@ -29,24 +29,29 @@
    display: flex;
    align-items: center;
    justify-content: space-between;
-   margin-bottom: 30px;
    position: relative;
+   margin-bottom: 50px;
  }
 
  .logo {
    width: 200px;
    height: auto;
    display: block;
+   margin-top: 5px;
  }
 
- .header-center {
-   position: absolute;
-   left: 50%;
-   transform: translateX(-50%);
-   font-size: 16px;
-   font-weight: 500;
-   color: var(--muted);
-   letter-spacing: 1px;
+ .header-right {
+     display: flex;
+     flex-direction: column;       /* 🔥 핵심 */
+     align-items: flex-end;        /* 오른쪽 정렬 */
+     gap: 15px;
+ }
+
+ .header-title {
+     font-size: 17px;
+     font-weight: 600;
+     letter-spacing: 0.04em;
+     margin-right: 5px;
  }
 
  .nav {

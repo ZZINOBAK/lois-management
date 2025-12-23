@@ -52,4 +52,18 @@ public interface ReservationMapper {
     List<Reservation> findFromTodayOrderByPickUpTime(LocalDate now);
 
     List<Reservation> findByDateOrderByPickUpTime(LocalDate date);
+
+    List<Reservation> findTodayOrderByCreatedAtDesc();
+
+    List<Reservation> findFromTodayOrderByCreatedAtDesc();
+
+    List<Reservation> findByDateOrderByCreatedAtDesc(LocalDate date);
+
+    List<Reservation> findTodayByPickupStatusWaiting();
+
+    List<Reservation> findFromTodayByPickupStatusWaiting();
+
+    List<Reservation> findByDateAndPickupStatusWaiting(LocalDate date);
+
+    void insertOnSite(Reservation reservation);
 }

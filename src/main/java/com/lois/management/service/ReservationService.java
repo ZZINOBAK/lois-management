@@ -28,6 +28,29 @@ public class ReservationService {
         reservationMapper.insert(reservation);
     }
 
+    public void createOnSite(Reservation reservation) {
+        // 1️⃣ 날짜 / 시간 (현장판매 → 서버 기준)
+        if (reservation.getResDate() == null) {
+            reservation.setResDate(LocalDate.now());
+        }
+
+        if (reservation.getResTime() == null) {
+            reservation.setResTime(LocalTime.now());
+        }
+
+        // 2️⃣ 연락처 (현장판매 기본값)
+        if (reservation.getContact() == null || reservation.getContact().isBlank()) {
+            reservation.setContact("010-0000-0000");
+        }
+
+        // 3️⃣ 결제 여부 (현장판매는 즉시 결제)
+        if (reservation.getPaid() == null) {
+            reservation.setPaid(true); // 또는 true (컬럼 타입에 맞게)
+        }
+
+        reservationMapper.insertOnSite(reservation);
+    }
+
     public List<Reservation> findAll() {
         return reservationMapper.findAll();
     }
@@ -170,5 +193,34 @@ public class ReservationService {
 
     public List<Reservation> findByDateOrderByPickUpTime(LocalDate date) {
         return reservationMapper.findByDateOrderByPickUpTime(date);
+    }
+
+    public List<Reservation> findTodayOrderByCreatedAtDesc() {
+        return reservationMapper.findTodayOrderByCreatedAtDesc();
+    }
+
+    public List<Reservation> findFromTodayOrderByCreatedAtDesc() {
+        return reservationMapper.findFromTodayOrderByCreatedAtDesc();
+
+    }
+
+    public List<Reservation> findByDateOrderByCreatedAtDesc(LocalDate date) {
+        return reservationMapper.findByDateOrderByCreatedAtDesc(date);
+
+    }
+
+    public List<Reservation> findTodayByPickupStatusWaiting() {
+        return reservationMapper.findTodayByPickupStatusWaiting();
+
+    }
+
+    public List<Reservation> findFromTodayByPickupStatusWaiting() {
+        return reservationMapper.findFromTodayByPickupStatusWaiting();
+
+    }
+
+    public List<Reservation> findByDateAndPickupStatusWaiting(LocalDate date) {
+        return reservationMapper.findByDateAndPickupStatusWaiting(date);
+
     }
 }

@@ -21,12 +21,12 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
             font-size: 20px;             /* ⭐ 글씨 크게 */
-            line-height: 1.8;            /* ⭐ 행 간격 넉넉하게 */
+                line-height: 1.5;
         }
 
         .title {
             text-align: center;
-            font-size: 26px;              /* 타이틀 크게 */
+            font-size: 20px;              /* 타이틀 크게 */
             font-weight: 700;
             margin-bottom: 4px;
         }
@@ -60,7 +60,7 @@
 
         /* ⭐ 시간 폭 넓게 */
         .item-time {
-            width: 35mm;
+            width: 24mm;
             font-weight: 600;
         }
 
@@ -76,6 +76,36 @@
     text-align: right;
     font-weight: 600;
 }
+    .time-sep {
+    border-top: 1px dashed #000;
+    margin: 6px 0 10px;
+  }
+
+  .done {
+    text-decoration: line-through;
+    opacity: 0.75;
+  }
+
+  .done-badge {
+    display: inline-block;
+    font-weight: 800;
+    font-size: 16px;
+    margin-left: 6px;
+  }
+
+  .ampm-header {
+    font-weight: 800;
+    font-size: 20px;
+    text-align: left;
+  }
+
+  .note-row { margin-top: -4px; margin-bottom: 8px; }
+  .note-text {
+    padding-left: calc(8mm + 18mm + 2mm);
+    font-size: 18px;
+    line-height: 1.6;
+    word-break: break-word;
+  }
     </style>
 </head>
 
@@ -85,28 +115,62 @@
 <div class="date" th:text="${#temporals.format(today, 'yyyy-MM-dd')}"></div>
 <div class="divider"></div>
 
-<!-- ⭐ 연번 stat.count 추가 -->
-<div th:each="r, stat : ${reservations}" class="item-row">
+<div th:each="r, stat : ${reservations}">
 
-    <!-- 연번 -->
-    <div class="item-no" th:text="${stat.count}"></div>
-
-    <!-- ⭐ 오후/오전 한국식 시간 표현 -->
-    <div class="item-time"
-          th:text="${r.resTime != null
-        ? (r.resTime.minute == 0
-            ? #temporals.format(r.resTime, 'a h시', T(java.util.Locale).KOREAN)
-            : #temporals.format(r.resTime, 'a h시 m분', T(java.util.Locale).KOREAN))
-        : ''}">
+    <!-- ✅ 오전/오후 헤더: 섹션 시작에만 1번 -->
+    <div class="ampm-header"
+         th:if="${r.resTime != null and
+              (stat.index == 0
+               or (reservations[stat.index-1].resTime != null
+                   and reservations[stat.index-1].resTime.hour < 12 and r.resTime.hour >= 12))}"
+         th:text="${r.resTime.hour < 12 ? '오전' : '오후'}">
     </div>
 
-
-    <div class="item-flavor"
-         th:with="
-        digits=${r.contact != null ? r.contact.replaceAll('\\D','') : ''},
-        last4=${#strings.length(digits) >= 4 ? #strings.substring(digits, #strings.length(digits) - 4) : ''}"
-         th:text="${r.cakeFlavor + (last4 != '' ? ' (' + last4 + ')' : '')}">
+    <!-- ✅ 시간대(시)가 바뀔 때만 구분선: 2시대 → 3시대 → ... -->
+    <div class="time-sep"
+         th:if="${stat.index > 0
+              and reservations[stat.index-1].resTime != null
+              and r.resTime != null
+              and reservations[stat.index-1].resTime.hour != r.resTime.hour}">
     </div>
+
+    <div class="item-row">
+        <div class="item-no" th:text="${stat.count}"></div>
+
+        <div class="item-time"
+             th:text="${(stat.index > 0
+                  and reservations[stat.index-1].resTime != null
+                  and r.resTime != null
+                  and reservations[stat.index-1].resTime == r.resTime)
+            ? ''
+            : (r.resTime != null
+                  ? (r.resTime.minute == 0
+                      ? #temporals.format(r.resTime, 'h시', T(java.util.Locale).KOREAN)
+                      : #temporals.format(r.resTime, 'h시 m분', T(java.util.Locale).KOREAN))
+                  : '')}">
+        </div>
+
+        <!-- ✅ 맛만 취소선 -->
+        <div class="item-flavor"
+             th:classappend="${r.pickupStatus != null and r.pickupStatus == 'PICKED'} ? ' done' : ''"
+             th:with="
+         digits=${r.contact != null ? r.contact.replaceAll('\\D','') : ''},
+         last4=${#strings.length(digits) >= 4 ? #strings.substring(digits, #strings.length(digits) - 4) : ''},
+         label=${r.cakeFlavor + (last4 != '' ? ' (' + last4 + ')' : '')}"
+             th:text="${label}">
+        </div>
+
+    </div>
+
+    <!-- note 출력(픽업완료여도 같이 출력할지 여부는 취향) -->
+    <div class="note-row"
+         th:if="${r.note != null and !#strings.isEmpty(#strings.trim(r.note))}">
+        <div class="note-text"
+             th:classappend="${r.pickupStatus != null and r.pickupStatus == 'PICKED'} ? ' done' : ''"
+             th:text="${'→ ' + r.note}">
+        </div>
+    </div>
+
 </div>
 
 </body>

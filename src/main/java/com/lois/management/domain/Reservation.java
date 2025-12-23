@@ -19,7 +19,7 @@ public class Reservation {
     private int cakeSize;
     private int candles;
     private String contact;
-    private boolean paid;
+    private Boolean paid;
     private String makeStatus;
     private String note;
     private LocalDateTime createdAt;
