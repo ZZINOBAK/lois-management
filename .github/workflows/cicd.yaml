@@ -61,7 +61,6 @@ jobs:
             docker run -d --name lois -p 8080:8080 \
             -e TZ=Asia/Seoul \
             -v /etc/localtime:/etc/localtime:ro \
-            -v /etc/timezone:/etc/timezone:ro \
             -v /home/ec2-user/lois-logs:/app/logs \
             --env-file /home/ec2-user/lois.env \
             ghcr.io/zzinobak/lois-management:latest
