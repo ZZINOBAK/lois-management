@@ -40,13 +40,14 @@ public class ReservationController {
     @GetMapping //케이크 예약 버튼
     public String showDashboard(Model model) {
         log.info("[GET /reservations] 예약 대시보드 조회 요청 받음(info)");
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         List<Reservation> reservations = findAll();
         log.debug("예약 조회 결과 size={}", reservations.size());
 
         // ✅ 집계용: 무조건 오늘
         List<Reservation> todayReservations =
-                reservationService.findTodayForToMakeCalc();
+                reservationService.findTodayForToMakeCalc(today);
 
         Map<Integer, Map<String, Integer>> toMakeMap =
                 reservationService.calcToMakeBySizeAndFlavor(todayReservations);
@@ -144,7 +145,7 @@ public class ReservationController {
 
         // ✅ 집계는 무조건 오늘
         List<Reservation> todayReservations =
-                reservationService.findTodayForToMakeCalc();
+                reservationService.findTodayForToMakeCalc(today);
 
         Map<Integer, Map<String, Integer>> toMakeMap =
                 reservationService.calcToMakeBySizeAndFlavor(todayReservations);

@@ -36,7 +36,7 @@ public interface ReservationMapper {
 
     void sortByPickUpTime();
 
-    List<Reservation> findTodayOrderByPickUpTime(LocalDate today);
+    List<Reservation> findTodayOrderByPickUpTime(LocalDate date);
 
     List<Reservation> findAllOrderByPickUpTime();
 
@@ -53,7 +53,7 @@ public interface ReservationMapper {
 
     List<Reservation> findByDateOrderByPickUpTime(LocalDate date);
 
-    List<Reservation> findTodayOrderByCreatedAtDesc(LocalDate today);
+    List<Reservation> findTodayOrderByCreatedAtDesc(LocalDate date);
 
     List<Reservation> findFromTodayOrderByCreatedAtDesc();
 
@@ -67,6 +67,6 @@ public interface ReservationMapper {
 
     void insertOnSite(Reservation reservation);
 
-    List<Reservation> findTodayForToMakeCalc();
+    List<Reservation> findTodayForToMakeCalc(LocalDate date);
     List<Reservation> findByDateForToMakeCalc(LocalDate date);
 }

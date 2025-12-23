@@ -261,8 +261,8 @@ public class ReservationService {
         return result;
     }
 
-    public List<Reservation> findTodayForToMakeCalc() {
-        return reservationMapper.findTodayForToMakeCalc();
+    public List<Reservation> findTodayForToMakeCalc(LocalDate today) {
+        return reservationMapper.findTodayForToMakeCalc(today);
     }
 
 }

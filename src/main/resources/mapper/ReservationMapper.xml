@@ -135,7 +135,7 @@
         c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
-        WHERE r.res_date = CURRENT_DATE()
+        WHERE r.res_date = #{date}
     </select>
 
     <select id="findByDateOrderByPickUpTime"
