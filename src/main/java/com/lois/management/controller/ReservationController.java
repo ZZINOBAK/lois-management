@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -91,6 +92,7 @@ public class ReservationController {
                                    Model model) {
 
         List<Reservation> reservations = new ArrayList<>();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         // 1) sort 기본값 (없으면 null)
         String s = (sort == null) ? "" : sort.trim().toLowerCase();
@@ -99,7 +101,7 @@ public class ReservationController {
         switch (s) {
             case "created-at": // 등록순(예: 최신등록순)
                 if ("today".equals(range)) {
-                    reservations = reservationService.findTodayOrderByCreatedAtDesc();
+                    reservations = reservationService.findTodayOrderByCreatedAtDesc(today);
                 } else if ("from-today".equals(range)) {
                     reservations = reservationService.findFromTodayOrderByCreatedAtDesc();
                 } else if ("date".equals(range) && date != null) {
@@ -109,7 +111,7 @@ public class ReservationController {
 
             case "waiting": // pickupStatus=WAITING만
                 if ("today".equals(range)) {
-                    reservations = reservationService.findTodayByPickupStatusWaiting();
+                    reservations = reservationService.findTodayByPickupStatusWaiting(today);
                 } else {
                     reservations = reservationService.findByPickupStatus("WAITING");
                 }
@@ -119,7 +121,7 @@ public class ReservationController {
                 // sort 없거나 알 수 없는 값: 범위만 적용 (기본 정렬은 서비스에서 결정)
                 if ("today".equals(range)) {
                     // 오늘 날짜 + 시간 순 정렬
-                    reservations = reservationService.findTodayOrderByPickUpTime();
+                    reservations = reservationService.findTodayOrderByPickUpTime(today);
                 } else if ("from-today".equals(range)) {
                     // 전체 + 시간 순 정렬 / 오늘부터 전체조회
                     reservations = reservationService.findFromTodayOrderByPickUpTime();

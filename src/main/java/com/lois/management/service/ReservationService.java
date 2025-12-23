@@ -104,8 +104,8 @@ public class ReservationService {
         reservationMapper.sortByPickUpTime();
     }
 
-    public List<Reservation> findTodayOrderByPickUpTime() {
-        return reservationMapper.findTodayOrderByPickUpTime();
+    public List<Reservation> findTodayOrderByPickUpTime(LocalDate today) {
+        return reservationMapper.findTodayOrderByPickUpTime(today);
     }
 
     public List<Reservation> findFromTodayOrderByPickUpTime() {
@@ -194,8 +194,8 @@ public class ReservationService {
         return reservationMapper.findByDateOrderByPickUpTime(date);
     }
 
-    public List<Reservation> findTodayOrderByCreatedAtDesc() {
-        return reservationMapper.findTodayOrderByCreatedAtDesc();
+    public List<Reservation> findTodayOrderByCreatedAtDesc(LocalDate today) {
+        return reservationMapper.findTodayOrderByCreatedAtDesc(today);
     }
 
     public List<Reservation> findFromTodayOrderByCreatedAtDesc() {
@@ -208,8 +208,8 @@ public class ReservationService {
 
     }
 
-    public List<Reservation> findTodayByPickupStatusWaiting() {
-        return reservationMapper.findTodayByPickupStatusWaiting();
+    public List<Reservation> findTodayByPickupStatusWaiting(LocalDate date) {
+        return reservationMapper.findTodayByPickupStatusWaiting(date);
 
     }
 

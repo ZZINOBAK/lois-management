@@ -59,7 +59,7 @@
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
         WHERE r.pickup_status = 'WAITING'
-        AND r.res_date = CURRENT_DATE()
+        AND r.res_date = #{date}
         ORDER BY r.res_date ASC, r.res_time ASC
     </select>
 
@@ -103,7 +103,7 @@
         c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
-        WHERE r.res_date = CURRENT_DATE()
+        WHERE r.res_date = #{date}
         AND (r.contact IS NULL OR r.contact != 'ON_SITE')
         ORDER BY r.res_time ASC
     </select>
@@ -160,7 +160,7 @@
         c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
-        WHERE r.res_date = CURDATE()
+        WHERE r.res_date = #{date}
         ORDER BY r.created_at DESC, r.id DESC
     </select>
 
