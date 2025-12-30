@@ -48,9 +48,11 @@ public class ReservationController {
         // ✅ 집계용: 무조건 오늘
         List<Reservation> todayReservations =
                 reservationService.findTodayForToMakeCalc(today);
+        log.info("todayReservations: {}", todayReservations);
 
         Map<Integer, Map<String, Integer>> toMakeMap =
-                reservationService.calcToMakeBySizeAndFlavor(todayReservations);
+                reservationService.calcToMakeBySizeAndFlavor(todayReservations,today);
+        log.info("toMakeMap: {}", toMakeMap);
 
 
 
@@ -148,7 +150,7 @@ public class ReservationController {
                 reservationService.findTodayForToMakeCalc(today);
 
         Map<Integer, Map<String, Integer>> toMakeMap =
-                reservationService.calcToMakeBySizeAndFlavor(todayReservations);
+                reservationService.calcToMakeBySizeAndFlavor(todayReservations, today);
 
         model.addAttribute("cakeSizes", List.of(2, 1));
         // ✅ 한글 맛 -> CSS 클래스 매핑 (색 유지용)

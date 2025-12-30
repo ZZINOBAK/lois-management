@@ -153,6 +153,18 @@
         ORDER BY r.res_time ASC
     </select>
 
+    <select id="countTodayOnSiteBySizeAndFlavor" resultType="map">
+        SELECT
+        r.cake_size AS cakeSize,
+        c.flavor    AS cakeFlavor,
+        COUNT(*)    AS cnt
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.res_date = #{date}
+        AND r.contact = 'ON_SITE'
+        GROUP BY r.cake_size, c.flavor
+    </select>
+
     <select id="findTodayOrderByCreatedAtDesc" resultType="Reservation">
         SELECT
         ROW_NUMBER() OVER (ORDER BY r.created_at DESC, r.id DESC) AS rowNumber,
@@ -207,8 +219,8 @@
     </insert>
 
     <insert id="insertOnSite" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO reservations (res_date, res_time, cake_id, cake_size, contact, paid, note)
-        VALUES (#{resDate}, #{resTime}, #{cakeId}, #{cakeSize}, #{contact}, #{paid}, #{note})
+        INSERT INTO reservations (res_date, res_time, cake_id, cake_size, make_status, contact, paid, pickup_status, note)
+        VALUES (#{resDate}, #{resTime}, #{cakeId}, #{cakeSize}, #{makeStatus}, #{contact}, #{paid}, #{pickupStatus}, #{note})
     </insert>
 
     <update id="updateApi" parameterType="com.lois.management.domain.Reservation"> <!-- ✅ id=update -->

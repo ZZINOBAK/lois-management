@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface ReservationMapper {
@@ -69,4 +70,7 @@ public interface ReservationMapper {
 
     List<Reservation> findTodayForToMakeCalc(LocalDate date);
     List<Reservation> findByDateForToMakeCalc(LocalDate date);
+
+    List<Map<String, Object>> countTodayOnSiteBySizeAndFlavor(LocalDate date);
+
 }

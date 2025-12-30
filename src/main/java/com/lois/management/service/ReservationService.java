@@ -33,19 +33,22 @@ public class ReservationService {
     }
 
     public void createOnSite(Reservation reservation) {
-        // NOT NULL 필드 채우기
-        if (reservation.getResDate() == null) reservation.setResDate(LocalDate.now());
-        if (reservation.getResTime() == null) reservation.setResTime(LocalTime.now().withSecond(0).withNano(0));
 
-        // ✅ 핵심: 보정 row는 '추가 제작 필요'
-        reservation.setPickupStatus("WAITING");
-        reservation.setMakeStatus("RESERVED");
+        // 날짜/시간은 서버에서 강제
+        reservation.setResDate(LocalDate.now());
+        reservation.setResTime(LocalTime.now().withSecond(0).withNano(0));
 
-        // ✅ 화면에서 숨길 표식
+        // ✅ 현장판매는 이미 나간 케이크
+        reservation.setPickupStatus("PICKED");   // 더 이상 WAITING 아님
+        reservation.setMakeStatus("READY");      // 이미 만들어진 케이크
+
+        // ✅ 현장판매 식별자
         reservation.setContact("ON_SITE");
 
-        // paid 0/1 (원하는 기본값)
+        // 결제 완료
         reservation.setPaid(true);
+
+        log.info("reservation = {}", reservation);
 
         reservationMapper.insertOnSite(reservation);
     }
@@ -223,7 +226,7 @@ public class ReservationService {
 
     }
 
-    public Map<Integer, Map<String, Integer>> calcToMakeBySizeAndFlavor(List<Reservation> reservations) {
+    public Map<Integer, Map<String, Integer>> calcToMakeBySizeAndFlavor(List<Reservation> reservations, LocalDate date) {
 
         Map<Integer, Map<String, Integer>> result = new HashMap<>();
 
@@ -234,31 +237,47 @@ public class ReservationService {
             if (r.getPickupStatus() == null || !"WAITING".equals(r.getPickupStatus())) {
                 continue;
             }
+            if ("ON_SITE".equals(r.getContact())) continue;   // ★ 추가
 
             int size = r.getCakeSize();
             String flavor = r.getCakeFlavor();
 
-            // size map 준비
             result.computeIfAbsent(size, k -> new HashMap<>());
             Map<String, Integer> flavorMap = result.get(size);
 
-            // 기본 +1
-            flavorMap.put(flavor, flavorMap.getOrDefault(flavor, 0) + 1);
+            int v = flavorMap.getOrDefault(flavor, 0);
+            v += 1;
+            if ("READY".equals(r.getMakeStatus())) v -= 1;
+            if (v < 0) v = 0;
 
-            // READY면 -1
-            if (r.getMakeStatus() != null && "READY".equals(r.getMakeStatus())) {
-                flavorMap.put(flavor, flavorMap.getOrDefault(flavor, 0) - 1);
-            }
+            flavorMap.put(flavor, v);
         }
 
-        // 음수 방지(원하면)
-        for (Map<String, Integer> m : result.values()) {
-            for (Map.Entry<String, Integer> e : m.entrySet()) {
-                if (e.getValue() < 0) e.setValue(0);
-            }
+        // 2) ON_SITE 수량은 +로 더한다 (핵심)
+        List<Map<String, Object>> rows = reservationMapper.countTodayOnSiteBySizeAndFlavor(date);
+        for (Map<String, Object> row : rows) {
+            Integer size = toInt(row.get("cakeSize"));
+            String flavor = (String) row.get("cakeFlavor");
+            Integer cnt = toInt(row.get("cnt"));
+
+            if (size == null || flavor == null || cnt == null) continue;
+
+            result.computeIfAbsent(size, k -> new HashMap<>());
+            Map<String, Integer> flavorMap = result.get(size);
+            flavorMap.put(flavor, flavorMap.getOrDefault(flavor, 0) + cnt);
         }
+
         log.info("계산한값: {}", result);
         return result;
+    }
+
+    private Integer toInt(Object o) {
+        if (o == null) return null;
+        if (o instanceof Integer i) return i;
+        if (o instanceof Long l) return l.intValue();
+        if (o instanceof java.math.BigDecimal bd) return bd.intValue();
+        if (o instanceof String s) return Integer.parseInt(s);
+        return null;
     }
 
     public List<Reservation> findTodayForToMakeCalc(LocalDate today) {
