@@ -1,6 +1,7 @@
 package com.lois.management.mapper;
 
 import com.lois.management.domain.Cake;
+import com.lois.management.domain.CakeMovement;
 import com.lois.management.domain.Reservation;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -72,5 +73,8 @@ public interface ReservationMapper {
     List<Reservation> findByDateForToMakeCalc(LocalDate date);
 
     List<Map<String, Object>> countTodayOnSiteBySizeAndFlavor(LocalDate date);
+
+    //CakeMovement
+    List<Reservation> countDemandByDate(@Param("today") LocalDate today);
 
 }

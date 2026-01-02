@@ -29,4 +29,8 @@ public class Reservation {
 
     private String cakeFlavor;
     private int rowNumber;
+
+
+    //DemandCountRow
+    private Integer cnt;   // demand or stock
 }

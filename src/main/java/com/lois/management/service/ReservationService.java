@@ -284,4 +284,11 @@ public class ReservationService {
         return reservationMapper.findTodayForToMakeCalc(today);
     }
 
+    public List<Reservation> countDemandByDate(LocalDate today) {
+        return reservationMapper.countDemandByDate(today);
+    }
+
+    public void updatePickupStatus(Long reservationId, String picked, LocalDateTime now) {
+        reservationMapper.updatePickupStatus(reservationId, picked, now);
+    }
 }

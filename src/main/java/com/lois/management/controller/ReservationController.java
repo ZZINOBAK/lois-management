@@ -5,7 +5,9 @@ import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.lois.management.domain.Cake;
+import com.lois.management.domain.CakeMovement;
 import com.lois.management.domain.Reservation;
+import com.lois.management.service.CakeMovementService;
 import com.lois.management.service.CakeService;
 import com.lois.management.service.ReservationService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,50 +37,37 @@ import java.util.Map;
 @Slf4j
 public class ReservationController {
     private final ReservationService reservationService;
+    private final CakeMovementService cakeMovementService;
     private final CakeService cakeService;
 
     @GetMapping //케이크 예약 버튼
     public String showDashboard(Model model) {
-        log.info("[GET /reservations] 예약 대시보드 조회 요청 받음(info)");
+        log.info("[GET /reservations] 예약 대시보드 조회 요청");
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         List<Reservation> reservations = findAll();
-        log.debug("예약 조회 결과 size={}", reservations.size());
+        log.info("예약 조회 결과 size={}", reservations.size());
+
+        List<Cake> flavors = cakeService.findFlavorsForDashboard();
+
 
         // ✅ 집계용: 무조건 오늘
-        List<Reservation> todayReservations =
-                reservationService.findTodayForToMakeCalc(today);
-        log.info("todayReservations: {}", todayReservations);
+        Map<Integer, Map<Long, Integer>> toMakeMap =
+                cakeMovementService.calcToMakeMap(today);
 
-        Map<Integer, Map<String, Integer>> toMakeMap =
-                reservationService.calcToMakeBySizeAndFlavor(todayReservations,today);
-        log.info("toMakeMap: {}", toMakeMap);
-
-
-
-        if (reservations.isEmpty()) {
-            log.warn("예약 데이터가 0개입니다. 화면이 비어있을 수 있습니다.(warn)");
-        }
+        // ✅ 재고(현재 제작된 수량)도 같이 내려주기
+        Map<Integer, Map<Long, Integer>> stockMap =
+                cakeMovementService.calcStockMap(today);
 
         try {
             model.addAttribute("reservations", reservations);
-            model.addAttribute("cakeSizes", List.of(2, 1));
-            // ✅ 한글 맛 -> CSS 클래스 매핑 (색 유지용)
-            Map<String, String> flavorCss = new LinkedHashMap<>();
-            flavorCss.put("가나슈", "mk-ganache");
-            flavorCss.put("모카", "mk-moka");
-            flavorCss.put("바닐라", "mk-vanilla");
-            flavorCss.put("레몬", "mk-lemon");
-            flavorCss.put("딸기", "mk-strawberry");
-            flavorCss.put("초코딸기", "mk-choco-strawberry");
-            flavorCss.put("티라미슈", "mk-tiramisu");
-            flavorCss.put("바스크", "mk-basque");
-            flavorCss.put("커스텀", "mk-custom");
+            model.addAttribute("cakeSizes", List.of(1, 2));
 
-            model.addAttribute("flavorCss", flavorCss);
-// ✅ 화면 출력 순서도 여기서 고정 (DB 순서랑 달라져도 안전)
-            model.addAttribute("flavors", new ArrayList<>(flavorCss.keySet()));
+            model.addAttribute("flavors", flavors);
+
             model.addAttribute("toMakeMap", toMakeMap);
+            model.addAttribute("stockMap", stockMap);
+
         } catch (Exception e) {
             log.error("모델에 데이터 추가 중 오류 발생(error). reservations={}", reservations, e);
             throw e; // 오류 재발생
@@ -143,32 +132,23 @@ public class ReservationController {
             targetDate = date;
         }
 
+        List<Cake> flavors = cakeService.findFlavorsForDashboard();
+
+        // ✅ 집계용: 무조건 오늘
+        Map<Integer, Map<Long, Integer>> toMakeMap =
+                cakeMovementService.calcToMakeMap(today);
+
+        // ✅ 재고(현재 제작된 수량)도 같이 내려주기
+        Map<Integer, Map<Long, Integer>> stockMap =
+                cakeMovementService.calcStockMap(today);
+
         model.addAttribute("reservations", reservations);
-
-        // ✅ 집계는 무조건 오늘
-        List<Reservation> todayReservations =
-                reservationService.findTodayForToMakeCalc(today);
-
-        Map<Integer, Map<String, Integer>> toMakeMap =
-                reservationService.calcToMakeBySizeAndFlavor(todayReservations, today);
-
         model.addAttribute("cakeSizes", List.of(2, 1));
-        // ✅ 한글 맛 -> CSS 클래스 매핑 (색 유지용)
-        Map<String, String> flavorCss = new LinkedHashMap<>();
-        flavorCss.put("가나슈", "mk-ganache");
-        flavorCss.put("모카", "mk-moka");
-        flavorCss.put("바닐라", "mk-vanilla");
-        flavorCss.put("레몬", "mk-lemon");
-        flavorCss.put("딸기", "mk-strawberry");
-        flavorCss.put("초코딸기", "mk-choco-strawberry");
-        flavorCss.put("티라미슈", "mk-tiramisu");
-        flavorCss.put("바스크", "mk-basque");
-        flavorCss.put("커스텀", "mk-custom");
 
-        model.addAttribute("flavorCss", flavorCss);
-// ✅ 화면 출력 순서도 여기서 고정 (DB 순서랑 달라져도 안전)
-        model.addAttribute("flavors", new ArrayList<>(flavorCss.keySet()));
+        model.addAttribute("flavors", flavors);
+
         model.addAttribute("toMakeMap", toMakeMap);
+        model.addAttribute("stockMap", stockMap);
 
         model.addAttribute("today", LocalDate.now());
         model.addAttribute("range", range);
@@ -447,7 +427,13 @@ public class ReservationController {
 
     @PatchMapping("/{id}/pickup-toggle") // 픽업 상태 토글
     public String togglePickup(@PathVariable("id") Long id, Model model) {
-        reservationService.togglePickupStatus(id);
+//        reservationService.togglePickupStatus(id);
+
+        String requestId = "PICK-" + System.currentTimeMillis();
+//        cakeMovementService.pickupReservation(id, requestId);
+        cakeMovementService.togglePickupReservation(id, requestId);
+
+
         Reservation updated = reservationService.findById(id);
         model.addAttribute("r", updated);
 

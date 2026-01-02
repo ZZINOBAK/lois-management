@@ -72,49 +72,60 @@
 
 /* ===== 행 ===== */
 .mk-row {
-  display: grid;
-  grid-template-columns: 60px 1fr;
-  align-items: center;
+  display: flex;             /* 기존 grid 해제 */
+    flex-direction: column;
+    gap: 10px;
 
-  padding: 10px 12px;
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  background: #fff;
+    padding: 12px 12px;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    background: #fff;
+    margin-bottom: 0;
 }
 
 /* 2호/1호 타이틀 */
 .mk-size {
-  font-size: 15px;
-  font-weight: 700;
-  text-align: center;
+   font-size: 15px;
+    font-weight: 800;
+    text-align: left;
+
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.04);
+    display: inline-block;
+    width: fit-content;
 }
 
 /* 맛 영역: 가로 나열 */
 .mk-flavors {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 14px;
-  align-items: center;
+  display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    align-items: stretch;
 
-  /* 화면이 좁으면 가로 스크롤로 안전하게 */
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 2px;
+    /* 기존 가로 스크롤 제거 */
+    overflow: visible;
+    padding-bottom: 0;
 }
 
 /* 맛 하나 */
 .mk-flavor {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
+     flex-direction: column;
+     gap: 6px;
+     white-space: normal;
+
+     padding: 10px 5px;
+     border: 1px solid #eee;
+     border-radius: 12px;
+     background: #fafafa;
 }
 
 /* 전용 칩 */
 .mk-chip {
   width: 12px;
   height: 12px;
+      margin-left: 5px;
   border-radius: 3px;
   border: 1px solid rgba(0,0,0,.1);
 }
@@ -154,4 +165,91 @@
     display: flex;
     justify-content: flex-end; /* ⭐ 오른쪽 정렬 고정 */
     margin: 8px 0;
+}
+
+.plan-card {
+  margin: 12px 0 16px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.plan-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.plan-card__title {
+  font-weight: 700;
+}
+
+.plan-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.75;
+  font-size: 13px;
+}
+
+.plan-card__body {
+  padding: 10px 12px 12px;
+}
+
+.plan-card__chevron {
+  font-size: 14px;
+}
+
+.hidden { display: none !important; }
+
+/* 상단: 칩 + 맛이름 */
+.mk-flavor .mk-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+
+.mk-values { display: flex;
+               gap: 8px;
+               align-items: center;
+               flex-wrap: wrap; }
+.mk-badge { padding:4px 8px; border-radius:999px; font-size:12px; background: rgba(0,0,0,0.05); }
+.mk-badge b { font-size:13px; }
+.mk-need { }
+.mk-stock { }
+
+
+/* ✅ 1호/2호를 좌우 2칼럼으로 */
+.mk-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+/* 좁은 화면에서는 세로로 */
+@media (max-width: 900px){
+  .mk-grid{ grid-template-columns: 1fr; }
+}
+
+
+
+
+
+/* 1행: 칩 + 이름을 가로로 */
+.mk-flavor-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 2행: 필요 / 재고를 가로로 */
+.mk-values {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }

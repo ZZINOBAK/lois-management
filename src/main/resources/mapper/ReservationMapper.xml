@@ -271,4 +271,17 @@
         WHERE id = #{id}
     </delete>
 
+<!--    CakeMovement-->
+    <select id="countDemandByDate" resultType="Reservation">
+        SELECT
+        r.cake_size AS cakeSize,
+        r.cake_id   AS cakeId,
+        COUNT(*)    AS cnt
+        FROM reservations r
+        WHERE r.res_date = #{today}
+        AND r.pickup_status = 'WAITING'
+        GROUP BY r.cake_size, r.cake_id
+    </select>
+
+
 </mapper>

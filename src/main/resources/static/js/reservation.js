@@ -79,3 +79,31 @@ document.body.addEventListener('htmx:configRequest', (e) => {
       }
     }
 });
+
+
+function togglePlanCard() {
+  const body = document.getElementById("planCardBody");
+  const chevron = document.getElementById("planCardChevron");
+  if (!body) return;
+
+  body.classList.toggle("hidden");
+
+  // 화살표 방향만 바꾸기(선택)
+  if (chevron) {
+    chevron.textContent = body.classList.contains("hidden") ? "▸" : "▾";
+  }
+
+  // 접힘 상태 저장(선택)
+  sessionStorage.setItem("planCardHidden", body.classList.contains("hidden") ? "1" : "0");
+}
+
+// 페이지 로드 시 접힘 상태 복원(선택)
+document.addEventListener("DOMContentLoaded", () => {
+  const body = document.getElementById("planCardBody");
+  const chevron = document.getElementById("planCardChevron");
+  if (!body) return;
+
+  const hidden = sessionStorage.getItem("planCardHidden") === "1";
+  if (hidden) body.classList.add("hidden");
+  if (chevron) chevron.textContent = hidden ? "▸" : "▾";
+});

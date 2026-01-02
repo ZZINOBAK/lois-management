@@ -10,4 +10,17 @@
         ORDER BY id
     </select>
 
+    <select id="findAllIdFlavor" resultType="Cake">
+        SELECT id, flavor
+        FROM cakes
+    </select>
+
+    <select id="findFlavorsForDashboard" resultType="Cake">
+        SELECT flavor_code AS code,
+        flavor      AS name
+        FROM cakes
+        WHERE flavor_code IS NOT NULL
+        ORDER BY MIN(id)
+    </select>
+
 </mapper>
