@@ -35,6 +35,7 @@ lois:
       - /js
       - /images
       - /access-request
+      - /actuator/health
 
 management:
   endpoints:

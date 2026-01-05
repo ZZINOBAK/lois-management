@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/public/**", "/api/health").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
                         .anyRequest().hasAnyRole("ADMIN", "STAFF")
                 )
 
@@ -90,7 +90,8 @@ public class SecurityConfig {
                                 "/favicon.ico",
                                 "/css/**", "/js/**", "/images/**",
                                 "/login",
-                                "/auth/after-login"
+                                "/auth/after-login",
+                                "/actuator/health"
                         ).permitAll()
                         .requestMatchers("/api/**").denyAll()   // ✅ 이거 한 줄 추가
 
