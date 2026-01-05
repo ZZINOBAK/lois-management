@@ -6,6 +6,8 @@ import com.lois.management.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +29,14 @@ public class ReservationController {
 
     @GetMapping //케이크 예약 버튼
     public String showDashboard(Model model) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        log.info("[PAGE] authType={} name={} isAuthenticated={}",
+                auth.getClass().getSimpleName(),
+                auth.getName(),
+                auth.isAuthenticated());
+
         // 1) TRACE - 가장 상세한 내부 동작 (개발 중 흐름 확인용)
         log.trace("대시보드 조회 시작 - 내부 흐름(trace)");
 

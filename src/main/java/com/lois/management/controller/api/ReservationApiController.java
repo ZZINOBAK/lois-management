@@ -10,16 +10,21 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/api/reservations")
+@Slf4j
 @RequiredArgsConstructor
 @Tag(name = "Reservation API", description = "케이크 예약 CRUD")
 public class ReservationApiController {
@@ -63,6 +68,13 @@ public class ReservationApiController {
 
     @PatchMapping("/{id}/pickup-toggle") // 픽업 상태 토글
     public String togglePickup(@PathVariable("id") Long id, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        log.info("[API] authType={} name={} authorities={}",
+                auth.getClass().getSimpleName(),
+                auth.getName(),
+                auth.getAuthorities());
+
         reservationService.togglePickupStatus(id);
         Reservation updated = reservationService.findById(id);
         model.addAttribute("r", updated);

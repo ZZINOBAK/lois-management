@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,12 @@ public class AuthController {
 
     @GetMapping("/after-login")
     public String afterLogin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("AUTH = " + auth);
+        System.out.println("AUTHORITIES = " + auth.getAuthorities());
+
         return "auth/after-login"; // templates/auth/after-login.html
     }
+
+
 }

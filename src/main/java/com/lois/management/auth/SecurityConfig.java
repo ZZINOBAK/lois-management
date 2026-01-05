@@ -25,84 +25,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final EmployeeUserDetailsService employeeUserDetailsService;
-    private final LoginSuccessHandler loginSuccessHandler; // 🔥 추가
+    private final LoginSuccessHandler loginSuccessHandler;
 
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-//    @Bean
-//    public SecurityFilterChain securityFilterChainUserDetails(HttpSecurity http) throws Exception {
-//        http
-//// ✅ CSRF 설정
-//                .csrf(csrf -> csrf
-//                        .ignoringRequestMatchers("/api/**") // 🔥 API만 CSRF 제외
-//                )
-//                .authorizeHttpRequests(auth -> auth
-//                        // ✅ 공개
-//                        .requestMatchers(
-//                                "/", "/public/**",
-//                                "/favicon.ico",
-//                                "/css/**", "/js/**", "/images/**",
-//                                "/login"
-//                        ).permitAll()
-//
-//                        // ✅ 나머지는 공개로 둘지/보호할지 정책 결정
-//                        .anyRequest().authenticated()   // <-- 여기 중요
-//                )
-//                .userDetailsService(employeeUserDetailsService)
-//                .formLogin(form -> form
-//                        .loginPage("/login")          // 로그인 페이지 컨트롤러에서 반환
-//                        .loginProcessingUrl("/login") // 폼 action
-//                        .defaultSuccessUrl("/", true)  // 항상 /로
-////                        .successHandler(loginSuccessHandler)
-//                        .failureHandler((req, res, ex) -> {
-//                            System.out.println("LOGIN FAIL ex=" + ex.getClass().getName() + " msg=" + ex.getMessage());
-//                            res.sendRedirect("/login?error");
-//                        })
-//                        .permitAll()
-//                )
-//                .logout(logout -> logout
-//                        .logoutUrl("/logout")
-//                        .logoutSuccessUrl("/login?logout")
-//                )
-//                .httpBasic(basic -> basic.disable());
-//
-//        AuthenticationEntryPoint defaultEntryPoint = new LoginUrlAuthenticationEntryPoint("/login");
-//        AccessDeniedHandler defaultDenied = new AccessDeniedHandlerImpl();
-//
-//                http.exceptionHandling(e -> e
-//                        .authenticationEntryPoint((request, response, authException) -> {
-//                            if (request.getRequestURI().startsWith("/api/")) {
-//                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
-//                                response.setContentType("application/json;charset=UTF-8");
-//                                response.getWriter().write("{\"message\":\"LOGIN_REQUIRED\"}");
-//                            }
-//
-//                            defaultEntryPoint.commence(request, response, authException); // ✅ 기본 동작에 위임
-//                        })
-//
-//                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-//                            if (request.getRequestURI().startsWith("/api/")) {
-//                                response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
-//                                response.setContentType("application/json;charset=UTF-8");
-//                                response.getWriter().write("{\"message\":\"FORBIDDEN\"}");
-//                            }
-//
-//                            defaultDenied.handle(request, response, accessDeniedException); // ✅ 기본 동작에 위임
-//
-//                        })
-//
-//
-//                );
-//
-//        // 🔑 세션 로그인 필터(UsernamePasswordAuthenticationFilter) 앞에 JWT 필터 추가
-//        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-//
-//        return http.build();
-//    }
 
     @Bean
     @Order(1) //API 전용 체인 만들기 (JWT-only)
@@ -116,12 +45,11 @@ public class SecurityConfig {
                 // ✅ 세션 사용 금지(세션이 와도 무시)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // ✅ 인증 규칙: API는 기본적으로 인증 필요
                 .authorizeHttpRequests(auth -> auth
-                        // 토큰 발급 엔드포인트가 세션 기반이라면 여기서 permitAll 하지 말고,
-                        // 세션으로만 호출 가능한 별도 처리(아래 참고) 필요
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/public/**", "/api/health").permitAll()
+                        .anyRequest().hasAnyRole("ADMIN", "STAFF")
                 )
+
 
                 // ✅ JWT 필터는 API 체인에만 적용
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -162,10 +90,18 @@ public class SecurityConfig {
                                 "/favicon.ico",
                                 "/css/**", "/js/**", "/images/**",
                                 "/login",
-                                "/auth/after-login" // ✅ 추가
+                                "/auth/after-login"
                         ).permitAll()
+                        .requestMatchers("/api/**").denyAll()   // ✅ 이거 한 줄 추가
+
+                        // ✅ 관리자 전용
+                        .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**")
+                        .hasAnyRole("ADMIN", "STAFF")
+
+
                         .anyRequest().authenticated()
                 )
+
 
                 .userDetailsService(employeeUserDetailsService)
 

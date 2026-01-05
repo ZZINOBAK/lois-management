@@ -78,7 +78,7 @@ public class AuthApiController {
 
         String token = jwtTokenProvider.createToken(username, role);
 
-        log.info("!!!토큰 생성 완료!! {}", token);
+        log.info("!!!토큰 생성 완료!!");
         session.setAttribute("LOIS_ACCESS_TOKEN", token);
         return ResponseEntity.ok(Map.of("accessToken", token));
     }
