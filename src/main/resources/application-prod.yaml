@@ -44,3 +44,13 @@ management:
   endpoint:
     health:
       show-details: never     # 상태만 UP/DOWN 보이게
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 900000
+  prefix: Bearer
+
+server:
+  servlet:
+    session:
+      timeout: 60m

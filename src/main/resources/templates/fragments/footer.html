@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <body>
 <footer th:fragment="site-footer" class="footer">
+
+    <button type="button" th:onclick="|location.href='@{/public}'|">
+        로이스 구경하기
+    </button>
+
     © Lois by Auntie Jin
 </footer>
+
 
 </body>
 </html>

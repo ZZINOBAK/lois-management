@@ -218,7 +218,7 @@
                         <div class="pickup-cell">
                             <div class="pickup-cell">
                                 <!-- 📦 픽업 상태 버튼 -->
-                                <button th:replace="~{reservation/reservation-dashboard :: pickupButton(r=${r})}"></button>
+                                <button th:replace="~{reservation/dashboard :: pickupButton(r=${r})}"></button>
                             </div>
                         </div>
                         <div class="actions">
@@ -260,7 +260,7 @@
                         th:text="${r.cakeFlavor}"
                         th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"
                         th:attr="
-                                hx-patch=@{/reservations/{id}/make-toggle(id=${r.id})},
+                                hx-patch=@{/api/reservations/{id}/make-toggle(id=${r.id})},
                                 hx-confirm='제조상태를 변경할까요?'
                                 "
                         hx-swap="outerHTML">
@@ -273,7 +273,7 @@
                         th:fragment="pickupButton(r)"
                         class="btn pickup-btn"
                         th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked-btn' : ''"
-                        th:attr="hx-patch=@{/reservations/{id}/pickup-toggle(id=${r.id})},
+                        th:attr="hx-patch=@{/api/reservations/{id}/pickup-toggle(id=${r.id})},
                                 hx-confirm='픽업상태를 변경할까요?'
                               "
                         hx-swap="outerHTML">

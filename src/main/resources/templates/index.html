@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Lois Management</title>
 
-    <link rel="stylesheet" th:href="@{/css/common.css}">
+<head th:replace="~{fragments/head :: commonHead('Lois Management',
+        ~{::pageHead})}">
+</head>
+<th:block th:fragment="pageHead">
     <link rel="stylesheet" th:href="@{/css/index.css}">
 
-    <!-- ✅ 준비중 알림 함수 -->
-    <script>
-        function showPreparing() {
-          alert("준비 중입니다.");
-        }
-    </script>
-</head>
+    <style>
+        /* page-only style */
+    </style>
 
+    <script>
+        /* page-only script */
+    </script>
+</th:block>
 <body>
 
 <div class="wrap">

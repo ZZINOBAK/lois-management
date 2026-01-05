@@ -19,4 +19,8 @@ public class EmployeeService {
     public List<Employee> findAll() {
         return employeeMapper.findAll();
     }
+
+    public Employee findByEmployeeName(String employeeName) {
+        return employeeMapper.findByEmployeeName(employeeName);
+    }
 }

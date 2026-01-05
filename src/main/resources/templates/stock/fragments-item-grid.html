@@ -19,7 +19,7 @@
 
     <!-- 🔥 1) 인기 TOP 8 -->
     <form th:each="item : ${top8Items}"
-          hx-post="/stock-requests"
+          hx-post="/api/stock-requests"
           hx-swap="none">
         <input type="hidden" name="itemId" th:value="${item.id}"/>
 
@@ -33,7 +33,7 @@
 
     <!-- 🔤 2) 나머지 가나다순 -->
     <form th:each="item : ${itemsExceptTop8}"
-          hx-post="/stock-requests"
+          hx-post="/api/stock-requests"
           hx-swap="none">
         <input type="hidden" name="itemId" th:value="${item.id}"/>
 

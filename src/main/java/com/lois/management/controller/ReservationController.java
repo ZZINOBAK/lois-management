@@ -12,6 +12,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -41,6 +43,13 @@ public class ReservationController {
     public String showDashboard(Model model) {
         log.info("[GET /reservations] 예약 대시보드 조회 요청 받음(info)");
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        log.info("[PAGE] authType={} name={} isAuthenticated={}",
+                auth.getClass().getSimpleName(),
+                auth.getName(),
+                auth.isAuthenticated());
 
         List<Reservation> reservations = findAll();
         log.debug("예약 조회 결과 size={}", reservations.size());
