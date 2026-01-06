@@ -55,7 +55,7 @@ class ReservationsServiceTest {
         assertThat(saved.getResDate()).isEqualTo(LocalDate.parse("2025-11-20"));
         assertThat(saved.getResTime()).isEqualTo(LocalTime.parse("15:30"));
         assertThat(saved.getContact()).isEqualTo("010-1234-5678");
-        assertThat(saved.isPaid()).isTrue();
+        assertThat(saved.getPaid()).isTrue();
     }
 
 }

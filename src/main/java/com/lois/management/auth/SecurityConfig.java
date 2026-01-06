@@ -1,5 +1,6 @@
 package com.lois.management.auth;
 
+import com.lois.management.config.filter.IpWhitelistFilter;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final IpWhitelistFilter ipWhitelistFilter;
     private final EmployeeUserDetailsService employeeUserDetailsService;
     private final LoginSuccessHandler loginSuccessHandler;
 
@@ -91,7 +93,8 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/images/**",
                                 "/login",
                                 "/auth/after-login",
-                                "/actuator/health"
+                                "/actuator/health",
+                                "/access-request/**"
                         ).permitAll()
                         .requestMatchers("/api/**").denyAll()   // ✅ 이거 한 줄 추가
 
@@ -129,7 +132,10 @@ public class SecurityConfig {
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((req, res, ex) -> defaultEntryPoint.commence(req, res, ex))
                         .accessDeniedHandler((req, res, ex) -> defaultDenied.handle(req, res, ex))
-                );
+                )
+
+                .addFilterBefore(ipWhitelistFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }

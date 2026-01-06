@@ -6,11 +6,13 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 public class IpWhitelistFilter extends OncePerRequestFilter {
     private final IpWhitelistProperties properties;
     private final IpAccessService ipAccessService;
@@ -62,6 +64,7 @@ public class IpWhitelistFilter extends OncePerRequestFilter {
 
     private boolean isPublicPath(HttpServletRequest request) {
         String uri = request.getRequestURI();
+
         List<String> publicPaths = properties.getPublicPaths();
 
         if (publicPaths == null) {
