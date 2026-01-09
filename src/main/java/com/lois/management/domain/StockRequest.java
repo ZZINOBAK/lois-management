@@ -17,5 +17,6 @@ public class StockRequest {
     private LocalDateTime updatedAt;
 
     private String itemName;
+    private String categoryName;
     private Long daysSinceRequest;
 }

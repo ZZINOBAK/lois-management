@@ -28,4 +28,5 @@ public interface StockRequestMapper {
     //D : 삭제하기
     void delete(Long id);
 
+    List<StockRequest> findAllForPrint();
 }

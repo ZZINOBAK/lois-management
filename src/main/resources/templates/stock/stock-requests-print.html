@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>stock-requests-print</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+
+    <style>
+    @media print {
+    @page {
+    size: 80mm auto;
+    margin: 5mm 3mm;
+    }
+    html, body {
+    width: 80mm;
+    margin: 0;
+    padding: 0;
+    }
+    .actions { display: none !important; }
+    }
+
+    body {
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-size: 20px;
+    line-height: 1.5;
+    }
+
+    .title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    }
+
+    .date {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+    }
+
+    .divider {
+    border-top: 1px dashed #000;
+    margin: 8px 0 12px;
+    }
+
+    .item-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+    }
+
+    .item-no {
+    width: 8mm;
+    text-align: left;
+    font-weight: 600;
+    }
+
+    /* 품목명은 최대한 넓게 */
+    .item-name {
+    flex: 1;
+    font-weight: 700;
+    word-break: break-word;
+    }
+
+    /* 요청 경과일(오른쪽) */
+    .item-days {
+    width: 18mm;
+    text-align: right;
+    font-weight: 700;
+    white-space: nowrap;
+    }
+
+    .sub-row {
+    margin-top: -6px;
+    margin-bottom: 10px;
+    }
+
+    .sub-text {
+    padding-left: 8mm; /* 번호 칸만큼 들여쓰기 */
+    font-size: 18px;
+    line-height: 1.6;
+    word-break: break-word;
+    }
+
+    .badge {
+    display: inline-block;
+    font-weight: 900;
+    font-size: 16px;
+    margin-left: 6px;
+    }
+
+    .sent { }
+    .unsent { opacity: 0.85; }
+
+    @media print {
+    .print-bottom-space {
+    height: 20mm;
+    }
+    }
+
+        .receipt-category{
+  font-weight: 900;
+  font-size: 20px;
+  margin: 10px 0 6px;
+}
+
+                .title {
+            text-align: center;
+            font-size: 20px;              /* 타이틀 크게 */
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+                .date {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 8px 0 12px;
+        }
+    </style>
+
+</head>
+<body onload="window.print()">
+
+    <div class="title">재고 부족 리스트</div>
+    <div class="date" th:text="${#temporals.format(printedAt, 'yyyy-MM-dd HH:mm')}"></div>
+    <div class="divider"></div>
+
+
+
+    <div th:if="${stockRequests == null || #lists.isEmpty(stockRequests)}">
+        <div class="receipt-row">
+            <div class="receipt-name">요청 없음</div>
+        </div>
+    </div>
+
+    <div th:each="req, stat : ${stockRequests}">
+
+        <!-- ✅ 카테고리 헤더: 첫 항목이거나, 이전 항목과 카테고리가 다를 때만 출력 -->
+        <div class="receipt-category"
+             th:if="${stat.index == 0
+                  or stockRequests[stat.index-1].categoryName != req.categoryName}"
+             th:text="${'[' + req.categoryName + ']'}">
+            [베이킹]
+        </div>
+
+        <div class="receipt-row">
+            <div class="receipt-name"
+                 th:text="${'- ' + req.itemName}">
+                - 박스(대)
+            </div>
+        </div>
+
+    </div>
+
+
+
+</body>
+</html>
