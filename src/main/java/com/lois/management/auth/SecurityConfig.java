@@ -94,12 +94,13 @@ public class SecurityConfig {
                                 "/login",
                                 "/auth/after-login",
                                 "/actuator/health",
-                                "/access-request/**"
+                                "/access-request/**",
+                                "/error", "/error/**"
                         ).permitAll()
                         .requestMatchers("/api/**").denyAll()   // ✅ 이거 한 줄 추가
 
                         // ✅ 관리자 전용
-                        .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**")
+                        .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**", "/items/**")
                         .hasAnyRole("ADMIN", "STAFF")
 
 

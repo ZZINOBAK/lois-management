@@ -52,3 +52,10 @@ server:
   servlet:
     session:
       timeout: 60m
+
+solapi:
+  api:
+    key: ${SOLAPI_API_KEY}
+    secret: ${SOLAPI_API_SECRET}
+    sender-number: ${SOLAPI_SENDER_NUMBER}
+    recipient-number: ${SOLAPI_RECIPIENT_NUMBER}
