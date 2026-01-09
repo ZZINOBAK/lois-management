@@ -14,6 +14,23 @@
         ORDER BY sr.id ASC;
     </select>
 
+    <select id="findAllForPrint" resultType="StockRequest">
+        SELECT
+        sr.*,
+        i.item_name     AS itemName,
+        c.category_name AS categoryName
+        FROM stock_requests sr
+        JOIN items i
+        ON sr.item_id = i.id
+        JOIN categories c
+        ON i.category_id = c.id
+        WHERE sr.status = 'requested'
+        ORDER BY
+        c.id ASC,
+        i.item_name ASC,
+        sr.id ASC;
+    </select>
+
 
     <select id="findById" parameterType="long" resultType="StockRequest">
         SELECT *

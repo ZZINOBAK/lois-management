@@ -57,4 +57,7 @@ public class StockRequestService {
     }
 
 
+    public List<StockRequest> findAllForPrint() {
+        return stockRequestMapper.findAllForPrint();
+    }
 }

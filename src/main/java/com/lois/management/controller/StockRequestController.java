@@ -12,6 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -97,5 +99,13 @@ public class StockRequestController {
         return ResponseEntity.ok()
                 .header("HX-Redirect", "/stock-requests")
                 .build();
+    }
+
+    @GetMapping("/print")
+    public String printStockRequests(Model model) {
+        List<StockRequest> requests = stockRequestService.findAllForPrint(); // 또는 findAll()
+        model.addAttribute("stockRequests", requests);
+        model.addAttribute("printedAt", LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        return "stock/stock-requests-print";
     }
 }

@@ -127,31 +127,53 @@
     </style>
 
     <script>
-        function sendStockRequestsSms() {
-            fetch("/sms/send-from-stock-requests", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    phoneNumber: "01092899657",   // ← 여기서 번호 고정
-                    text: "테스트 메시지입니다"   // 메시지 내용
-                })
-            })
-            .then(res => {
-                if (!res.ok) {               // 200~299 아니면
-                    throw new Error("서버 오류: " + res.status);
-                }
+        function sendStockRequestsSms(btn) {
+            // ✅ 버튼 부모(.request-actions)에 심어둔 count 읽기
+            const wrapper = btn.closest('.request-actions');
+            const count = Number(wrapper?.dataset?.count ?? 0);
+
+            if (count <= 0) {
+              alert("보낼 내용이 없습니다.");
+              return;
+            }
+
+            const ok = confirm(`재고 주문 요청 ${count}건을 문자로 전송하시겠습니까?`);
+            if (!ok) return;
+
+            fetch("/sms/send-from-stock-requests", { method: "POST" })
+              .then(res => {
+                if (!res.ok) throw new Error("서버 오류: " + res.status);
                 return res.json();
-            })
-            .then(data => {
+              })
+              .then(data => {
+                // 서버가 status를 내려주면 그걸 기준으로 UX 개선 가능
+                if (data.status === "SKIPPED") {
+                  alert(data.message || "보낼 내용이 없습니다.");
+                  return;
+                }
                 alert("문자 전송 완료!");
-            })
-            .catch(err => {
+              })
+              .catch(err => {
                 console.error(err);
                 alert("문자 전송 실패");
-            });
+              });
         }
+
+        function openStockRequestsPrint(btn) {
+            const wrapper = btn.closest('.request-actions');
+            const count = Number(wrapper?.dataset?.count ?? 0);
+
+            if (count <= 0) {
+              alert("프린트할 주문 요청이 없습니다.");
+              return;
+            }
+
+            const ok = confirm(`프린트 하시겠습니까?`);
+            if (!ok) return;
+
+            // 새 탭으로 프린트 전용 페이지
+            window.open("/stock-requests/print", "_blank", "noopener,noreferrer");
+          }
     </script>
 
 </head>
@@ -201,9 +223,11 @@
             </div>
 
             <!-- 문자 / 카톡 -->
-            <div class="request-actions">
+            <div class="request-actions" th:attr="data-count=${#lists.size(stockRequests)}">
                 <button class="action-button"
-                        onclick="sendStockRequestsSms()">문자</button>
+                        onclick="sendStockRequestsSms(this)">문자</button>
+                <button class="action-button" type="button"
+                        onclick="openStockRequestsPrint(this)">프린트</button>
                 <button class="action-button">카톡</button>
             </div>
         </section>
