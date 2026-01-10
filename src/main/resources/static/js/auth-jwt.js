@@ -70,6 +70,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (token) {
       evt.detail.headers["Authorization"] = "Bearer " + token;
     }
+
+    // 2) CSRF (추가)
+      const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+      if (csrfToken && csrfHeader) {
+        evt.detail.headers[csrfHeader] = csrfToken;
+      }
   });
 
   // 1-B) 요청 직전: 토큰이 없으면 발급하고 1회 재요청
