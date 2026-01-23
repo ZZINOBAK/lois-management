@@ -168,7 +168,7 @@
              th:with="
          digits=${r.contact != null ? r.contact.replaceAll('\\D','') : ''},
          last4=${#strings.length(digits) >= 4 ? #strings.substring(digits, #strings.length(digits) - 4) : ''},
-         payText=${r.paid != null and r.paid == 1 ? '결O' : '결X'},
+payText=${r.paid == true ? '결O' : '결X'},
          label=${r.cakeFlavor + (last4 != '' ? ' (' + last4 + ')' : '') +  payText }"
              th:text="${label}">
         </div>

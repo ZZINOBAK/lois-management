@@ -28,6 +28,21 @@
         WHERE r.id = #{id}
     </select>
 
+    <select id="findByCakeIdNCakeSizeToday" resultType="Reservation">
+        SELECT
+        r.*,
+        c.flavor AS cakeFlavor
+        FROM reservations r
+        JOIN cakes c ON r.cake_id = c.id
+        WHERE r.res_date = #{today}
+        AND r.pickup_status = 'WAITING'
+        AND r.make_status = 'READY'
+        AND r.cake_id = #{cakeId}
+        AND r.cake_size = #{cakeSize}
+        ORDER BY r.res_time DESC, r.id DESC
+        LIMIT 1
+    </select>
+
     <select id="findByContactSuffix" resultType="Reservation">
         SELECT
         ROW_NUMBER() OVER (ORDER BY r.id DESC) AS rowNumber,

@@ -16,10 +16,13 @@
     </select>
 
     <select id="findFlavorsForDashboard" resultType="Cake">
-        SELECT flavor_code AS code,
+        SELECT
+        MIN(id)       AS id,
+        flavor_code AS code,
         flavor      AS name
         FROM cakes
         WHERE flavor_code IS NOT NULL
+        GROUP BY flavor_code, flavor
         ORDER BY MIN(id)
     </select>
 

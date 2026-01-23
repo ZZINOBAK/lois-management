@@ -14,5 +14,10 @@ public class Cake {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    //reservation-dashboard line 140 용
+    private String name;
+    private String code;
+
+
 
 }

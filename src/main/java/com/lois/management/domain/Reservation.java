@@ -33,4 +33,8 @@ public class Reservation {
 
     //DemandCountRow
     private Integer cnt;   // demand or stock
+
+    //맛 취소선 용
+    private boolean producedUi;
+
 }

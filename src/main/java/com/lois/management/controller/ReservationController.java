@@ -21,10 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -59,6 +56,10 @@ public class ReservationController {
         Map<Integer, Map<Long, Integer>> stockMap =
                 cakeMovementService.calcStockMap(today);
 
+//        Map<Long, Boolean> markProducedUi =
+//                reservationService.markProducedUi(reservations, stockMap);
+
+
         try {
             model.addAttribute("reservations", reservations);
             model.addAttribute("cakeSizes", List.of(1, 2));
@@ -67,6 +68,9 @@ public class ReservationController {
 
             model.addAttribute("toMakeMap", toMakeMap);
             model.addAttribute("stockMap", stockMap);
+
+//            model.addAttribute("markProducedUi", markProducedUi);
+
 
         } catch (Exception e) {
             log.error("모델에 데이터 추가 중 오류 발생(error). reservations={}", reservations, e);
@@ -464,5 +468,42 @@ public class ReservationController {
         model.addAttribute("cakes", cakes);
         model.addAttribute("reserve", new Reservation());
         return "reservation/on-site";
+    }
+
+    @GetMapping("/simple-reservation") // 간단예약
+    public String simpleReservation(Model model) {
+        List<Cake> cakes = findAllCakeFlavor();
+        model.addAttribute("cakes", cakes);
+        model.addAttribute("reserve", new Reservation());
+        return "reservation/simple-reservation";
+    }
+
+    @PostMapping("/simple-reservation") // 간단예약
+    public String simpleReservationInsert(@RequestParam("cakeId") Long cakeId,
+                                          @RequestParam("cakeSize") Integer cakeSize,
+                                          @RequestParam("pickupTime") LocalTime pickupTime,
+                                                      @RequestParam("contactSuffix") String contact,
+                                          @RequestParam("paid") Boolean paid,
+                                          @RequestParam(value = "sameDay", defaultValue = "false") boolean sameDay,
+                                          @RequestParam(value = "note", required=false) String note) {
+
+        Reservation reservation = new Reservation();
+        reservation.setCakeId(cakeId);
+        reservation.setCakeSize(cakeSize);
+        reservation.setResTime(pickupTime);
+        reservation.setPaid(paid);
+        reservation.setNote(note);
+
+        reservation.setResDate(LocalDate.now());
+        if(sameDay) {
+            reservation.setContact("당일-0000-" + contact);
+        } else {
+            reservation.setContact("010-0000-" + contact);
+        }
+
+
+        create(reservation);
+
+        return "redirect:/reservations";
     }
 }

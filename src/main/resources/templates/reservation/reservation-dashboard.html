@@ -43,7 +43,7 @@
                 <a class="cta" th:href="@{/reservations/on-site}" role="button">
                     <div class="title">현장판매</div>
                 </a>
-                <a class="cta" role="button" onclick="showPreparing()">
+                <a class="cta" th:href="@{/reservations/simple-reservation}" role="button">
                     <div class="title">간단예약</div>
                 </a>
                 <a class="cta" th:href="@{/reservations/new}" role="button">
@@ -137,8 +137,8 @@
 
                         <div class="mk-flavors">
                             <div class="mk-flavor"
-                                 th:each="e : ${flavorCss.entrySet()}"
-                                 th:with="name=${e.key}, css=${e.value}">
+                                 th:each="e : ${flavors}"
+                                 th:with="cakeId=${e.id}, name=${e.name}, css=${'mk-' + e.code}">
 
                                 <div class="mk-flavor-head">
 
@@ -150,13 +150,13 @@
                                 </div>
                                 <div class="mk-values">
                                   <span class="mk-badge mk-need">
-                                    필요 <b th:text="${toMakeMap != null and toMakeMap.get(size) != null and toMakeMap.get(size).get(name) != null
-                                        ? toMakeMap.get(size).get(name) : 0}">0</b>
+                                    필요 <b th:text="${toMakeMap != null and toMakeMap.get(size) != null and toMakeMap.get(size).get(cakeId) != null
+                                        ? toMakeMap.get(size).get(cakeId) : 0}">0</b>
                                   </span>
 
                                                         <span class="mk-badge mk-stock">
-                                    재고 <b th:text="${stockMap != null and stockMap.get(size) != null and stockMap.get(size).get(name) != null
-                                        ? stockMap.get(size).get(name) : 0}">0</b>
+                                    재고 <b th:text="${stockMap != null and stockMap.get(size) != null and stockMap.get(size).get(cakeId) != null
+                                        ? stockMap.get(size).get(cakeId) : 0}">0</b>
                                   </span>
                                 </div>
 
@@ -287,10 +287,13 @@
                         class="flavor-btn ellipsis"
                         th:text="${r.cakeFlavor}"
                         th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"
-                        th:attr="
-                                hx-patch=@{/reservations/{id}/make-toggle(id=${r.id})},
-                                hx-confirm='제조상태를 변경할까요?'
-                                "
+                        th:disabled="${r.pickupStatus == 'PICKED'}"
+
+                        th:onclick="${r.pickupStatus == 'PICKED'} ? 'alert(''픽업완료건은 미제작으로 변경할 수 없습니다.''); return false;' : null"
+
+                        th:hx-patch="${r.pickupStatus == 'PICKED'} ? null : @{/cake-movements/{id}/produce-toggle(id=${r.id})}"
+                        th:hx-confirm="${r.pickupStatus == 'PICKED'} ? null : (${r.makeStatus == 'READY'} ? '미제작으로 변경할까요?' : '케이크를 만들었나요?')"
+
                         hx-swap="outerHTML">
                 </button>
 
@@ -304,6 +307,7 @@
                         th:attr="hx-patch=@{/reservations/{id}/pickup-toggle(id=${r.id})},
                                 hx-confirm='픽업상태를 변경할까요?'
                               "
+
                         hx-swap="outerHTML">
                     <span th:text="${r.pickupStatus == 'PICKED' ? '픽업완료' : '픽업예정'}"></span>
                 </button>

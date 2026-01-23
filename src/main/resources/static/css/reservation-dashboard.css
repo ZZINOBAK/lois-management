@@ -144,20 +144,20 @@
 }
 
 /* ===== 맛별 색상 ===== */
-.mk-ganache { background: #6A3E2B; }
-.mk-moka { background: #8B5A2B; }
-.mk-vanilla { background: #FFF4D6; }
-.mk-lemon { background: #FFD200; }
-.mk-strawberry { background: #ff6fae; }
-.mk-basque { background: #E6C48A; }
-.mk-custom { background: #111; }
+.mk-GANACHE { background: #6A3E2B; }
+.mk-MOKA { background: #8B5A2B; }
+.mk-VANILLA { background: #FFF4D6; }
+.mk-LEMON { background: #FFD200; }
+.mk-STRAWBERRY { background: #ff6fae; }
+.mk-BASQUE { background: #E6C48A; }
+.mk-CUSTOM { background: #111; }
 
 /* 반반 */
-.mk-choco-strawberry {
+.mk-CHOCOSTRAWBERRY {
   background: linear-gradient(90deg, #4b2e2a 0 50%, #ff6fae 50% 100%);
 }
 
-.mk-tiramisu {
+.mk-TIRAMISU {
   background: linear-gradient(90deg, #6f4e37 0 50%, #fff0c2 50% 100%);
 }
 

@@ -24,4 +24,6 @@ public interface CakeMovementMapper {
     Integer getStockByKey(@Param("bizDate") LocalDate bizDate,
                           @Param("cakeId") Long cakeId,
                           @Param("cakeSize") Integer cakeSize);
+
+    CakeMovement findById(Long id);
 }
