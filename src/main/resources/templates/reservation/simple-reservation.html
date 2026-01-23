@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>on-site</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/reservation-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/on-site.css}">
+
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const hourGrid   = document.getElementById('hour-grid');
+          const minuteGrid = document.getElementById('minute-grid');
+          const hidden     = document.getElementById('picked-time');
+
+          if (!hourGrid || !minuteGrid || !hidden) {
+            console.error('time picker elements not found', {hourGrid, minuteGrid, hidden});
+            return;
+          }
+
+          const state = { hour: null, minute: null };
+          const pad = n => String(n).padStart(2, '0');
+
+          // hours 9~21
+          for (let h = 9; h <= 21; h++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-choice';
+            btn.dataset.value = String(h);
+            btn.textContent = String(h);
+            hourGrid.appendChild(btn);
+          }
+
+          // minutes 00/30
+          [0, 30].forEach(m => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-choice';
+            btn.dataset.value = pad(m);
+            btn.textContent = pad(m);
+            minuteGrid.appendChild(btn);
+          });
+
+          function update(group, value) {
+            group.querySelectorAll('.btn-choice')
+              .forEach(b => b.classList.toggle('selected', b.dataset.value == value));
+          }
+
+          function sync() {
+            hidden.value = (state.hour !== null && state.minute !== null)
+              ? `${pad(state.hour)}:${state.minute}`
+              : '';
+          }
+
+          hourGrid.addEventListener('click', e => {
+            const btn = e.target.closest('.btn-choice');
+            if (!btn) return;
+            state.hour = btn.dataset.value;
+            update(hourGrid, state.hour);
+            sync();
+          });
+
+          minuteGrid.addEventListener('click', e => {
+            const btn = e.target.closest('.btn-choice');
+            if (!btn) return;
+            state.minute = btn.dataset.value;
+            update(minuteGrid, state.minute);
+            sync();
+          });
+        });
+    </script>
+
+
+    <style>
+    .time-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    gap: 8px;
+    }
+
+    .btn-choice {
+    padding: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #f8f8f8;
+    cursor: pointer;
+    }
+
+    .btn-choice.selected {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+    }
+    </style>
+</head>
+<body>
+
+<div class="wrap">
+    <!-- 공통 헤더 -->
+    <header th:replace="~{fragments/header :: site-header}"></header>
+
+    <!-- 이 페이지 내용 -->
+    <main>
+        <form th:action="@{/reservations/simple-reservation}" method="post" class="step-form">
+
+            <!-- =========================
+                 1) 케이크 선택
+            ========================== -->
+            <div class="section-head">
+                <h2 class="title">케이크 선택</h2>
+            </div>
+
+            <div class="grid cake-grid">
+                <label class="option" th:each="c : ${cakes}">
+                    <input type="radio" name="cakeId" th:value="${c.id}" required />
+                    <div class="card">
+                        <div class="card__title" th:text="${c.flavor}">딸기 생크림</div>
+                    </div>
+                </label>
+            </div>
+
+
+            <!-- =========================
+                 2) 호수 선택
+            ========================== -->
+            <div class="section-head" style="margin-top: 18px;">
+                <h2 class="title">호수 선택</h2>
+            </div>
+
+            <div class="grid size-grid">
+                <label class="option">
+                    <input type="radio" name="cakeSize" value="1" required />
+                    <div class="card"><div class="card__title">1호</div></div>
+                </label>
+                <label class="option">
+                    <input type="radio" name="cakeSize" value="2" />
+                    <div class="card"><div class="card__title">2호</div></div>
+                </label>
+                <!-- 필요하면 4호/미니 등 추가 -->
+            </div>
+
+
+            <!-- =========================
+         3) 픽업 시간
+    ========================== -->
+
+            <div class="section-head">
+                <h2 class="title">픽업 시간</h2>
+            </div>
+
+            <!-- 서버로 전송될 값 -->
+            <input type="hidden" name="pickupTime" id="picked-time" required>
+
+            <!-- 시 선택 -->
+            <div class="time-section">
+                <div class="time-label">시</div>
+                <div class="time-grid" id="hour-grid"></div>
+            </div>
+
+            <!-- 분 선택 -->
+            <div class="time-section">
+                <div class="time-label">분</div>
+                <div class="time-grid" id="minute-grid"></div>
+            </div>
+
+            <!-- =========================
+                 4) 연락처 뒤 4자리
+            ========================== -->
+            <div class="section-head" style="margin-top: 18px;">
+                <h2 class="title">연락처 뒤 4자리</h2>
+            </div>
+
+            <div class="grid">
+                <input type="text"
+                       name="contactSuffix"
+                       maxlength="4"
+                       pattern="\d{4}"
+                       placeholder="예) 1234"
+                       required
+                       class="input" />
+            </div>
+
+            <!-- =========================
+                 5) 결제 여부
+            ========================== -->
+            <div class="section-head" style="margin-top: 18px;">
+                <h2 class="title">결제 여부</h2>
+            </div>
+
+            <div class="grid">
+                <label class="option">
+                    <input type="radio" name="paid" value="true" required />
+                    <div class="card"><div class="card__title">결제완료</div></div>
+                </label>
+
+                <label class="option">
+                    <input type="radio" name="paid" value="false" />
+                    <div class="card"><div class="card__title">미결제</div></div>
+                </label>
+            </div>
+
+
+            <!-- =========================
+                 6) 당일예약 여부
+            ========================== -->
+            <div class="section-head" style="margin-top: 18px;">
+                <h2 class="title">당일예약</h2>
+            </div>
+
+            <div class="grid">
+                <label class="option">
+                    <input type="checkbox" name="sameDay" value="true" />
+                    <div class="card">
+                        <div class="card__title">당일예약</div>
+                    </div>
+                </label>
+            </div>
+
+
+
+            <!-- =========================
+                 3) 메모
+            ========================== -->
+            <div class="section-head" style="margin-top: 18px;">
+                <h2 class="title">메모</h2>
+            </div>
+
+            <div class="note-box">
+                <textarea name="note" rows="4"
+                          placeholder="예) 초 5개, 문구: 생일축하해, 픽업 전 전화 부탁"
+                          class="note-input"></textarea>
+            </div>
+
+
+            <!-- =========================
+                 4) 완료 버튼
+            ========================== -->
+            <div class="actions">
+                <button type="submit" class="btn primary">완료</button>
+            </div>
+
+        </form>
+
+    </main>
+
+    <!-- 공통 푸터 -->
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+</div>
+
+</body>
+</html>

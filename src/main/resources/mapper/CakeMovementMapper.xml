@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lois.management.mapper.CakeMovementMapper">
+
+    <insert id="insertMovement" parameterType="CakeMovement" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO cake_movements
+        (biz_date, cake_id, cake_size, delta, move_type, reservation_id, request_id, reversed_of_id, memo)
+        VALUES
+        (#{bizDate}, #{cakeId}, #{cakeSize}, #{delta}, #{moveType}, #{reservationId}, #{requestId}, #{reversedOfId}, #{memo})
+    </insert>
+
+    <select id="findById" resultType="CakeMovement">
+        SELECT
+        *
+        FROM cake_movements
+        WHERE id = #{id}
+    </select>
+
+    <select id="sumStockByDate" resultType="CakeMovement">
+        SELECT
+        m.cake_size AS cakeSize,
+        m.cake_id   AS cakeId,
+        COALESCE(SUM(m.delta), 0) AS stock
+        FROM cake_movements m
+        WHERE m.biz_date = #{today}
+        GROUP BY m.cake_size, m.cake_id
+    </select>
+
+    <select id="getStockByKey" resultType="int">
+        SELECT COALESCE(SUM(m.delta), 0)
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        AND m.cake_id = #{cakeId}
+        AND m.cake_size = #{cakeSize}
+    </select>
+
+</mapper>

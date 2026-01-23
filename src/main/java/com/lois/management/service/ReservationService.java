@@ -16,10 +16,7 @@ import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -284,4 +281,46 @@ public class ReservationService {
         return reservationMapper.findTodayForToMakeCalc(today);
     }
 
+    public List<Reservation> countDemandByDate(LocalDate today) {
+        return reservationMapper.countDemandByDate(today);
+    }
+
+    public void updatePickupStatus(Long reservationId, String picked, LocalDateTime now) {
+        reservationMapper.updatePickupStatus(reservationId, picked, now);
+    }
+
+    public Map<Long, Boolean> markProducedUi(List<Reservation> reservations, Map<Integer, Map<Long, Integer>> stockMap) {
+        Map<Integer, Map<Long, Integer>> remain = new HashMap<>();
+        stockMap.forEach((size, m) -> remain.put(size, new HashMap<>(m)));
+
+        Map<Long, Boolean> producedByReservationId = new HashMap<>();
+
+        for (Reservation r : reservations) {
+            int size = r.getCakeSize();
+            long cakeId = r.getCakeId();
+
+            int left = remain
+                    .getOrDefault(size, Map.of())
+                    .getOrDefault(cakeId, 0);
+
+            boolean produced = left > 0;
+
+            if (produced) {
+                remain.get(size).put(cakeId, left - 1);
+            }
+
+            producedByReservationId.put(r.getId(), produced);
+        }
+        return producedByReservationId;
+    }
+
+
+    public void readyToReserved(Long cakeId, Integer cakeSize, LocalDate today) {
+        Reservation reservation = reservationMapper.findByCakeIdNCakeSizeToday(cakeId, cakeSize, today);
+        if (reservation == null) {
+            return;
+        }
+        toggleMakeStatus(reservation.getId());
+
+    }
 }
