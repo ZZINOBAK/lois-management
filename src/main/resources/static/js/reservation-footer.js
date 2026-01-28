@@ -27,17 +27,6 @@
     });
 
 
-    // 픽업 버튼 눌렀을 때 행에 picked 클래스 토글
-    document.addEventListener('click', function (e) {
-      const btn = e.target.closest('.pickup-btn');
-      if (!btn) return;
-
-      const row = btn.closest('.summary-row');
-      if (!row) return;
-
-      row.classList.toggle('picked');
-    });
-
 
     let pendingDeleteUrl = null;
 

@@ -1,0 +1,109 @@
+/* 🔥 여기부터는 stockRequest 전용 최소한의 레이아웃만 추가 */
+
+        /* 전체 두 단 레이아웃 */
+        .stock-grid-layout {
+            display: grid;
+            grid-template-columns: 1.1fr 1.4fr;
+            gap: 32px;
+            margin-top: 24px;
+        }
+
+        /* 왼쪽 리스트 */
+        .stock-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .request-row {
+            display: grid;
+            grid-template-columns: 1fr 70px;
+            gap: 12px;
+            padding: 12px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 14px;
+        }
+
+        .request-main {
+            border: none;
+            background: transparent;
+            text-align: left;
+            font-size: 15px;
+            color: var(--ink);
+        }
+
+        .request-delete {
+            border: none;
+            border-radius: var(--radius);
+            background: var(--surface);
+            color: var(--accent);
+            padding: 8px 0;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: auto;
+            margin-top: 20px;
+        }
+
+        .action-button {
+            flex: 1;
+            border: none;
+            background: var(--surface);
+            color: var(--accent);
+            padding: 14px 0;
+            border-radius: var(--radius-cta);
+            box-shadow: var(--shadow);
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* 오른쪽 아이템 영역 */
+        .stock-right {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* chip은 기존 .chip 사용 */
+        .item-grid {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .item-button {
+            border: none;
+            padding: 14px 0;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            font-size: 15px;
+            color: var(--ink);
+            cursor: pointer;
+        }
+
+
+        .request-main {
+    display: flex;                     /* 가로로 나란히 */
+    justify-content: space-between;     /* 좌우 끝으로 배치 */
+    align-items: center;               /* 세로 가운데 정렬 */
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    background: white;
+}
+
+.request-item-name {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.request-days {
+    font-size: 14px;
+    color: #555;
+}

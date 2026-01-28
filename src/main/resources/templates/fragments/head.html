@@ -3,21 +3,19 @@
 <!-- fragments/head.html -->
 <head th:fragment="commonHead(title, extra)">
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- auth-jwt.js 용 -->
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
-
-    <!-- 로그인 여부를 JS로 전달 -->
     <meta name="is-authenticated"
           th:content="${#authorization.expression('isAuthenticated() and !isAnonymous()')}">
 
     <title th:text="${title}">Lois Management</title>
 
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-
     <link rel="stylesheet" th:href="@{/css/common.css}">
 
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <script th:src="@{/js/auth-jwt.js}" defer></script>
     <script th:src="@{/js/common.js}" defer></script>
 

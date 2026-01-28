@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<body>
+
+<!-- 조각 rowFragment(r) 시작 -->
+<div th:fragment="rowFragment(r, rowNo)" th:id="'row-block-' + ${r.id}">
+
+    <!-- 요약 행 -->
+    <div class="row summary-row"
+         th:id="'row-' + ${r.id}"
+         th:onclick="|toggleDetailRow(event, ${r.id})|"
+         th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked' : ''"
+         th:attr="data-sameday=${r.createdAt != null
+                                     and #temporals.format(r.createdAt, 'yyyy-MM-dd') == #temporals.format(today, 'yyyy-MM-dd')},
+                data-row-no=${rowNo}">
+        <!--                                <div th:text="${r.rowNumber}"></div>&lt;!&ndash; 연번 &ndash;&gt;-->
+        <div class="row-no" th:text="${rowNo}"></div> <!-- 연번 -->
+        <div th:text="${#temporals.format(r.resDate, 'yyyy-MM-dd')}"></div><!-- 예약일 -->
+        <div th:text="${#temporals.format(r.resTime, 'HH:mm')}"></div><!-- 픽업시간 -->
+        <!--  조각 replace makeButton(r) -->
+        <!--                                <button th:replace="~{reservation/reservation-dashboard :: makeButton(r=${r})}"></button>&lt;!&ndash; 맛 / 제작 상태 버튼 &ndash;&gt;-->
+        <!-- ========================= -->
+        <!--  제작 상태 토글 버튼 조각 makeButton(r) -->
+        <!-- ========================= -->
+        <!--                                <button-->
+        <!--                                        th:fragment="makeButton(r)"-->
+        <!--                                        type="button"-->
+        <!--                                        class="flavor-btn ellipsis"-->
+        <!--                                        th:text="${r.cakeFlavor}"-->
+        <!--                                        th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"-->
+        <!--                                        th:disabled="${r.pickupStatus == 'PICKED'}"-->
+        <!--                                        th:onclick="${r.pickupStatus == 'PICKED'} ? 'alert(''픽업완료건은 미제작으로 변경할 수 없습니다.''); return false;' : null"-->
+        <!--                                        th:hx-patch="${r.pickupStatus == 'PICKED'} ? null : @{/cake-movements/{id}/produce-toggle(id=${r.id})}"-->
+        <!--                                        th:hx-confirm="${r.pickupStatus == 'PICKED'} ? null : (${r.makeStatus == 'READY'} ? '미제작으로 변경할까요?' : '케이크를 만들었나요?')"-->
+        <!--                                        hx-swap="outerHTML">-->
+        <!--                                </button>-->
+        <button
+                type="button"
+                class="flavor-btn ellipsis"
+                th:text="${r.cakeFlavor}"
+                th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"
+                th:disabled="${r.pickupStatus == 'PICKED'}"
+                th:hx-patch="${r.pickupStatus == 'PICKED'} ? null : @{/cake-movements/{id}/produce-toggle(id=${r.id}, rowNo=${rowNo})}"
+                th:attr="hx-target=${'#row-block-' + r.id}, hx-swap='outerHTML'"
+                th:hx-confirm="${r.pickupStatus == 'PICKED'} ? null : (${r.makeStatus == 'READY'} ? '미제작으로 변경할까요?' : '케이크를 만들었나요?')"
+        >
+        </button>
+        <div th:text="${r.cakeSize}"></div><!-- 케이크 사이즈 -->
+        <div class="phone" th:text="${r.contact}"></div><!-- 연락처 -->
+        <div><!-- 결제 여부 -->
+            <span th:classappend="${r.paid} ? 'badge-paid' : 'badge-unpaid'">
+                                        <span th:text="${r.paid} ? '결제완료' : '미결제'"></span>
+                                    </span>
+        </div>
+        <div class="pickup-cell"><!-- 픽업 상태 버튼 -->
+            <div class="pickup-cell">
+                <!--  조각 replace pickupButton(r) -->
+                <!--                                        <button th:replace="~{reservation/reservation-dashboard :: pickupButton(r=${r})}"></button>-->
+                <!-- ========================= -->
+                <!--  픽업 상태 토글 버튼 조각 pickupButton(r) -->
+                <!-- ========================= -->
+                <!--                                        <button-->
+                <!--                                                th:fragment="pickupButton(r)"-->
+                <!--                                                class="btn pickup-btn"-->
+                <!--                                                th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked-btn' : ''"-->
+                <!--                                                th:attr="hx-patch=@{/api/reservations/{id}/pickup-toggle(id=${r.id})},-->
+                <!--                                                        hx-confirm='픽업상태를 변경할까요?'"-->
+                <!--                                                hx-swap="outerHTML">-->
+                <!--                                            <span th:text="${r.pickupStatus == 'PICKED' ? '픽업완료' : '픽업예정'}"></span>-->
+                <!--                                        </button>-->
+                <button
+                        class="btn pickup-btn"
+                        th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked-btn' : ''"
+                        th:hx-patch="@{/api/reservations/{id}/pickup-toggle(id=${r.id}, rowNo=${rowNo})}"
+                        th:attr="hx-target=${'#row-block-' + r.id}, hx-swap='outerHTML'"
+                        hx-confirm="픽업상태를 변경할까요?">
+                    <span th:text="${r.pickupStatus == 'PICKED' ? '픽업완료' : '픽업예정'}"></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="actions"><!-- 수정/삭제 버튼 -->
+            <button class="btn"
+                    type="button"
+                    th:onclick="|location.href='@{/reservations/{id}/edit(id=${r.id})}'|">
+                수정
+            </button>
+            <button
+                    class="btn"
+                    type="button"
+                    th:onclick="|openConfirmModal('@{/reservations/{id}(id=${r.id})}')|">
+                삭제
+            </button>
+        </div>
+    </div>
+    <!-- 상세 행 -->
+    <div class="detail-row hidden"
+         th:id="'detail-' + ${r.id}">
+        <div><b>요청사항:</b> <span th:text="${r.note}"></span></div>
+        <div><b>초:</b> <span th:text="${r.candles}"></span></div>
+        <div><b>픽업시간:</b> <span th:text="${r.pickedUpAt}"></span></div>
+        <div><b>생성일:</b> <span th:text="${r.createdAt}"></span></div>
+    </div>
+</div>
+<!-- 조각 rowFragment(r) 끝 -->
+
+
+</body>
+</html>

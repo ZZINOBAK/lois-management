@@ -1,337 +1,223 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <title>Lois – Cake Reservations</title>
-
-    <link rel="stylesheet" th:href="@{/css/common.css}">
-    <link rel="stylesheet" th:href="@{/css/index.css}">
-    <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
-    <link rel="stylesheet" th:href="@{/css/reservation-dashboard.css}">
-
-    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
-    <script th:src="@{/js/common.js}" defer></script>
-    <script th:src="@{/js/reservation.js}" defer></script>
-
+<head th:replace="~{fragments/head :: commonHead('Lois – Cake Reservations', ~{::extraHead})}">
 </head>
 
 <body>
-<div class="wrap">
+    <!-- 페이지별 head 추가 요소 -->
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/index.css}">
+        <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
+        <link rel="stylesheet" th:href="@{/css/reservation-dashboard.css}">
 
-    <!-- ✨ 공통 헤더 -->
-    <header th:replace="~{fragments/header :: site-header}"></header>
+        <script th:src="@{/js/reservation.js}" defer></script>
+    </th:block>
 
-    <main>
-    <section class="content">
+    <div class="wrap">
+        <!-- ✨ 공통 헤더 -->
+        <header th:replace="~{fragments/header :: site-header}"></header>
 
-        <div class="list-header grid-2x2">
-
-            <!-- 왼쪽 위 -->
-            <div class="slot tl">
-                <h2 class="section-title">케이크 예약 리스트</h2>
-            </div>
-
-            <!-- 오른쪽 위 -->
-            <div class="slot tr">
-                <a class="cta" th:href="@{/cake-movements/produce}" role="button">
-                    <div class="title">제작완료</div>
-                </a>
-                <a class="cta" th:href="@{/reservations/on-site}" role="button">
-                    <div class="title">현장판매</div>
-                </a>
-                <a class="cta" th:href="@{/reservations/simple-reservation}" role="button">
-                    <div class="title">간단예약</div>
-                </a>
-                <a class="cta" th:href="@{/reservations/new}" role="button">
-                    <div class="title">예약하기</div>
-                </a>
-
-            </div>
-
-            <!-- 왼쪽 아래 -->
-            <div class="slot bl">
-                <div class="filters">
-                    <button class="chip" type="button"
-                            hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
-                            hx-vals='{"range":"all"}'>
-                    전체
-                    </button>
-
-                    <button class="chip" type="button"
-                            hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
-                            hx-vals='{"range":"from-today"}'>
-                        오늘부터
-                    </button>
-
-                    <button class="chip" type="button"
-                            hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
-                            hx-vals='{"range":"today"}'>
-                        오늘
-                    </button>
-
-                    <button class="chip" type="button" onclick="toggleDatePicker()">
-                        날짜
-                    </button>
-
-                    <div id="date-popover" class="date-popover hidden">
-                        <input type="date" id="pickDate" name="date"
-                               hx-get="/reservations/list"
-                               hx-target="#list"
-                               hx-swap="innerHTML"
-                               hx-trigger="change"
-                               hx-vals='js:{range:"date", date: document.getElementById("pickDate").value}'
-                               autocomplete="off"
-                               hx-on="
-                                   change: sessionStorage.setItem('reservationDate', this.value);
-                                           document.getElementById('date-popover').classList.add('hidden');
-                                   htmx:afterSwap: document.getElementById('date-popover').classList.add('hidden')
-                                 ">
+        <!-- 메인 -->
+        <main>
+            <section class="content">
+                <!-- 🔹 레전드(왼쪽) + 검색폼(오른쪽) 한 줄 -->
+                <div class="list-header grid-2x2">
+                    <!-- 왼쪽 위 -->
+                    <div class="slot tl">
+                        <h2 class="section-title">케이크 예약 리스트</h2>
                     </div>
-                </div>
-            </div>
-
-            <!-- 오른쪽 아래 -->
-            <div class="slot br">
-                <form class="reservation-search phone-search-form"
-                      method="get"
-                      th:action="@{/reservations/search}"
-                      th:attr="hx-get=@{/reservations/search}"
-                      hx-target="#list"
-                      hx-swap="innerHTML">
-
-                    <label for="contactSuffix" class="search-label phone-search-label">휴대폰 뒷자리</label>
-
-                    <div class="phone-search-inline">
-                        <input id="contactSuffix" name="contactSuffix" type="text"
-                               inputmode="numeric" pattern="[0-9]{4}"
-                               maxlength="4" minlength="4"
-                               class="phone-input" required>
-
-                        <button type="submit" class="phone-search-btn">검색</button>
+                    <!-- 오른쪽 위 -->
+                    <div class="slot tr">
+                        <a class="cta" th:href="@{/cake-movements/produce}" role="button">
+                            <div class="title">제작완료</div>
+                        </a>
+                        <a class="cta" th:href="@{/reservations/on-site}" role="button">
+                            <div class="title">현장판매</div>
+                        </a>
+                        <a class="cta" th:href="@{/reservations/simple-reservation}" role="button">
+                            <div class="title">간단예약</div>
+                        </a>
+                        <a class="cta" th:href="@{/reservations/new}" role="button">
+                            <div class="title">예약하기</div>
+                        </a>
                     </div>
-                </form>
-            </div>
-
-        </div>
-
-        <!-- ✅ 생산 계획 카드: 여기부터 -->
-        <section class="plan-card">
-            <div class="plan-card__head" onclick="togglePlanCard()">
-                <div class="plan-card__title">오늘 생산 계획</div>
-                <div class="plan-card__meta">
-                    <span class="plan-card__hint">필요 수량(추가생산)</span>
-                    <span id="planCardChevron" class="plan-card__chevron">▾</span>
-                </div>
-            </div>
-
-            <div id="planCardBody" class="plan-card__body">
-                <div class="mk-grid">
-
-
-                    <div th:each="size : ${cakeSizes}" class="mk-row">
-                        <div class="mk-size" th:text="${size + '호'}"></div>
-
-                        <div class="mk-flavors">
-                            <div class="mk-flavor"
-                                 th:each="e : ${flavors}"
-                                 th:with="cakeId=${e.id}, name=${e.name}, css=${'mk-' + e.code}">
-
-                                <div class="mk-flavor-head">
-
-                                    <span class="mk-chip"
-                                          th:classappend="${css}"
-                                          aria-hidden="true"></span>
-
-                                    <span class="mk-name" th:text="${name}"></span>
-                                </div>
-                                <div class="mk-values">
-                                  <span class="mk-badge mk-need">
-                                    필요 <b th:text="${toMakeMap != null and toMakeMap.get(size) != null and toMakeMap.get(size).get(cakeId) != null
-                                        ? toMakeMap.get(size).get(cakeId) : 0}">0</b>
-                                  </span>
-
-                                                        <span class="mk-badge mk-stock">
-                                    재고 <b th:text="${stockMap != null and stockMap.get(size) != null and stockMap.get(size).get(cakeId) != null
-                                        ? stockMap.get(size).get(cakeId) : 0}">0</b>
-                                  </span>
-                                </div>
-
+                    <!-- 왼쪽 아래 -->
+                    <div class="slot bl">
+                        <div class="filters">
+                            <button class="chip" type="button"
+                                    hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
+                                    hx-vals='{"range":"all"}'>
+                            전체
+                            </button>
+                            <button class="chip" type="button"
+                                    hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
+                                    hx-vals='{"range":"from-today"}'>
+                                오늘부터
+                            </button>
+                            <button class="chip" type="button"
+                                    hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
+                                    hx-vals='{"range":"today"}'>
+                                오늘
+                            </button>
+                            <button class="chip" type="button" onclick="toggleDatePicker()">
+                                날짜
+                            </button>
+                            <div id="date-popover" class="date-popover hidden">
+                                <input type="date" id="pickDate" name="date"
+                                       hx-get="/reservations/list"
+                                       hx-target="#list"
+                                       hx-swap="innerHTML"
+                                       hx-trigger="change"
+                                       hx-vals='js:{range:"date", date: document.getElementById("pickDate").value}'
+                                       autocomplete="off"
+                                       hx-on="
+                                           change: sessionStorage.setItem('reservationDate', this.value);
+                                                   document.getElementById('date-popover').classList.add('hidden');
+                                           htmx:afterSwap: document.getElementById('date-popover').classList.add('hidden')
+                                         ">
                             </div>
                         </div>
                     </div>
+                    <!-- 오른쪽 아래 -->
+                    <div class="slot br">
+                        <form class="reservation-search phone-search-form"
+                              method="get"
+                              th:action="@{/reservations/search}"
+                              th:attr="hx-get=@{/reservations/search}"
+                              hx-target="#list"
+                              hx-swap="innerHTML">
+                            <label for="contactSuffix" class="search-label phone-search-label">휴대폰 뒷자리</label>
+                            <div class="phone-search-inline">
+                                <input id="contactSuffix" name="contactSuffix" type="text"
+                                       inputmode="numeric" pattern="[0-9]{4}"
+                                       maxlength="4" minlength="4"
+                                       class="phone-input" required>
+                                <button type="submit" class="phone-search-btn">검색</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
 
-        </section>
-
-
-
-
-        <!-- 🔹 레전드(왼쪽) + 검색폼(오른쪽) 한 줄 -->
-        <div class="reservation-toolbar">
-            <div class="reservation-legend">
-                <span class="legend-chip legend-sameday"></span>
-                <span>오늘 생성된 예약</span>
-            </div>
-
-
-            <div class="sorts" id="sorts">
-                <!-- 📦 픽업예정만 보기 버튼 (이건 그대로 아래에 둠) -->
-                <button type="button"
-                        class="chip chip--sub pickup-filter-btn hidden"
-                        data-show="today"
-                        th:attr="hx-get=@{/reservations/list?sort=waiting}"
-                        hx-target="#list"
-                        hx-swap="innerHTML">
-                    픽업예정
-                </button>
-                <button type="button"
-                        class="chip chip--sub pickup-filter-btn hidden"
-                        data-show="today from-today date"
-                        th:attr="hx-get=@{/reservations/list?sort=created-at}"
-                        hx-target="#list"
-                        hx-swap="innerHTML">
-                    등록순
-                </button>
-            </div>
-        </div>
-
-
-
-        <div class="thead">
-            <div>연번</div>
-            <div>날짜</div>
-            <div>시간</div>
-            <div>맛</div>
-            <div>호수</div>
-            <div>연락처</div>
-            <div>결제</div>
-            <div>픽업</div>
-            <div>수정/삭제</div>
-        </div>
-
-        <div id="list" th:fragment="list">
-            <!--        여기부터-->
-            <div th:each="r : ${reservations}"
-                 th:insert="~{reservation/reservation-dashboard :: rowFragment(r=${r})}">
-
-                <div th:fragment="rowFragment(r)" th:id="'row-block-' + ${r.id}">
-
-                <!-- 요약 행 -->
-                    <div class="row summary-row"
-                         th:id="'row-' + ${r.id}"
-                         th:onclick="|toggleDetailRow(event, ${r.id})|"
-                         th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked' : ''"
-                         th:attr="data-sameday=${r.createdAt != null
-                             and #temporals.format(r.createdAt, 'yyyy-MM-dd') == #temporals.format(today, 'yyyy-MM-dd')}">
-
-                        <!-- 여기까지 행 프레그먼트 추가코드 -->
-                        <div th:text="${r.rowNumber}"></div><!-- 연번 -->
-                        <div th:text="${#temporals.format(r.resDate, 'yyyy-MM-dd')}"></div>
-                        <div th:text="${#temporals.format(r.resTime, 'HH:mm')}"></div>
-                        <!--                        <div class="ellipsis" th:text="${r.cakeFlavor}"></div>-->
-                        <!-- 🍰 맛 / 제작 상태 버튼 -->
-                        <button th:replace="~{reservation/reservation-dashboard :: makeButton(r=${r})}"></button>
-                        <div th:text="${r.cakeSize}"></div>
-                        <div class="phone" th:text="${r.contact}"></div>
-                        <div>
-                            <span th:classappend="${r.paid} ? 'badge-paid' : 'badge-unpaid'">
-                                <span th:text="${r.paid} ? '결제완료' : '미결제'"></span>
-                            </span>
+                <!-- ✅ 생산 계획 카드: 여기부터 -->
+                <section class="plan-card">
+                    <div class="plan-card__head" onclick="togglePlanCard()">
+                        <div class="plan-card__title">오늘 생산 계획</div>
+                        <div class="plan-card__meta">
+                            <span class="plan-card__hint">필요 수량(추가생산)</span>
+                            <span id="planCardChevron" class="plan-card__chevron">▾</span>
                         </div>
-                        <div class="pickup-cell">
-                            <div class="pickup-cell">
-                                <!-- 📦 픽업 상태 버튼 -->
-                                <button th:replace="~{reservation/reservation-dashboard :: pickupButton(r=${r})}"></button>
+                    </div>
+
+                    <div id="planCardBody" class="plan-card__body">
+                        <div class="mk-grid">
+
+                            <div th:each="size : ${cakeSizes}" class="mk-row">
+                                <div class="mk-size" th:text="${size + '호'}"></div>
+
+                                <div class="mk-flavors">
+                                    <div class="mk-flavor"
+                                         th:each="e : ${flavors}"
+                                         th:with="cakeId=${e.id}, name=${e.name}, css=${'mk-' + e.code}">
+
+                                        <div class="mk-flavor-head">
+
+                                            <span class="mk-chip"
+                                                  th:classappend="${css}"
+                                                  aria-hidden="true"></span>
+
+                                            <span class="mk-name" th:text="${name}"></span>
+                                        </div>
+                                        <div class="mk-values">
+                                          <span class="mk-badge mk-need">
+                                            필요 <b th:text="${toMakeMap != null and toMakeMap.get(size) != null and toMakeMap.get(size).get(cakeId) != null
+                                                ? toMakeMap.get(size).get(cakeId) : 0}">0</b>
+                                          </span>
+
+                                                                <span class="mk-badge mk-stock">
+                                            재고 <b th:text="${stockMap != null and stockMap.get(size) != null and stockMap.get(size).get(cakeId) != null
+                                                ? stockMap.get(size).get(cakeId) : 0}">0</b>
+                                          </span>
+                                        </div>
+
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="actions">
-                            <button class="btn"
-                                    type="button"
-                                    th:onclick="|location.href='@{/reservations/{id}/edit(id=${r.id})}'|">
-                                수정
-                            </button>
-                            <button
-                                    class="btn"
-                                    type="button"
-                                    th:onclick="|openConfirmModal('@{/reservations/{id}(id=${r.id})}')|">
-                                삭제
-                            </button>
+                    </div>
+                </section>
 
-                        </div>
+                <!-- 테이블 헤드 상단: 오늘 생성된 예약, 픽업예정 등 -->
+                <div class="reservation-toolbar">
+                    <div class="reservation-legend">
+                        <span class="legend-chip legend-sameday"></span>
+                        <span>오늘 생성된 예약</span>
                     </div>
 
 
-                    <!-- 상세 행 -->
-                    <div class="detail-row hidden"
-                         th:id="'detail-' + ${r.id}">
-                        <div><b>요청사항:</b> <span th:text="${r.note}"></span></div>
-                        <div><b>초:</b> <span th:text="${r.candles}"></span></div>
-                        <div><b>픽업시간:</b> <span th:text="${r.pickedUpAt}"></span></div>
-                        <div><b>생성일:</b> <span th:text="${r.createdAt}"></span></div>
-
+                    <div class="sorts" id="sorts">
+                        <!-- 📦 픽업예정만 보기 버튼 (이건 그대로 아래에 둠) -->
+                        <button type="button"
+                                class="chip chip--sub pickup-filter-btn hidden"
+                                data-show="today"
+                                th:attr="hx-get=@{/reservations/list?sort=waiting}"
+                                hx-target="#list"
+                                hx-swap="innerHTML">
+                            픽업예정
+                        </button>
+                        <button type="button"
+                                class="chip chip--sub pickup-filter-btn hidden"
+                                data-show="today from-today date"
+                                th:attr="hx-get=@{/reservations/list?sort=created-at}"
+                                hx-target="#list"
+                                hx-swap="innerHTML">
+                            등록순
+                        </button>
                     </div>
                 </div>
 
+                <!-- 예약 테이블 헤드 -->
+                <div class="thead">
+                    <div>연번</div>
+                    <div>날짜</div>
+                    <div>시간</div>
+                    <div>맛</div>
+                    <div>호수</div>
+                    <div>연락처</div>
+                    <div>결제</div>
+                    <div>픽업</div>
+                    <div>수정/삭제</div>
+                </div>
 
-                <!-- ========================= -->
-                <!--  제작 상태 토글 버튼 조각 -->
-                <!-- ========================= -->
-                <button
-                        th:fragment="makeButton(r)"
-                        type="button"
-                        class="flavor-btn ellipsis"
-                        th:text="${r.cakeFlavor}"
-                        th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"
+                <!-- 예약 테이블 리스트 -->
+                <div id="list" th:fragment="list">
+                    <!-- 행 반복 -->
+                    <!--  조각 insert rowFragment(r) -->
+                    <div th:each="r, stat : ${reservations}" th:with="rowNo=${stat.count}"
+                         th:insert="~{fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})}">
 
-                        th:disabled="${r.pickupStatus == 'PICKED'}"
+                    </div>
+                    <!-- ✅ 오늘(scope == 'today')일 때만 인쇄 버튼 보이기 -->
+                    <div th:if="${range == 'today' or range == 'date'}"
+                         class="list-print-actions">
+                        <button type="button"
+                                class="chip"
+                                th:onclick="|window.open('@{/reservations/print(range=${range}, date=${date})}', '_blank')|">
+                            <span th:text="${range == 'today' ? '오늘 케이크 리스트 인쇄' : '선택일 케이크 리스트 인쇄'}"></span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
 
-                        th:onclick="${r.pickupStatus == 'PICKED'} ? 'alert(''픽업완료건은 미제작으로 변경할 수 없습니다.''); return false;' : null"
-
-                        th:hx-patch="${r.pickupStatus == 'PICKED'} ? null : @{/cake-movements/{id}/produce-toggle(id=${r.id})}"
-                        th:hx-confirm="${r.pickupStatus == 'PICKED'} ? null : (${r.makeStatus == 'READY'} ? '미제작으로 변경할까요?' : '케이크를 만들었나요?')"
-
-                        hx-swap="outerHTML">
-                </button>
-
-                <!-- ========================= -->
-                <!--  픽업 상태 토글 버튼 조각 -->
-                <!-- ========================= -->
-                <button
-                        th:fragment="pickupButton(r)"
-                        class="btn pickup-btn"
-                        th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked-btn' : ''"
-                        th:attr="hx-patch=@{/api/reservations/{id}/pickup-toggle(id=${r.id})},
-                                hx-confirm='픽업상태를 변경할까요?'
-                              "
-
-                        hx-swap="outerHTML">
-                    <span th:text="${r.pickupStatus == 'PICKED' ? '픽업완료' : '픽업예정'}"></span>
-                </button>
-            </div>
-            <!-- ✅ 오늘(scope == 'today')일 때만 인쇄 버튼 보이기 -->
-            <div th:if="${range == 'today' or range == 'date'}"
-                 class="list-print-actions">
-                <button type="button"
-                        class="chip"
-                        th:onclick="|window.open('@{/reservations/print(range=${range}, date=${date})}', '_blank')|">
-                    <span th:text="${range == 'today' ? '오늘 케이크 리스트 인쇄' : '선택일 케이크 리스트 인쇄'}"></span>
-                </button>
-            </div>
-        </div>
-    </section>
-
+        <!-- ✨ 공통 푸터 -->
+        <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+    </div>
 
     <!-- 삭제 확인 모달 -->
     <div id="confirm-modal" class="confirm-modal hidden">
-
         <div class="confirm-modal__content">
             <p class="confirm-modal__text">정말 이 예약을 삭제하시겠어요?</p>
-
             <div class="confirm-modal__actions">
                 <button id="confirm-yes"
                         class="confirm-modal__btn confirm-modal__btn--yes">
@@ -344,13 +230,9 @@
             </div>
         </div>
     </div>
-    </main>
 
-    <!-- ✨ 공통 푸터 -->
-    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+    <script th:src="@{/js/reservation-footer.js}" defer></script>
 
-</div>
-<script th:src="@{/js/reservation-footer.js}" defer></script>
 
 
 </body>
