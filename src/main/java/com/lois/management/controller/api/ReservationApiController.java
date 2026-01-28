@@ -5,6 +5,7 @@ import com.lois.management.domain.dto.ReservationCreateReq;
 import com.lois.management.dto.reservation.ReservationRes;
 import com.lois.management.dto.reservation.ReservationSummaryRes;
 import com.lois.management.dto.reservation.ReservationUpdateReq;
+import com.lois.management.service.CakeMovementService;
 import com.lois.management.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,6 +20,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +31,7 @@ import java.util.Map;
 @Tag(name = "Reservation API", description = "케이크 예약 CRUD")
 public class ReservationApiController {
     private final ReservationService reservationService;
+    private final CakeMovementService cakeMovementService;
 
     @Operation(summary = "예약 목록 조회")
     @GetMapping
@@ -67,7 +70,7 @@ public class ReservationApiController {
     }
 
     @PatchMapping("/{id}/pickup-toggle") // 픽업 상태 토글
-    public String togglePickup(@PathVariable("id") Long id, Model model) {
+    public String togglePickup(@PathVariable("id") Long id, Model model, @RequestParam("rowNo") int rowNo) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         log.info("[API] authType={} name={} authorities={}",
@@ -75,12 +78,20 @@ public class ReservationApiController {
                 auth.getName(),
                 auth.getAuthorities());
 
-        reservationService.togglePickupStatus(id);
+//        reservationService.togglePickupStatus(id);
+
+        String requestId = "PICK-" + System.currentTimeMillis();
+        cakeMovementService.togglePickupReservation(id, requestId);
+
         Reservation updated = reservationService.findById(id);
         model.addAttribute("r", updated);
+        model.addAttribute("today", LocalDate.now());
+        model.addAttribute("rowNo", rowNo);
 
         // ✅ 픽업 버튼 fragment만 반환
-        return "reservation/dashboard :: pickupButton(r=${r})";
+//        return "reservation/reservation-dashboard :: pickupButton(r=${r})";
+//        return "reservation/reservation-dashboard :: rowFragment(r=${r}, rowNo=${rowNo})";
+        return "fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";
     }
 
     @PatchMapping("/{id}/make-toggle") // 제작 상태 토글

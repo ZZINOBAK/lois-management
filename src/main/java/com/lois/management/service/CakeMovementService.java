@@ -4,6 +4,7 @@ import com.lois.management.domain.Cake;
 import com.lois.management.domain.CakeMovement;
 import com.lois.management.domain.Reservation;
 import com.lois.management.mapper.CakeMovementMapper;
+import com.lois.management.mapper.ReservationMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class CakeMovementService {
 
     private final CakeMovementMapper cakeMovementMapper;
+    private final ReservationMapper reservationMapper;
 
     private final ReservationService reservationService;
     private final CakeService cakeService; // cakeId->flavor 매핑용
@@ -42,6 +44,7 @@ public class CakeMovementService {
         m.setMemo(memo);
 
         cakeMovementMapper.insertMovement(m);
+        reservationMapper.updateWithProduce(bizDate, cakeId, cakeSize);
         log.info("제작완료 : {} ", cakeMovementMapper.findById(m.getId()));
     }
 

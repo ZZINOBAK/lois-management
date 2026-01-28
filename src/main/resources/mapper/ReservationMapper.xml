@@ -274,6 +274,17 @@
         WHERE id = #{id}
     </update>
 
+    <update id="updateWithProduce">
+        UPDATE reservations
+        SET make_status = 'READY'
+        WHERE res_date = #{today}
+        AND make_status = 'RESERVED'
+        AND cake_id = #{cakeId}
+        AND cake_size = #{cakeSize}
+        ORDER BY res_time ASC
+        LIMIT 1
+    </update>
+
     <update id="updateMakeStatus">
         UPDATE reservations
         SET

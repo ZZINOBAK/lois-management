@@ -78,4 +78,6 @@ public interface ReservationMapper {
     List<Reservation> countDemandByDate(@Param("today") LocalDate today);
 
     Reservation findByCakeIdNCakeSizeToday(@Param("cakeId") Long cakeId, @Param("cakeSize") Integer cakeSize, @Param("today") LocalDate today);
+
+    void updateWithProduce(@Param("today") LocalDate today, @Param("cakeId") Long cakeId, @Param("cakeSize") Integer cakeSize);
 }

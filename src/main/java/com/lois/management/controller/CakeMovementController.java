@@ -36,6 +36,7 @@ public class CakeMovementController {
         Integer amountTest = 1;
 
         cakeMovementService.produce(bizDate, cakeId, cakeSize, amountTest, requestId, note);
+
         return "redirect:/reservations";
     }
 
@@ -57,14 +58,13 @@ public class CakeMovementController {
         Reservation updated = reservationService.findById(id);
         model.addAttribute("r", updated);
 
+
         // ✅ 맛/제작 버튼 fragment만 반환
         return "reservation/reservation-dashboard :: makeButton(r=${r})";
     }
 
     @PatchMapping("/{id}/produce-toggle")
-    public String produceFromReservationPatch(@PathVariable("id") Long id, Model model) {
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-
+    public String produceFromReservationPatch(@PathVariable("id") Long id, Model model, @RequestParam("rowNo") int rowNo) {
         // 1) 예약 조회 (현재 makeStatus가 무엇인지가 토글 기준)
         Reservation r = reservationService.findById(id);
 
@@ -78,18 +78,22 @@ public class CakeMovementController {
             // ✅ 제작 완료 처리: +1 movement + makeStatus=READY
             String requestId = "RES-PROD-" + id + "-" + System.currentTimeMillis();
 
-            cakeMovementService.produce(today, cakeId, cakeSize, 1, requestId, "from reservation list");
+            cakeMovementService.produce(r.getResDate(), cakeId, cakeSize, 1, requestId, "from reservation list");
 
         } else {
             // ✅ 제작 취소 처리: 정책(가장 늦은 READY만 취소 가능) + -1 movement + makeStatus=RESERVED
             String requestId = "RES-UNDO-" + id + "-" + System.currentTimeMillis();
-            cakeMovementService.adjust(today, cakeId, cakeSize, -1, requestId, "undo from reservation list");
+            cakeMovementService.adjust(r.getResDate(), cakeId, cakeSize, -1, requestId, "undo from reservation list");
         }
 
         Reservation updated = reservationService.findById(id);
         model.addAttribute("r", updated);
+        model.addAttribute("today", LocalDate.now());
+        model.addAttribute("rowNo", rowNo);
 
-        return "reservation/reservation-dashboard :: makeButton(r=${r})";
+
+//        return "reservation/reservation-dashboard :: rowFragment(r=${r})";
+        return "fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";
 
     }
 

@@ -28,8 +28,8 @@ public class SmsService {
     private final StockRequestService stockRequestService;
 
     // 🔥 테스트 모드 ON/OFF
-//    private final boolean TEST_MODE = true;   // true면 문자 안 나감
-    private final boolean TEST_MODE = false;   // true면 문자 안 나감
+    private final boolean TEST_MODE = true;   // true면 문자 안 나감
+//    private final boolean TEST_MODE = false;   // false면 문자 나감(과금)
 
     public SingleMessageSentResponse sendFromStockRequests() {
         // 1) 현재 요청 상태인 것들만 가져오기 (이미 그런 쿼리 있을 듯)
