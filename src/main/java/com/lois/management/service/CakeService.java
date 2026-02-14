@@ -20,7 +20,7 @@ public class CakeService {
         return cakeMapper.findAllFlavors();
     }
 
-    public List<Cake> getIdToFlavorMap() {
+    public List<Cake> findAllIdFlavor() {
         return cakeMapper.findAllIdFlavor();
 
     }

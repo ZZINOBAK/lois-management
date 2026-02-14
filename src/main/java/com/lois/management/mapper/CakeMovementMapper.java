@@ -26,4 +26,6 @@ public interface CakeMovementMapper {
                           @Param("cakeSize") Integer cakeSize);
 
     CakeMovement findById(Long id);
+
+    void addReservationId(@Param("id") Long id, @Param("reservationId") Long reservationIdForManu);
 }

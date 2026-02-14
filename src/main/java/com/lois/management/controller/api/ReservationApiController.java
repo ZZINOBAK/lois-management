@@ -80,7 +80,7 @@ public class ReservationApiController {
 
 //        reservationService.togglePickupStatus(id);
 
-        String requestId = "PICK-" + System.currentTimeMillis();
+        String requestId = "RES-" + System.currentTimeMillis();
         cakeMovementService.togglePickupReservation(id, requestId);
 
         Reservation updated = reservationService.findById(id);

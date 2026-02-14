@@ -28,32 +28,25 @@ public class CakeMovementController {
     @PostMapping("/produce")
     public String produce(@RequestParam("cakeId") Long cakeId,
                           @RequestParam("cakeSize") Integer cakeSize,
-                          @RequestParam(value = "amount", required = false) Integer amount,
                           @RequestParam(value = "note", required=false) String note) {
 
-        LocalDate bizDate = LocalDate.now(); // 매장 영업일 기준이면 별도 계산
-        String requestId = "WEB-" + System.currentTimeMillis();
-        Integer amountTest = 1;
-
-        cakeMovementService.produce(bizDate, cakeId, cakeSize, amountTest, requestId, note);
+        String requestId = "MANU-" + System.currentTimeMillis();
+        cakeMovementService.produce(requestId, cakeId, cakeSize, note, 0L);
 
         return "redirect:/reservations";
     }
 
     @PostMapping("/{id}/produce")
     public String produceFromReservation(@PathVariable("id") Long id, Model model) {
-//        LocalDate bizDate = LocalDate.now(); // 매장 영업일 기준이면 별도 계산
-//        String requestId = "WEB-" + System.currentTimeMillis();
 
-        LocalDate bizDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        String requestId = "RES-PROD-" + id + "-" + System.currentTimeMillis();
+        String requestId = "RES-" + System.currentTimeMillis();
 
         // 1) 예약 조회 (cakeId, cakeSize 필요)
-        Reservation r = reservationService.findById(id); // 없으면 구현
+        Reservation r = reservationService.findById(id);
         Long cakeId = r.getCakeId();
         Integer cakeSize = r.getCakeSize();
 
-        cakeMovementService.produce(bizDate, cakeId, cakeSize, 1, requestId, "from reservation list");
+        cakeMovementService.produce(requestId, cakeId, cakeSize, "from reservation dashboard", id);
 
         Reservation updated = reservationService.findById(id);
         model.addAttribute("r", updated);
@@ -67,23 +60,19 @@ public class CakeMovementController {
     public String produceFromReservationPatch(@PathVariable("id") Long id, Model model, @RequestParam("rowNo") int rowNo) {
         // 1) 예약 조회 (현재 makeStatus가 무엇인지가 토글 기준)
         Reservation r = reservationService.findById(id);
-
         Long cakeId = r.getCakeId();
-        int cakeSize = r.getCakeSize(); // primitive int이면 int로 받기
+        int cakeSize = r.getCakeSize();
+
         reservationService.toggleMakeStatus(id);
-
-        boolean isReady = "READY".equals(r.getMakeStatus()); // enum이면 r.getMakeStatus()==MakeStatus.READY
-
+        boolean isReady = "READY".equals(r.getMakeStatus());
         if (!isReady) {
-            // ✅ 제작 완료 처리: +1 movement + makeStatus=READY
-            String requestId = "RES-PROD-" + id + "-" + System.currentTimeMillis();
-
-            cakeMovementService.produce(r.getResDate(), cakeId, cakeSize, 1, requestId, "from reservation list");
-
+            // 제작 완료 처리: +1 movement + makeStatus=READY
+            String requestId = "RES-" + System.currentTimeMillis();
+            cakeMovementService.produce(requestId, cakeId, cakeSize, "from reservation dashboard", id);
         } else {
-            // ✅ 제작 취소 처리: 정책(가장 늦은 READY만 취소 가능) + -1 movement + makeStatus=RESERVED
-            String requestId = "RES-UNDO-" + id + "-" + System.currentTimeMillis();
-            cakeMovementService.adjust(r.getResDate(), cakeId, cakeSize, -1, requestId, "undo from reservation list");
+            // 제작 취소 처리: 정책(가장 늦은 READY만 취소 가능) + -1 movement + makeStatus=RESERVED
+            String requestId = "RES-" + System.currentTimeMillis();
+            cakeMovementService.adjust(requestId, cakeId, cakeSize, "from reservation dashboard", id);
         }
 
         Reservation updated = reservationService.findById(id);
@@ -102,15 +91,11 @@ public class CakeMovementController {
     @PostMapping("/on-site")
     public String sellOnSite(@RequestParam("cakeId") Long cakeId,
                              @RequestParam("cakeSize") Integer cakeSize,
-                             @RequestParam(value = "amount", required = false) Integer amount,
                              @RequestParam(value = "note", required=false) String note) {
 
-        LocalDate today = LocalDate.now();
-        String requestId = "POS-" + System.currentTimeMillis();
-        Integer amountTest = 1;
-        reservationService.readyToReserved(cakeId, cakeSize, today);
-
-        cakeMovementService.sellOnSite(today, cakeId, cakeSize, amountTest, requestId, note);
+        cakeMovementService.sellOnSiteWithReservationAdjust(
+                cakeId, cakeSize, note
+        );
         return "redirect:/reservations";
     }
 

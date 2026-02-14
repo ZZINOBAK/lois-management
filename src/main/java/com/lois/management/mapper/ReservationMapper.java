@@ -79,5 +79,7 @@ public interface ReservationMapper {
 
     Reservation findByCakeIdNCakeSizeToday(@Param("cakeId") Long cakeId, @Param("cakeSize") Integer cakeSize, @Param("today") LocalDate today);
 
-    void updateWithProduce(@Param("today") LocalDate today, @Param("cakeId") Long cakeId, @Param("cakeSize") Integer cakeSize);
+    void updateWithProduce(@Param("id") Long id);
+
+    Long findReservationIdForProduce(@Param("today") LocalDate today, @Param("cakeId") Long cakeId, @Param("cakeSize") Integer cakeSize);
 }

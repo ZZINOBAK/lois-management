@@ -94,6 +94,8 @@ public class ReservationService {
         } else {
             reservationMapper.updateMakeStatus(id, "READY");
         }
+
+        log.info("예약 제작 상태 변경 -> 예약 아이디= {}", r.getId());
     }
 
     public void delete(Long id) {
@@ -315,12 +317,12 @@ public class ReservationService {
     }
 
 
-    public void readyToReserved(Long cakeId, Integer cakeSize, LocalDate today) {
+    public Long readyToReserved(Long cakeId, Integer cakeSize, LocalDate today) {
         Reservation reservation = reservationMapper.findByCakeIdNCakeSizeToday(cakeId, cakeSize, today);
         if (reservation == null) {
-            return;
+            return 0L;
         }
         toggleMakeStatus(reservation.getId());
-
+        return reservation.getId();
     }
 }

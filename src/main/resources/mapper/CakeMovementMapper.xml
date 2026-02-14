@@ -5,12 +5,11 @@
 
 <mapper namespace="com.lois.management.mapper.CakeMovementMapper">
 
-    <insert id="insertMovement" parameterType="CakeMovement" useGeneratedKeys="true"
-            keyProperty="id">
+    <insert id="insertMovement" parameterType="CakeMovement" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO cake_movements
-        (biz_date, cake_id, cake_size, delta, move_type, reservation_id, request_id, reversed_of_id, memo)
+        (biz_date, cake_id, cake_size, delta, move_type, reservation_id, request_id, memo)
         VALUES
-        (#{bizDate}, #{cakeId}, #{cakeSize}, #{delta}, #{moveType}, #{reservationId}, #{requestId}, #{reversedOfId}, #{memo})
+        (#{bizDate}, #{cakeId}, #{cakeSize}, #{delta}, #{moveType}, #{reservationId}, #{requestId}, #{memo})
     </insert>
 
     <select id="findById" resultType="CakeMovement">
@@ -37,5 +36,11 @@
         AND m.cake_id = #{cakeId}
         AND m.cake_size = #{cakeSize}
     </select>
+
+    <update id="addReservationId">
+        UPDATE cake_movements
+        SET reservation_id = #{reservationId}
+        WHERE id = #{id}
+    </update>
 
 </mapper>

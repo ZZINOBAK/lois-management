@@ -57,11 +57,11 @@ public class ReservationController {
         List<Cake> flavors = cakeService.findFlavorsForDashboard();
 
 
-        // ✅ 집계용: 무조건 오늘
+        // 필요(만들어야 하는 수량) <size,<cakeId,toMake>>
         Map<Integer, Map<Long, Integer>> toMakeMap =
                 cakeMovementService.calcToMakeMap(today);
 
-        // ✅ 재고(현재 제작된 수량)도 같이 내려주기
+        // 재고(현재 제작된 수량) <size,<cakeId,stock(SUM(delta)>>
         Map<Integer, Map<Long, Integer>> stockMap =
                 cakeMovementService.calcStockMap(today);
 

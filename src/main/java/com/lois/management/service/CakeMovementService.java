@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,45 +32,47 @@ public class CakeMovementService {
      * 1) 생산 +N
      */
     @Transactional
-    public void produce(LocalDate bizDate, Long cakeId, Integer cakeSize, int amount, String requestId, String memo) {
-        if (amount <= 0) throw new IllegalArgumentException("amount must be > 0");
+    public void produce(String requestId, Long cakeId, Integer cakeSize, String note, Long reservationId) {
+        Long reservtionsId = reservationId;
+        LocalDate bizDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
-        CakeMovement m = new CakeMovement();
-        m.setBizDate(bizDate);
-        m.setCakeId(cakeId);
-        m.setCakeSize(cakeSize);
-        m.setDelta(amount);
-        m.setMoveType("PRODUCED");
-        m.setRequestId(requestId);
-        m.setMemo(memo);
-
-        cakeMovementMapper.insertMovement(m);
-        reservationMapper.updateWithProduce(bizDate, cakeId, cakeSize);
-        log.info("제작완료 : {} ", cakeMovementMapper.findById(m.getId()));
-    }
-
-    @Transactional
-    public void adjust(
-            LocalDate bizDate,
-            Long cakeId,
-            Integer cakeSize,
-            int delta,
-            String requestId,
-            String memo
-    ) {
-        if (delta >= 0) {
-            throw new IllegalArgumentException("adjust는 음수 delta만 허용됩니다.");
+        if (requestId != null && requestId.startsWith("MANU-")) {
+            //오늘 예약 건 중 make_status가 RESERVED인 예약 중 가장 예약 시간이 빠른 건 한개의 make_status를 READY로 변경
+            reservtionsId = reservationMapper.findReservationIdForProduce(bizDate, cakeId, cakeSize);
+            reservationMapper.updateWithProduce(reservtionsId);
         }
 
         CakeMovement m = new CakeMovement();
         m.setBizDate(bizDate);
         m.setCakeId(cakeId);
         m.setCakeSize(cakeSize);
-        m.setDelta(delta); // -1
-        m.setMoveType("UNDO_PRODUCED"); // 또는 ADJUST
+        m.setMemo(note);
+        m.setDelta(1);
+        m.setMoveType("PRODUCED");
+        m.setRequestId(requestId);
+        m.setReservationId(reservtionsId);
+
+        cakeMovementMapper.insertMovement(m);
+
+
+        log.info("제작완료 : {} ", cakeMovementMapper.findById(m.getId()));
+    }
+
+    @Transactional
+    public void adjust(String requestId, Long cakeId, Integer cakeSize, String memo, Long reservationId) {
+
+        LocalDate bizDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
+
+        CakeMovement m = new CakeMovement();
+        m.setBizDate(bizDate);
+        m.setCakeId(cakeId);
+        m.setCakeSize(cakeSize);
         m.setRequestId(requestId);
         m.setMemo(memo);
 
+        m.setDelta(-1);
+        m.setMoveType("UNDO_PRODUCED");
+        m.setReservationId(reservationId);
         cakeMovementMapper.insertMovement(m);
     }
 
@@ -106,25 +109,32 @@ public class CakeMovementService {
      * (동시성 100% 방어는 cache 버전에서 더 완벽해짐)
      */
     @Transactional
-    public void sellOnSite(LocalDate bizDate, Long cakeId, Integer cakeSize, int amount, String requestId, String memo) {
-        if (amount <= 0) throw new IllegalArgumentException("amount must be > 0");
-
-        int stock = cakeMovementMapper.getStockByKey(bizDate, cakeId, cakeSize);
-        if (stock < amount) {
-
-            produce(bizDate, cakeId, cakeSize, 1, requestId + "onSite", "from reservation list");
-        }
+    public void sellOnSite(LocalDate bizDate, Long cakeId, Integer cakeSize, String requestId, String note) {
 
         CakeMovement m = new CakeMovement();
         m.setBizDate(bizDate);
         m.setCakeId(cakeId);
         m.setCakeSize(cakeSize);
-        m.setDelta(-amount);
-        m.setMoveType("ON_SITE");
+        m.setDelta(-1);
+        m.setMoveType("PICKED");
         m.setRequestId(requestId);
-        m.setMemo(memo);
 
+        int stock = cakeMovementMapper.getStockByKey(bizDate, cakeId, cakeSize);
+        if (stock < 1) {
+            produce(requestId + "-1", cakeId, cakeSize, "AUTO_PRODUCE_ON_SITE", 0L);
+            m.setMemo(note);
+        } else {
+            Long reservationId = reservationService.readyToReserved(cakeId, cakeSize, bizDate);
+            m.setMemo(note + "예약 번호" + reservationId + " 제작상태 READY -> RESERVED");
+        }
         cakeMovementMapper.insertMovement(m);
+    }
+
+    @Transactional
+    public void sellOnSiteWithReservationAdjust(Long cakeId, Integer cakeSize, String note) {
+        LocalDate today = LocalDate.now();
+        String requestId = "ONSITE-" + System.currentTimeMillis();
+        sellOnSite(today, cakeId, cakeSize, requestId, note);
     }
 
     /**
@@ -180,6 +190,7 @@ public class CakeMovementService {
         Integer cakeSize = r.getCakeSize();
         LocalDate bizDate = r.getResDate();
 
+        CakeMovement m = new CakeMovement();
         boolean isPicked = "PICKED".equals(r.getPickupStatus());
 
         if (!isPicked) {
@@ -189,18 +200,15 @@ public class CakeMovementService {
                 reservationService.toggleMakeStatus(reservationId);
                 log.info("픽업으로 인한 makeStatus 상태 변경 : RESERVED -> READY");
 
-                produce(bizDate, cakeId, cakeSize, 1, requestId + "onTime", "from reservation list");
-
+                produce(requestId + "-1", cakeId, cakeSize,  "AUTO_PRODUCE_ON_PICKUP", reservationId);
             }
-
             reservationService.updatePickupStatus(reservationId, "PICKED", LocalDateTime.now());
 
-            CakeMovement m = new CakeMovement();
             m.setBizDate(bizDate);
             m.setCakeId(cakeId);
             m.setCakeSize(cakeSize);
             m.setDelta(-1);
-            m.setMoveType("PICKUP");
+            m.setMoveType("PICKED");
             m.setReservationId(reservationId);
             m.setRequestId(requestId);
             cakeMovementMapper.insertMovement(m);
@@ -209,22 +217,18 @@ public class CakeMovementService {
         }
 
         // PICKED -> WAITING : 취소(원복) => 재고 +1
-        reservationService.updatePickupStatus(reservationId, "WAITING", null);
+        reservationService.updatePickupStatus(reservationId, "WAITING", LocalDateTime.now());
 
-//        reservationService.toggleMakeStatus(reservationId);
-//        log.info("언픽업으로 인한 makeStatus 상태 변경 : READY -> RESERVED");
-//        adjust(bizDate, cakeId, cakeSize, -1,  requestId + "onTime", "undo from reservation list");
-
-        CakeMovement undo = new CakeMovement();
-        undo.setBizDate(bizDate);
-        undo.setCakeId(cakeId);
-        undo.setCakeSize(cakeSize);
-        undo.setDelta(+1);
-        undo.setMoveType("UNPICK"); // 또는 PICKUP_CANCEL
-        undo.setReservationId(reservationId);
-        undo.setRequestId(requestId);
-        cakeMovementMapper.insertMovement(undo);
+        m.setBizDate(bizDate);
+        m.setCakeId(cakeId);
+        m.setCakeSize(cakeSize);
+        m.setDelta(1);
+        m.setMoveType("UNDO_PICKED");
+        m.setReservationId(reservationId);
+        m.setRequestId(requestId);
+        cakeMovementMapper.insertMovement(m);
     }
+
 
     /**
      * 4) toMakeMap 계산: demand(WAITING 예약 수요) - stock(현재 재고)
@@ -232,68 +236,56 @@ public class CakeMovementService {
      */
     @Transactional(readOnly = true)
     public Map<Integer, Map<Long, Integer>> calcToMakeMap(LocalDate today) {
-
         // 오늘 총 예약건 조회(pickUpStatus==WAITING)
         List<Reservation> demandRows = reservationService.countDemandByDate(today);
-
-        // 오늘 만들어져 있는 케이크 조회
+        // 오늘 만들어져 있는 케이크 조회 : sumStockByDate(SUM(delta))
         List<CakeMovement> stockRows = cakeMovementMapper.sumStockByDate(today);
-
         // 케이크 테이블에서 케이크 id, 맛 조회
-        List<Cake> cakeIdToFlavor = cakeService.getIdToFlavorMap();
+        List<Cake> cakeIdToFlavor = cakeService.findAllIdFlavor();
 
-        // (size->cakeId->demand)
+        // 오늘 총 예약 건 : <size,<cakeId,demand>>
         Map<Integer, Map<Long, Integer>> demandMap = new HashMap<>();
         for (Reservation row : demandRows) {
             demandMap.computeIfAbsent(row.getCakeSize(), k -> new HashMap<>())
                     .put(row.getCakeId(), row.getCnt());
         }
-
-        // (size->cakeId->stock) {사이즈 = {케이크아이디 = 재고, ...}}
+        // 오늘 만들어져 있는 케이크 : <size,<cakeId,stock>> {사이즈 = {케이크아이디 = 재고, ...}}
         Map<Integer, Map<Long, Integer>> stockMap = new HashMap<>();
         for (CakeMovement row : stockRows) {
             stockMap.computeIfAbsent(row.getCakeSize(), k -> new HashMap<>())
                     .put(row.getCakeId(), row.getStock());
         }
 
-        // toMake
+        // 몇개 더 만들어야 하는가 계산 : <size,<cakeId,toMake>> -> toMake = demand - stock
         Map<Integer, Map<Long, Integer>> toMakeResult = new HashMap<>();
-
-        // demandMap : (size->cakeId->demand)
+        // demandMap : <size,<cakeId,demand>>
         for (Map.Entry<Integer, Map<Long, Integer>> reservations : demandMap.entrySet()) {
             int size = reservations.getKey();
-
             Map<Long, Integer> reservedCakeIdNAmount = reservations.getValue();
-
-            // stockMap : (size->cakeId->stock)
+            // stockMap : <size,<cakeId,stock>>
             Map<Long, Integer> beMadeCakeIdNAmount = stockMap.getOrDefault(size, Map.of());
-
             Map<Long, Integer> toMakeCakeIdNAmount = new HashMap<>();
-
             for (Map.Entry<Long, Integer> e : reservedCakeIdNAmount.entrySet()) {
                 Long reservedCakeId = e.getKey();
                 int reservedAmount = e.getValue();
-
                 int beMadeAmount = beMadeCakeIdNAmount.getOrDefault(reservedCakeId, 0);
                 int toMake = Math.max(reservedAmount - beMadeAmount, 0);
-
                 toMakeCakeIdNAmount.put(reservedCakeId, toMake);
             }
             toMakeResult.put(size, toMakeCakeIdNAmount);
         }
-
         log.info("[toMake] result={}", toMakeResult);
         return toMakeResult;
     }
 
     public Map<Integer, Map<Long, Integer>> calcStockMap(LocalDate bizDate) {
-        // 1) movements에서 날짜별 재고 집계 (cakeId+size 기준)
+        // SUM(delta) : sumStockByDate
         List<CakeMovement> stockRows = cakeMovementMapper.sumStockByDate(bizDate);
 
-        // 2) cakeId -> flavor 매핑 필요 (이미 cakes 테이블이 있으니 거기서 가져오기)
-        List<Cake> flavorByCakeId = cakeService.getIdToFlavorMap();
+        // cakeId, flavor 조회
+        List<Cake> flavorByCakeId = cakeService.findAllIdFlavor();
 
-        // 3) size -> (flavor -> stock) 형태로 변환 (UI가 flavor로 조회하니까)
+        // 재고 계산 : <size,<cakeId,stock(SUM(delta)>>
         Map<Integer, Map<Long, Integer>> result = new HashMap<>();
 
         for (CakeMovement r : stockRows) {
@@ -308,4 +300,6 @@ public class CakeMovementService {
 
         return result;
     }
+
+
 }
