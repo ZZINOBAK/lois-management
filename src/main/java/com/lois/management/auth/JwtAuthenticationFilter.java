@@ -51,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 (qs != null ? "?" + qs : ""),
                 referer);
 
-        // ✅ 헤더(Bearer) 또는 쿠키(LOIS_ACCESS_TOKEN)에서 토큰 찾기
+        // 헤더(Bearer) 또는 쿠키(LOIS_ACCESS_TOKEN)에서 토큰 찾기
         String token = resolveToken(request);
 
         if (token != null && jwtTokenProvider.validateToken(token)) {

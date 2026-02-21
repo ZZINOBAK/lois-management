@@ -23,16 +23,16 @@ public class SmsApiClient {
     DefaultMessageService messageService;
 
 
-    // 🚀 초기화 작업 - @PostConstruct
+    // 초기화 작업
     @PostConstruct
     public void init() {
         this.messageService = NurigoApp.INSTANCE.initialize(apiKey, apiSecret, "https://api.coolsms.co.kr");
     }
 
-    // 📩 문자 전송 메서드
+    // 문자 전송 메서드
     public SingleMessageSentResponse sendSMS(Message message){
 
-        SingleMessageSentResponse response = this.messageService.sendOne(new SingleMessageSendingRequest(message)); // 메시지 발송 요청
+        SingleMessageSentResponse response = this.messageService.sendOne(new SingleMessageSendingRequest(message));
         return response;
 
     }

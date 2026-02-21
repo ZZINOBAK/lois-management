@@ -28,4 +28,9 @@ public interface CakeMovementMapper {
     CakeMovement findById(Long id);
 
     void addReservationId(@Param("id") Long id, @Param("reservationId") Long reservationIdForManu);
+
+    List<Long> getReservationIdsByProduced(@Param("bizDate") LocalDate bizDate,
+                                      @Param("cakeId") Long cakeId,
+                                      @Param("cakeSize") Integer cakeSize);
+
 }

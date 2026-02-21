@@ -36,27 +36,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(1) //API 전용 체인 만들기 (JWT-only)
+    @Order(1) //API 전용 체인 (JWT-only)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/**")
-
-                // ✅ API는 CSRF 불필요(헤더 JWT 기반)
+                // API는 CSRF 불필요(헤더 JWT 기반)
                 .csrf(csrf -> csrf.disable())
-
-                // ✅ 세션 사용 금지(세션이 와도 무시)
+                // 세션 사용 금지(세션이 와도 무시)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/public/**").permitAll()
                         .anyRequest().hasAnyRole("ADMIN", "STAFF")
                 )
-
-
-                // ✅ JWT 필터는 API 체인에만 적용
+                // JWT 필터는 API 체인에만 적용
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // ✅ API는 JSON 에러 응답
+                // API는 JSON 에러 응답
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((req, res, ex) -> {
                             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -75,7 +70,7 @@ public class SecurityConfig {
 
 
     @Bean
-    @Order(2) //페이지 전용 체인 만들기 (세션 + 폼로그인)
+    @Order(2) //페이지 전용 체인 (세션 + 폼로그인)
     public SecurityFilterChain pageFilterChain(HttpSecurity http) throws Exception {
         AuthenticationEntryPoint defaultEntryPoint = new LoginUrlAuthenticationEntryPoint("/login");
         AccessDeniedHandler defaultDenied = new AccessDeniedHandlerImpl();
@@ -83,7 +78,7 @@ public class SecurityConfig {
         http
                 .securityMatcher("/**")
 
-//                // ✅ 페이지는 CSRF 켜는 게 정석
+//                // 페이지는 CSRF 켜는 게 정석
 //                .csrf(csrf -> csrf.enable())
 
                 .authorizeHttpRequests(auth -> auth
@@ -97,16 +92,11 @@ public class SecurityConfig {
                                 "/access-request/**",
                                 "/error", "/error/**"
                         ).permitAll()
-                        .requestMatchers("/api/**").denyAll()   // ✅ 이거 한 줄 추가
-
-                        // ✅ 관리자 전용
+                        .requestMatchers("/api/**").denyAll()
                         .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**", "/items/**")
                         .hasAnyRole("ADMIN", "STAFF")
-
-
                         .anyRequest().authenticated()
                 )
-
 
                 .userDetailsService(employeeUserDetailsService)
 

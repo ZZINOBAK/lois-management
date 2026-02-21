@@ -13,9 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -196,7 +194,9 @@ public class CakeMovementService {
         if (!isPicked) {
             // WAITING -> PICKED : 재고 -1
             int stock = cakeMovementMapper.getStockByKey(bizDate, cakeId, cakeSize);
-            if (stock < 1) {
+            List<Long> rIdsProduced = cakeMovementMapper.getReservationIdsByProduced(bizDate, cakeId, cakeSize);
+
+            if (stock < 1 || !rIdsProduced.contains(reservationId)) {
                 reservationService.toggleMakeStatus(reservationId);
                 log.info("픽업으로 인한 makeStatus 상태 변경 : RESERVED -> READY");
 

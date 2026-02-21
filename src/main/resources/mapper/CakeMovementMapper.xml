@@ -37,6 +37,25 @@
         AND m.cake_size = #{cakeSize}
     </select>
 
+    <select id="getReservationIdsByProduced" resultType="long">
+        SELECT m.reservation_id
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        AND m.cake_id = #{cakeId}
+        AND m.cake_size = #{cakeSize}
+        AND m.reservation_id IS NOT NULL
+        GROUP BY m.reservation_id
+        HAVING SUM(
+        CASE
+        WHEN m.move_type = 'PRODUCED' THEN 1
+        WHEN m.move_type = 'UNDO_PRODUCED' THEN -1
+        ELSE 0
+        END
+        ) > 0
+        ORDER BY m.reservation_id;
+    </select>
+
+
     <update id="addReservationId">
         UPDATE cake_movements
         SET reservation_id = #{reservationId}
