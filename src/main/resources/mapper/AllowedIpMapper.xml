@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.lois.management.mapper.AllowedIpMapper">
 
+    <!-- 1. 매핑 설정 (항상 최상단) -->
     <resultMap id="AllowedIpMap" type="com.lois.management.domain.AllowedIp">
         <id property="id" column="id"/>
         <result property="ipAddress" column="ip_address"/>
@@ -16,6 +16,7 @@
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
+    <!-- 2. 조회 (가장 빈번하게 확인하는 코드) -->
     <select id="countApprovedByIp" parameterType="string" resultType="int">
         SELECT COUNT(*)
         FROM allowed_ips
@@ -30,18 +31,18 @@
         AND status = 'PENDING'
     </select>
 
-    <insert id="insert" parameterType="com.lois.management.domain.AllowedIp">
-        INSERT INTO allowed_ips (ip_address, name, contact, memo, status)
-        VALUES (#{ipAddress}, #{name}, #{contact}, #{memo}, #{status})
-    </insert>
-
-    <select id="findByStatus" parameterType="string"
-            resultMap="AllowedIpMap">
+    <select id="findByStatus" parameterType="string" resultMap="AllowedIpMap">
         SELECT *
         FROM allowed_ips
         WHERE status = #{status}
         ORDER BY created_at DESC
     </select>
+
+    <!-- 3. 삽입/수정 (데이터 변경 로직) -->
+    <insert id="insert" parameterType="com.lois.management.domain.AllowedIp">
+        INSERT INTO allowed_ips (ip_address, name, contact, memo, status)
+        VALUES (#{ipAddress}, #{name}, #{contact}, #{memo}, #{status})
+    </insert>
 
     <update id="updateStatus">
         UPDATE allowed_ips
@@ -49,5 +50,7 @@
         updated_at = NOW()
         WHERE id = #{id}
     </update>
+
+    <!-- 4. 삭제 (가장 마지막) -->
 
 </mapper>

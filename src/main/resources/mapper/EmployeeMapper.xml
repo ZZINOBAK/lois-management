@@ -4,6 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lois.management.mapper.EmployeeMapper">
 
+    <!-- 조회 -->
     <select id="findAll" resultType="Employee">
         SELECT id, employee_name, phone, note, created_at, updated_at
         FROM employees
@@ -22,6 +23,7 @@
         WHERE employee_name = #{employeeName}
     </select>
 
+    <!-- 삽입/수정 -->
     <insert id="create" parameterType="Employee" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO employees (employee_name)
         VALUES (#{employeeName})
@@ -35,6 +37,7 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 삭제 -->
     <delete id="delete" parameterType="long">
         DELETE FROM employees WHERE id = #{id}
     </delete>

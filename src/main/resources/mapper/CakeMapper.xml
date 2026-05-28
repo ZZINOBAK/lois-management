@@ -4,6 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lois.management.mapper.CakeMapper">
 
+    <!-- 조회 -->
     <select id="findAllFlavors" resultType="String">
         SELECT flavor
         FROM cakes

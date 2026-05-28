@@ -4,6 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lois.management.mapper.ItemMapper">
 
+    <!-- 조회 -->
     <select id="findAll" resultType="Item">
         SELECT *
         FROM items
@@ -22,7 +23,6 @@
         ORDER BY requestCount DESC, itemName ASC;
     </select>
 
-
     <select id="findAllOrderByNameAsc" resultType="Item">
         SELECT
             *
@@ -39,20 +39,16 @@
         ORDER BY i.item_name ASC;
     </select>
 
-
     <select id="findById" parameterType="long" resultType="Item">
         SELECT id, res_date, res_time, cake_id, cake_size, contact
         FROM items
         WHERE id = #{id}
     </select>
 
-
+    <!-- 삽입 -->
     <insert id="insert" parameterType="Item" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO items (item_name, category_id)
         VALUES (#{itemName}, #{categoryId})
     </insert>
-
-
-
 
 </mapper>

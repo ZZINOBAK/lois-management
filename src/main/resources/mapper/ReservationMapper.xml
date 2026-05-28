@@ -4,6 +4,19 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lois.management.mapper.ReservationMapper">
 
+    <!--    CakeMovement-->
+    <select id="countDemandByDate" resultType="Reservation">
+        SELECT
+        r.cake_size AS cakeSize,
+        r.cake_id   AS cakeId,
+        COUNT(*)    AS cnt
+        FROM reservations r
+        WHERE r.res_date = #{today}
+        AND r.pickup_status = 'WAITING'
+        GROUP BY r.cake_size, r.cake_id
+    </select>
+
+    <!-- 조회 -->
     <select id="findAll" resultType="Reservation">
         SELECT
         ROW_NUMBER() OVER (ORDER BY r.id DESC) AS rowNumber,
@@ -103,7 +116,6 @@
         AND r.res_date = #{date}
         ORDER BY r.res_date ASC, r.res_time ASC
     </select>
-
 
     <select id="sortByPickUpTime" resultType="Reservation">
         SELECT id, res_date, res_time, cake_id, cake_size, contact
@@ -228,6 +240,18 @@
         WHERE contact = #{contact}
     </select>
 
+    <select id="findReservationIdForProduce" resultType="long">
+        SELECT id
+        FROM reservations
+        WHERE res_date = #{today}
+        AND make_status = 'RESERVED'
+        AND cake_id = #{cakeId}
+        AND cake_size = #{cakeSize}
+        ORDER BY res_time ASC
+        LIMIT 1
+    </select>
+
+    <!-- 삽입/수정 -->
     <insert id="insert" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reservations (res_date, res_time, cake_id, contact, paid, note)
         VALUES (#{resDate}, #{resTime}, #{cakeId}, #{contact}, #{paid}, #{note})
@@ -274,16 +298,6 @@
         WHERE id = #{id}
     </update>
 
-    <select id="findReservationIdForProduce" resultType="long">
-        SELECT id
-        FROM reservations
-        WHERE res_date = #{today}
-        AND make_status = 'RESERVED'
-        AND cake_id = #{cakeId}
-        AND cake_size = #{cakeSize}
-        ORDER BY res_time ASC
-        LIMIT 1
-    </select>
     <update id="updateWithProduce">
         UPDATE reservations
         SET make_status = 'READY'
@@ -297,22 +311,13 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 삭제 -->
     <delete id="delete" parameterType="long">
         DELETE FROM reservations
         WHERE id = #{id}
     </delete>
 
-<!--    CakeMovement-->
-    <select id="countDemandByDate" resultType="Reservation">
-        SELECT
-        r.cake_size AS cakeSize,
-        r.cake_id   AS cakeId,
-        COUNT(*)    AS cnt
-        FROM reservations r
-        WHERE r.res_date = #{today}
-        AND r.pickup_status = 'WAITING'
-        GROUP BY r.cake_size, r.cake_id
-    </select>
+
 
 
 </mapper>

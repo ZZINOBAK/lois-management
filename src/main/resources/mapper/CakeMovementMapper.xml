@@ -5,13 +5,7 @@
 
 <mapper namespace="com.lois.management.mapper.CakeMovementMapper">
 
-    <insert id="insertMovement" parameterType="CakeMovement" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO cake_movements
-        (biz_date, cake_id, cake_size, delta, move_type, reservation_id, request_id, memo)
-        VALUES
-        (#{bizDate}, #{cakeId}, #{cakeSize}, #{delta}, #{moveType}, #{reservationId}, #{requestId}, #{memo})
-    </insert>
-
+    <!-- 조회 -->
     <select id="findById" resultType="CakeMovement">
         SELECT
         *
@@ -55,6 +49,13 @@
         ORDER BY m.reservation_id;
     </select>
 
+    <!-- 삽입/수정 -->
+    <insert id="insertMovement" parameterType="CakeMovement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cake_movements
+        (biz_date, cake_id, cake_size, delta, move_type, reservation_id, request_id, memo)
+        VALUES
+        (#{bizDate}, #{cakeId}, #{cakeSize}, #{delta}, #{moveType}, #{reservationId}, #{requestId}, #{memo})
+    </insert>
 
     <update id="addReservationId">
         UPDATE cake_movements

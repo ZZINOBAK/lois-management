@@ -4,6 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lois.management.mapper.StockRequestMapper">
 
+    <!-- 조회 -->
     <select id="findAll" resultType="StockRequest">
         SELECT
         sr.*,
@@ -31,7 +32,6 @@
         sr.id ASC;
     </select>
 
-
     <select id="findById" parameterType="long" resultType="StockRequest">
         SELECT *
         FROM stock_requests
@@ -45,11 +45,11 @@
     AND status = 'requested'
     </select>
 
+    <!-- 삽입/수정 -->
     <insert id="insert" parameterType="StockRequest" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO stock_requests (item_id)
         VALUES (#{itemId})
     </insert>
-
 
     <update id="update" parameterType="StockRequest">
         UPDATE stock_requests
@@ -65,6 +65,7 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 삭제 -->
     <delete id="drop" parameterType="long">
         DELETE FROM stock_requests WHERE id = #{id}
     </delete>
