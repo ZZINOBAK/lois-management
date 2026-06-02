@@ -37,4 +37,7 @@ public class Reservation {
     //맛 취소선 용
     private boolean producedUi;
 
+    //휴대폰 뒷번호로 조회용 컬럼 추가
+    private String contactSuffix;
+
 }

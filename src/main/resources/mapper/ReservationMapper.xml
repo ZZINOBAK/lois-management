@@ -253,8 +253,8 @@
 
     <!-- 삽입/수정 -->
     <insert id="insert" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO reservations (res_date, res_time, cake_id, contact, paid, note)
-        VALUES (#{resDate}, #{resTime}, #{cakeId}, #{contact}, #{paid}, #{note})
+        INSERT INTO reservations (res_date, res_time, cake_id, contact, paid, note, contact_suffix)
+        VALUES (#{resDate}, #{resTime}, #{cakeId}, #{contact}, #{paid}, #{note}, #{contactSuffix})
     </insert>
 
     <insert id="insertOnSite" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">

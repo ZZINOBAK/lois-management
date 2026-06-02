@@ -56,6 +56,9 @@ class ReservationsServiceTest {
         assertThat(saved.getResTime()).isEqualTo(LocalTime.parse("15:30"));
         assertThat(saved.getContact()).isEqualTo("010-1234-5678");
         assertThat(saved.getPaid()).isTrue();
+
+        // 폰 뒷자리 컬럼 로직 체크
+        assertThat(saved.getContactSuffix()).isEqualTo("5678");
     }
 
 }

@@ -26,6 +26,8 @@ public class ReservationService {
 
 
     public void create(Reservation reservation) {
+        String contact = reservation.getContact();
+        reservation.setContactSuffix(contact.substring(contact.length() - 4));
         reservationMapper.insert(reservation);
     }
 
