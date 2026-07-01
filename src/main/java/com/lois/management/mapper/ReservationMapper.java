@@ -3,11 +3,13 @@ package com.lois.management.mapper;
 import com.lois.management.domain.Cake;
 import com.lois.management.domain.CakeMovement;
 import com.lois.management.domain.Reservation;
+import com.lois.management.dto.reservation.ReservationCountDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
@@ -82,4 +84,14 @@ public interface ReservationMapper {
     void updateWithProduce(@Param("id") Long id);
 
     Long findReservationIdForProduce(@Param("today") LocalDate today, @Param("cakeId") Long cakeId, @Param("cakeSize") Integer cakeSize);
+
+    // 예약 정책용 쿼리 추가
+    int countByDate(LocalDate resDate);
+
+    int countByDateAndTime(@Param("resDate")LocalDate resDate, @Param("resTime")LocalTime resTime);
+
+    void deleteTestReservations(String testContactPrefix);
+
+    //2026.06.09 캐시 초기화용 쿼리 추가
+    List<ReservationCountDto> countReservationsBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

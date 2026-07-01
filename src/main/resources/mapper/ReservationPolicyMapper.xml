@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lois.management.mapper.ReservationPolicyMapper">
+    <!-- 조회 -->
+    <select id="selectLatestPolicy" resultType="ReservationPolicy">
+        SELECT
+            id,
+            daily_max_limit,
+            hourly_max_limit,
+            updated_at
+        FROM reservation_policies
+        WHERE id = 1
+    </select>
+
+    <select id="selectLatestPolicyWithLock" resultType="ReservationPolicy">
+        SELECT
+        id,
+        daily_max_limit,
+        hourly_max_limit,
+        updated_at
+        FROM reservation_policies
+        WHERE id = 1
+        FOR UPDATE
+    </select>
+
+    <!-- 삽입/수정 -->
+    <insert id="create" parameterType="ReservationPolicy" useGeneratedKeys="true" keyProperty="id">
+
+    </insert>
+
+    <update id="update" parameterType="ReservationPolicy">
+        UPDATE reservation_policies
+        SET
+            daily_max_limit = #{dailyMaxLimit},
+            hourly_max_limit = #{hourlyMaxLimit}
+        WHERE id = 1
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="delete" parameterType="long">
+
+    </delete>
+</mapper>

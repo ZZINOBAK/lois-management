@@ -67,6 +67,9 @@ dependencies {
 
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
+	// 시큐리티 테스트 의존성 추가
+	testImplementation 'org.springframework.security:spring-security-test'
+
 }
 
 tasks.named('test') {

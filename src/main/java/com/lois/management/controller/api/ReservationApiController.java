@@ -1,7 +1,7 @@
 package com.lois.management.controller.api;
 
 import com.lois.management.domain.Reservation;
-import com.lois.management.domain.dto.ReservationCreateReq;
+import com.lois.management.dto.reservation.ReservationCreateReq;
 import com.lois.management.dto.reservation.ReservationRes;
 import com.lois.management.dto.reservation.ReservationSummaryRes;
 import com.lois.management.dto.reservation.ReservationUpdateReq;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/api/reservations")

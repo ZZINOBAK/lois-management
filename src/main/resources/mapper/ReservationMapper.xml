@@ -251,6 +251,31 @@
         LIMIT 1
     </select>
 
+    <!-- 예약 정책용 조회 쿼리 추가 -->
+    <select id="countByDate" parameterType="java.time.LocalDate" resultType="int">
+        SELECT COUNT(*)
+        FROM reservations
+        WHERE res_date = #{resDate}
+    </select>
+
+    <select id="countByDateAndTime" resultType="int">
+        SELECT COUNT(*)
+        FROM reservations
+        WHERE res_date = #{resDate}
+        AND HOUR(res_time) = HOUR(#{resTime})
+    </select>
+
+    <!-- 예약 정책용 캐시 초기화 쿼리 추가 -->
+    <select id="countReservationsBetween" resultType="com.lois.management.dto.reservation.ReservationCountDto">
+        SELECT
+        res_date AS resDate,
+        res_time AS resTime,
+        COUNT(*) AS count
+        FROM reservations
+        WHERE res_date BETWEEN #{startDate} AND #{endDate}
+        GROUP BY res_date, res_time
+    </select>
+
     <!-- 삽입/수정 -->
     <insert id="insert" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reservations (res_date, res_time, cake_id, contact, paid, note)
@@ -262,7 +287,7 @@
         VALUES (#{resDate}, #{resTime}, #{cakeId}, #{cakeSize}, #{makeStatus}, #{contact}, #{paid}, #{pickupStatus}, #{note})
     </insert>
 
-    <update id="updateApi" parameterType="com.lois.management.domain.Reservation"> <!-- ✅ id=update -->
+    <update id="updateApi" parameterType="Reservation"> <!-- ✅ id=update -->
         UPDATE reservations
         <set>
             <if test="resDate != null">res_date = #{resDate},</if>
@@ -317,7 +342,10 @@
         WHERE id = #{id}
     </delete>
 
-
+    <delete id="deleteTestReservations" parameterType="string">
+        DELETE FROM reservations
+        WHERE contact LIKE CONCAT(#{contactPrefix}, '%')
+    </delete>
 
 
 </mapper>

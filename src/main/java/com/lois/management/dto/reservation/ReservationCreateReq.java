@@ -1,4 +1,4 @@
-package com.lois.management.domain.dto;
+package com.lois.management.dto.reservation;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

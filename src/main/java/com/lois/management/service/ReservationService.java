@@ -2,17 +2,18 @@ package com.lois.management.service;
 
 import com.lois.management.domain.Cake;
 import com.lois.management.domain.Reservation;
-import com.lois.management.domain.dto.ReservationCreateReq;
+import com.lois.management.dto.reservation.ReservationCreateReq;
 import com.lois.management.dto.reservation.ReservationRes;
 import com.lois.management.dto.reservation.ReservationSummaryRes;
 import com.lois.management.dto.reservation.ReservationUpdateReq;
 import com.lois.management.mapper.ReservationMapper;
-import lombok.RequiredArgsConstructor;
+import com.lois.management.mapper.ReservationPolicyMapper;
+import com.lois.management.service.reservation.limiter.ReservationLimiter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -20,14 +21,73 @@ import java.util.*;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class ReservationService {
     private final ReservationMapper reservationMapper;
+    private final ReservationPolicyMapper reservationPolicyMapper;
+//    @Qualifier("localLockConcurrencyGuard")
+    private final ReservationLimiter reservationConcurrencyGuard;
 
+    public ReservationService(ReservationMapper reservationMapper, ReservationPolicyMapper reservationPolicyMapper,
+                             ReservationLimiter reservationConcurrencyGuard) {
+        this.reservationMapper = reservationMapper;
+        this.reservationPolicyMapper = reservationPolicyMapper;
+        this.reservationConcurrencyGuard = reservationConcurrencyGuard;
+    }
 
+    @Transactional
     public void create(Reservation reservation) {
+        System.out.println(
+                "현재 Limiter = "
+                        + reservationConcurrencyGuard.getClass().getSimpleName()
+        );
+
+        // 1. 주입된 매니저가 DB 방식이든 캐시 방식이든 알아서 검증합니다.
+        if (!reservationConcurrencyGuard.tryAcquireSlot(reservation.getResDate(), reservation.getResTime())) {
+            throw new IllegalArgumentException("예약 가능 수량을 초과했습니다.");
+        }
+
+        // 2. 검증 통과 시 최종 인서트
         reservationMapper.insert(reservation);
     }
+
+//    @Transactional
+//    public void create(Reservation reservation) {
+//        // [STEP 1] DB에서 실시간 제한 정책 기준값 조회 (예: 시간당 10개, 당일 무제한)
+////        ReservationPolicy policy = reservationPolicyMapper.selectLatestPolicy();
+//        ReservationPolicy policy = reservationPolicyMapper.selectLatestPolicyWithLock();
+//
+//        if (policy != null) {
+//            // 날짜와 시간대 파라미터 추출
+//            LocalDate resDate = reservation.getResDate();
+//            // 시간대 비교를 위해 LocalTime에서 시(Hour) 정보나 전체 시간 포맷을 활용합니다.
+//            LocalTime resTime = reservation.getResTime();
+//
+//            // [STEP 2] DB를 조회하여 "당일" 현재 예약 완료된 총 건수 계산
+//            if (policy.getDailyMaxLimit() != -1) { // -1이 아닐 때만 제한 체크
+//                int currentDailyCount = reservationMapper.countByDate(resDate);
+//                if (currentDailyCount >= policy.getDailyMaxLimit()) {
+//                    throw new IllegalArgumentException("당일 예약 가능 수량을 초과했습니다. (최대: " + policy.getDailyMaxLimit() + "개)");
+//                }
+//            }
+//
+//            // [STEP 3] DB를 조회하여 "해당 시간대" 현재 예약 완료된 총 건수 계산
+//            // (참고: reservationMapper에 특정 날짜/시간대 카운트 쿼리가 있다고 가정)
+//            int currentHourlyCount = reservationMapper.countByDateAndTime(resDate, resTime);
+//
+////            try {
+////                Thread.sleep(100);
+////            } catch (InterruptedException e) {
+////                Thread.currentThread().interrupt();
+////            }
+//
+//            if (currentHourlyCount >= policy.getHourlyMaxLimit()) {
+//                throw new IllegalArgumentException("해당 시간대 예약 가능 수량을 초과했습니다. (최대: " + policy.getHourlyMaxLimit() + "개)");
+//            }
+//        }
+//
+//        reservationMapper.insert(reservation);
+//    }
 
     public void createOnSite(Reservation reservation) {
 

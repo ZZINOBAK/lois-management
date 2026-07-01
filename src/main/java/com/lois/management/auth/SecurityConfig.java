@@ -81,6 +81,10 @@ public class SecurityConfig {
 //                // 페이지는 CSRF 켜는 게 정석
 //                .csrf(csrf -> csrf.enable())
 
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/reservations")
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/public/**",
@@ -90,7 +94,8 @@ public class SecurityConfig {
                                 "/auth/after-login",
                                 "/actuator/health",
                                 "/access-request/**",
-                                "/error", "/error/**"
+                                "/error", "/error/**",
+                                "/test/token"
                         ).permitAll()
                         .requestMatchers("/api/**").denyAll()
                         .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**", "/items/**")
