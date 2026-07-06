@@ -2,10 +2,7 @@ package com.lois.management.service;
 
 import com.lois.management.domain.Cake;
 import com.lois.management.domain.Reservation;
-import com.lois.management.dto.reservation.ReservationCreateReq;
-import com.lois.management.dto.reservation.ReservationRes;
-import com.lois.management.dto.reservation.ReservationSummaryRes;
-import com.lois.management.dto.reservation.ReservationUpdateReq;
+import com.lois.management.dto.reservation.*;
 import com.lois.management.mapper.ReservationMapper;
 import com.lois.management.mapper.ReservationPolicyMapper;
 import com.lois.management.service.reservation.limiter.ReservationLimiter;
@@ -110,8 +107,10 @@ public class ReservationService {
         reservationMapper.insertOnSite(reservation);
     }
 
-    public List<Reservation> findAll() {
-        return reservationMapper.findAll();
+    public List<Reservation> findAll(ReservationPageReq pageRequest) {
+        pageRequest.setTotalCount(reservationMapper.countAll());
+        pageRequest.calculate();
+        return reservationMapper.findAll(pageRequest);
     }
 
     public Reservation findById(Long id) {
@@ -222,8 +221,8 @@ public class ReservationService {
         return new ReservationRes(r.getId(), r.getMakeStatus());
     }
 
-    public List<ReservationSummaryRes> findAllSummaries() {
-        return reservationMapper.findAll().stream()
+    public List<ReservationSummaryRes> findAllSummaries(ReservationPageReq pageRequest) {
+        return reservationMapper.findAll(pageRequest).stream()
                 .map(r -> new ReservationSummaryRes(
                         r.getId(),
                         r.getCakeId(),

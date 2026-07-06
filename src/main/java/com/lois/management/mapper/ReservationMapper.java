@@ -4,6 +4,7 @@ import com.lois.management.domain.Cake;
 import com.lois.management.domain.CakeMovement;
 import com.lois.management.domain.Reservation;
 import com.lois.management.dto.reservation.ReservationCountDto;
+import com.lois.management.dto.reservation.ReservationPageReq;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -18,7 +19,9 @@ public interface ReservationMapper {
 
     void insert(Reservation reservation);
 
-    List<Reservation> findAll();
+    List<Reservation> findAll(ReservationPageReq pageRequest);
+
+    int countAll();
 
     Reservation findById(Long id);
 

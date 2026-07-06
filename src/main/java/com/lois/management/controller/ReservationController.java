@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.lois.management.domain.Cake;
 import com.lois.management.domain.CakeMovement;
 import com.lois.management.domain.Reservation;
+import com.lois.management.dto.reservation.ReservationPageReq;
 import com.lois.management.service.CakeMovementService;
 import com.lois.management.service.CakeService;
 import com.lois.management.service.ReservationService;
@@ -40,7 +41,7 @@ public class ReservationController {
     private final CakeService cakeService;
 
     @GetMapping //케이크 예약 버튼
-    public String showDashboard(Model model) {
+    public String showDashboard(ReservationPageReq pageRequest, Model model) {
         log.info("[GET /reservations] 예약 대시보드 조회 요청");
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
@@ -51,7 +52,8 @@ public class ReservationController {
                 auth.getName(),
                 auth.isAuthenticated());
 
-        List<Reservation> reservations = findAll();
+//        List<Reservation> reservations = findAll();
+        List<Reservation> reservations = findAll(pageRequest);
         log.info("예약 조회 결과 size={}", reservations.size());
 
         List<Cake> flavors = cakeService.findFlavorsForDashboard();
@@ -91,7 +93,8 @@ public class ReservationController {
     }
 
     @GetMapping("/list") // 필터 조회
-    public String sortByPickUpTime(@RequestParam(name = "range", defaultValue = "all") String range,
+    public String sortByPickUpTime(ReservationPageReq pageRequest,
+                                   @RequestParam(name = "range", defaultValue = "all") String range,
                                    @RequestParam(name = "sort", required = false) String sort,
                                    @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                    Model model) {
@@ -134,7 +137,8 @@ public class ReservationController {
                     // 특정 날짜 예약 + 시간 오름차순
                     reservations = reservationService.findByDateOrderByPickUpTime(date);
                 } else {
-                    reservations = reservationService.findAll();
+//                    reservations = reservationService.findAll();
+                    reservations = reservationService.findAll(pageRequest);
                 }
         }
 
@@ -172,8 +176,8 @@ public class ReservationController {
         return "reservation/reservation-dashboard :: list";
     }
 
-    public List<Reservation> findAll() { //케이크 예약 전체 조회
-        return reservationService.findAll();
+    public List<Reservation> findAll(ReservationPageReq pageRequest) { //케이크 예약 전체 조회
+        return reservationService.findAll(pageRequest);
     }
 
     @GetMapping("/{id}") //케이크 예약(id) 상세 조회
@@ -465,9 +469,9 @@ public class ReservationController {
     }
 
     @DeleteMapping("/{id}") //케이크 예약(id) 삭제 DB 업데이트
-    public String delete(@PathVariable("id") Long id, Model model) {
+    public String delete(ReservationPageReq pageRequest, @PathVariable("id") Long id, Model model) {
         reservationService.delete(id);
-        model.addAttribute("reservations", reservationService.findAll());
+        model.addAttribute("reservations", reservationService.findAll(pageRequest));
         return "reservation/reservation-dashboard :: list"; // 리스트 fragment만 반환
     }
 

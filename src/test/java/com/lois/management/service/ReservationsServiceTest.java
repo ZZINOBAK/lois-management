@@ -2,6 +2,7 @@ package com.lois.management.service;
 
 import com.lois.management.domain.Reservation;
 import com.lois.management.dto.reservation.ReservationCreateReq;
+import com.lois.management.dto.reservation.ReservationPageReq;
 import com.lois.management.mapper.ReservationMapper;
 import com.lois.management.mapper.ReservationPolicyMapper;
 import com.lois.management.service.reservation.limiter.ReservationLimiter;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
@@ -66,5 +68,7 @@ class ReservationsServiceTest {
         assertThat(saved.getContact()).isEqualTo("010-1234-5678");
         assertThat(saved.getPaid()).isTrue();
     }
+
+
 
 }

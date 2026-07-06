@@ -1,10 +1,7 @@
 package com.lois.management.controller.api;
 
 import com.lois.management.domain.Reservation;
-import com.lois.management.dto.reservation.ReservationCreateReq;
-import com.lois.management.dto.reservation.ReservationRes;
-import com.lois.management.dto.reservation.ReservationSummaryRes;
-import com.lois.management.dto.reservation.ReservationUpdateReq;
+import com.lois.management.dto.reservation.*;
 import com.lois.management.service.CakeMovementService;
 import com.lois.management.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,8 +31,8 @@ public class ReservationApiController {
 
     @Operation(summary = "예약 목록 조회")
     @GetMapping
-    public List<ReservationSummaryRes> list() {
-        return reservationService.findAllSummaries(); // 응답 DTO로 반환 권장
+    public List<ReservationSummaryRes> list(ReservationPageReq reservationPageReq) {
+        return reservationService.findAllSummaries(reservationPageReq); // 응답 DTO로 반환 권장
     }
 
     @Operation(summary = "예약 단건 조회")

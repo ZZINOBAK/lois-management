@@ -3,6 +3,7 @@ package com.lois.management.controller;
 import com.lois.management.auth.EmployeeUserDetailsService;
 import com.lois.management.auth.JwtTokenProvider;
 import com.lois.management.domain.Reservation;
+import com.lois.management.dto.reservation.ReservationPageReq;
 import com.lois.management.service.CakeMovementService;
 import com.lois.management.service.CakeService;
 import com.lois.management.service.ReservationService;
@@ -53,8 +54,9 @@ class ReservationControllerTest {
         // given
         Reservation r = new Reservation();
         r.setId(1L);
+        ReservationPageReq reservationPageReq = new ReservationPageReq();
 
-        given(reservationService.findAll())
+        given(reservationService.findAll(reservationPageReq))
                 .willReturn(List.of(r));
 
         // when & then
@@ -64,6 +66,6 @@ class ReservationControllerTest {
                 .andExpect(model().attributeExists("reservations"))
                 .andExpect(model().attribute("reservations", hasSize(1)));
 
-        verify(reservationService).findAll();
+        verify(reservationService).findAll(reservationPageReq);
     }
 }

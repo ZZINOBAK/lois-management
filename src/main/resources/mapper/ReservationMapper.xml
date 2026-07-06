@@ -17,14 +17,31 @@
     </select>
 
     <!-- 조회 -->
+<!--    <select id="findAll" resultType="Reservation">-->
+<!--        SELECT-->
+<!--        ROW_NUMBER() OVER (ORDER BY r.id DESC) AS rowNumber,-->
+<!--        r.*,-->
+<!--        c.flavor AS cakeFlavor-->
+<!--        FROM reservations r-->
+<!--        JOIN cakes c ON r.cake_id = c.id-->
+<!--        ORDER BY r.id DESC-->
+<!--    </select>-->
+
     <select id="findAll" resultType="Reservation">
         SELECT
-        ROW_NUMBER() OVER (ORDER BY r.id DESC) AS rowNumber,
         r.*,
         c.flavor AS cakeFlavor
         FROM reservations r
-        JOIN cakes c ON r.cake_id = c.id
+        JOIN cakes c
+        ON r.cake_id = c.id
         ORDER BY r.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*)
+        FROM reservations;
     </select>
 
     <select id="findAllCakeFlavor" resultType="Cake">
