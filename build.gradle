@@ -68,6 +68,8 @@ dependencies {
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
 	// 시큐리티 테스트 의존성 추가
+	// 현재 ReservationControllerTest의 @WithMockUser에서 사용.
+	// 향후 MockMvc(Security), CSRF, JWT 테스트를 위해 유지.
 	testImplementation 'org.springframework.security:spring-security-test'
 
 }

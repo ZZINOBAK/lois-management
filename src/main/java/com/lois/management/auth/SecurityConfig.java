@@ -81,6 +81,9 @@ public class SecurityConfig {
 //                // 페이지는 CSRF 켜는 게 정석
 //                .csrf(csrf -> csrf.enable())
 
+                // k6 부하 테스트에서 POST /reservations 요청 시 CSRF 토큰을 전송하지 않아
+                // 403 Forbidden이 발생하므로 해당 경로의 CSRF 검증을 임시로 제외한다.
+                // TODO 운영 배포 전 제거하고 정상적인 CSRF 토큰 처리를 적용할 것.
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/reservations")
                 )
@@ -94,8 +97,7 @@ public class SecurityConfig {
                                 "/auth/after-login",
                                 "/actuator/health",
                                 "/access-request/**",
-                                "/error", "/error/**",
-                                "/test/token"
+                                "/error", "/error/**"
                         ).permitAll()
                         .requestMatchers("/api/**").denyAll()
                         .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**", "/items/**")
