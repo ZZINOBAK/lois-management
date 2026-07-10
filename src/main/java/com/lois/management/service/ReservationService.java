@@ -34,6 +34,9 @@ public class ReservationService {
 
     @Transactional
     public void create(Reservation reservation) {
+        String contact = reservation.getContact();
+        reservation.setContactSuffix(contact.substring(contact.length() - 4));
+
         System.out.println(
                 "현재 Limiter = "
                         + reservationConcurrencyGuard.getClass().getSimpleName()
@@ -45,6 +48,7 @@ public class ReservationService {
         }
 
         // 2. 검증 통과 시 최종 인서트
+
         reservationMapper.insert(reservation);
     }
 
