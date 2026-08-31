@@ -41,6 +41,10 @@ public class AtomicReservationLimiter extends AbstractReservationCacheLimiter {
 
     @Override
     public void clearCounters() {
+        dailyReservationCounter.clear();
+        hourlyReservationCounter.clear();
+
+        System.out.println("🧹 Local Cache Counter 초기화 완료");
 
     }
 

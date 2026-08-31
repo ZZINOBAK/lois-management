@@ -39,4 +39,14 @@ public class ReservationLimiterConfig {
     }
 
 
+    @Bean
+    @ConditionalOnProperty(
+            name = "reservation.limiter.type",
+            havingValue = "none"
+    )
+    public ReservationLimiter noOpConcurrencyGuard(ReservationMapper reservationMapper,  ReservationPolicyMapper reservationPolicyMapper) {
+        return new NoOpReservationLimiter(reservationPolicyMapper, reservationMapper);
+    }
+
+
 }

@@ -36,6 +36,11 @@ public abstract class AbstractReservationLimiter implements ReservationLimiter {
         System.out.println("[" + Thread.currentThread().getName() + "] 🔓 개방 완료! 대상: " + cacheKey);
     }
 
+    public final void clearClosedFlags() {
+        isClosedMap.clear();
+        System.out.println("🧹 모든 마감 플래그 초기화 완료");
+    }
+
     public final void deletePastSlot(LocalDate today) {
         this.isClosedMap.keySet().removeIf(key -> {
             try {
@@ -73,17 +78,15 @@ public abstract class AbstractReservationLimiter implements ReservationLimiter {
 
 
 
-
-
-
-
-
     @Override
     public final boolean tryAcquireSlot(LocalDate resDate, LocalTime resTime) {
+        System.out.println("플래그 체크 시작");
         if (!tryCheckFlag(resDate, resTime)) {
+            System.out.println("플래그 걸려있음");
             return false;
         }
 
+        System.out.println("플래그 안걸려있음. 예약 진행.");
         return doTryAcquireSlot(resDate, resTime);
     }
 

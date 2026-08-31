@@ -73,6 +73,31 @@
         LIMIT 1
     </select>
 
+<!--    기존 번호 검색 쿼리-->
+<!--    <select id="findByContactSuffix" resultType="Reservation">-->
+<!--        SELECT-->
+<!--        ROW_NUMBER() OVER (ORDER BY r.id DESC) AS rowNumber,-->
+<!--        r.*,-->
+<!--        c.flavor AS cakeFlavor-->
+<!--        FROM reservations r-->
+<!--        JOIN cakes c ON r.cake_id = c.id-->
+<!--        WHERE r.contact LIKE CONCAT('%', #{suffix})-->
+<!--        ORDER BY r.id DESC-->
+<!--    </select>-->
+
+<!--    컬럼 추가 번호 검색 쿼리-->
+<!--    <select id="findByContactSuffix" resultType="Reservation">-->
+<!--        SELECT-->
+<!--        ROW_NUMBER() OVER (ORDER BY r.id DESC) AS rowNumber,-->
+<!--        r.*,-->
+<!--        c.flavor AS cakeFlavor-->
+<!--        FROM reservations r IGNORE INDEX (idx_reservations_contact_suffix)-->
+<!--        JOIN cakes c ON r.cake_id = c.id-->
+<!--        WHERE r.contact_suffix = #{suffix}-->
+<!--        ORDER BY r.id DESC-->
+<!--    </select>-->
+
+<!--    컬럼 추가 + 인덱스 추가 번호 검색 쿼리-->
     <select id="findByContactSuffix" resultType="Reservation">
         SELECT
         ROW_NUMBER() OVER (ORDER BY r.id DESC) AS rowNumber,
@@ -80,7 +105,7 @@
         c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
-        WHERE r.contact LIKE CONCAT('%', #{suffix})
+        WHERE r.contact_suffix = #{suffix}
         ORDER BY r.id DESC
     </select>
 

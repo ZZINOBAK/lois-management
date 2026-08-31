@@ -2,6 +2,7 @@ package com.lois.management.service;
 
 import com.lois.management.domain.Cake;
 import com.lois.management.domain.Reservation;
+import com.lois.management.domain.ReservationPolicy;
 import com.lois.management.dto.reservation.*;
 import com.lois.management.mapper.ReservationMapper;
 import com.lois.management.mapper.ReservationPolicyMapper;
@@ -54,9 +55,12 @@ public class ReservationService {
 
 //    @Transactional
 //    public void create(Reservation reservation) {
+//        String contact = reservation.getContact();
+//        reservation.setContactSuffix(contact.substring(contact.length() - 4));
+//
 //        // [STEP 1] DB에서 실시간 제한 정책 기준값 조회 (예: 시간당 10개, 당일 무제한)
-////        ReservationPolicy policy = reservationPolicyMapper.selectLatestPolicy();
-//        ReservationPolicy policy = reservationPolicyMapper.selectLatestPolicyWithLock();
+//        ReservationPolicy policy = reservationPolicyMapper.selectLatestPolicy();
+////        ReservationPolicy policy = reservationPolicyMapper.selectLatestPolicyWithLock();
 //
 //        if (policy != null) {
 //            // 날짜와 시간대 파라미터 추출
@@ -75,12 +79,6 @@ public class ReservationService {
 //            // [STEP 3] DB를 조회하여 "해당 시간대" 현재 예약 완료된 총 건수 계산
 //            // (참고: reservationMapper에 특정 날짜/시간대 카운트 쿼리가 있다고 가정)
 //            int currentHourlyCount = reservationMapper.countByDateAndTime(resDate, resTime);
-//
-////            try {
-////                Thread.sleep(100);
-////            } catch (InterruptedException e) {
-////                Thread.currentThread().interrupt();
-////            }
 //
 //            if (currentHourlyCount >= policy.getHourlyMaxLimit()) {
 //                throw new IllegalArgumentException("해당 시간대 예약 가능 수량을 초과했습니다. (최대: " + policy.getHourlyMaxLimit() + "개)");

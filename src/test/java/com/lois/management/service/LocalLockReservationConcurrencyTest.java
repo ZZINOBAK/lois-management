@@ -1,18 +1,21 @@
 package com.lois.management.service;
 
+import ch.qos.logback.classic.pattern.ClassOfCallerConverter;
 import com.lois.management.domain.Reservation;
 import com.lois.management.mapper.ReservationMapper;
 import com.lois.management.service.reservation.limiter.AbstractReservationLimiter;
+import com.lois.management.service.reservation.limiter.LocalLockReservationLimiter;
 import com.lois.management.service.reservation.limiter.ReservationLimiter;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = "reservation.limiter.type=local-lock")
 @ActiveProfiles("test")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LocalLockReservationConcurrencyTest {
     @Autowired
     private ReservationService reservationService;
@@ -34,14 +38,52 @@ class LocalLockReservationConcurrencyTest {
     // 테스트에 사용한 가짜 전화번호 식별자
     private final String TEST_CONTACT_PREFIX = "010-9876-";
 
+    private static final AtomicInteger totalTestsRun = new AtomicInteger(0);
+    private static final AtomicInteger bugReproducedCount = new AtomicInteger(0); // assertThat(afterCount > 10)이 참인 경우
+    private static final AtomicInteger bugFailedCount = new AtomicInteger(0);     // 10개 딱 맞춰서 버그 재현 안 된 경우
+    private static final AtomicInteger totalDbCount = new AtomicInteger(0);
+
+    private final List<Long> resultList = new ArrayList<>();
+    // 워밍업 횟수
+    private static final int WARM_UP_COUNT = 3;
+    // 실제 측정 횟수
+    private static final int MEASURE_COUNT = 10;
+
+
     @AfterEach
     @DisplayName("테스트 완료 후 가짜 예약 데이터를 자동으로 청소한다")
     void tearDown() {
         // 테스트가 성공하든 실패하든, 010-9999- 로 시작하는 가짜 예약 데이터를 DB에서 싹 지웁니다.
         reservationMapper.deleteTestReservations(TEST_CONTACT_PREFIX);
+
+        AbstractReservationLimiter limiter =
+                (AbstractReservationLimiter) reservationLimiter;
+
+        limiter.clearClosedFlags();
+
+        LocalLockReservationLimiter limiter2 =
+                (LocalLockReservationLimiter) reservationLimiter;
+
+        limiter2.clearCounters();
     }
 
-    @Test
+    @AfterAll
+    static void printFinalSummary_by_gemini() {
+        System.out.println("\n=========================================");
+        System.out.println("====== 📊 동시성 테스트 최종 집계 리포트 ======");
+        System.out.println("=========================================");
+        System.out.println("총 실행한 테스트 횟수: " + totalTestsRun.get() + "회");
+        System.out.println("❌ 초과 예약 버그 발생 (재현 성공): " + bugReproducedCount.get() + "회");
+        System.out.println("🟢 정상 차단됨 (버그 재현 실패): " + bugFailedCount.get() + "회");
+
+        double reproductionRate = ((double) bugReproducedCount.get() / totalTestsRun.get()) * 100;
+        System.out.printf("🎯 버그 재현율 (동시성 이슈 발생 확률): %.2f%%\n", reproductionRate);
+        System.out.printf("📈 테스트당 평균 DB 저장 건수: %.1f건\n", (double) totalDbCount.get() / totalTestsRun.get());
+        System.out.println("=========================================\n");
+    }
+
+//    @Test
+    @RepeatedTest(100)
     @DisplayName("동시성(정합성) 테스트: 시간당 10개 제한인 상황에서 동시에 50명이 예약을 요청하면 초과 예약 버그가 발생한다")
     void concurrency_limit_fail_test() throws InterruptedException {
         // [기본 세팅] 테스트할 날짜와 시간 고정 (예: 2026-06-10 15:00)
@@ -90,6 +132,16 @@ class LocalLockReservationConcurrencyTest {
         // [결과 검증 및 확인]
         int afterCount = reservationMapper.countByDateAndTime(targetDate, targetTime);
 
+        // [데이터 누적]
+        totalTestsRun.incrementAndGet();
+        totalDbCount.addAndGet(afterCount);
+
+        if (afterCount > 10) {
+            bugReproducedCount.incrementAndGet(); // 버그 재현 성공 (10개 초과 저장됨)
+        } else {
+            bugFailedCount.incrementAndGet();     // 버그 재현 실패 (운 좋게 10개만 저장됨)
+        }
+
         System.out.println("=========================================");
         System.out.println("요청한 총 스레드 수: " + threadCount);
         System.out.println("로직상 성공 응답 수: " + successCount.get());
@@ -104,15 +156,59 @@ class LocalLockReservationConcurrencyTest {
 
     }
 
-    @Test
-    @DisplayName("성능 측정 : 2000명이 같은 날짜/시간에 요청할 때 총 소요시간 측정")
+    @AfterAll
+    void printResult() {
+
+        // 워밍업 제거
+        List<Long> measured =
+                resultList.subList(WARM_UP_COUNT, resultList.size());
+
+        long sum = 0;
+        long min = Long.MAX_VALUE;
+        long max = Long.MIN_VALUE;
+
+        for (Long value : measured) {
+            sum += value;
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+        }
+
+        double average = (double) sum / measured.size();
+
+        List<Long> sorted = new ArrayList<>(measured);
+        Collections.sort(sorted);
+
+        long median = sorted.get(sorted.size() / 2);
+
+        System.out.println();
+        System.out.println("=========================================");
+        System.out.println("      📊 성능 측정 최종 리포트");
+        System.out.println("=========================================");
+        System.out.println("워밍업 횟수        : " + WARM_UP_COUNT);
+        System.out.println("실제 측정 횟수    : " + measured.size());
+        System.out.println("평균 처리 시간     : " + String.format("%.2f", average) + " ms");
+        System.out.println("중앙값(Median)     : " + median + " ms");
+        System.out.println("최소 처리 시간     : " + min + " ms");
+        System.out.println("최대 처리 시간     : " + max + " ms");
+        System.out.println("=========================================");
+    }
+
+//    @Test
+    @RepeatedTest(13)
     void 속도_비교_테스트_시간날짜한개() throws InterruptedException {
-        LocalDate targetDate = LocalDate.of(2026, 9, 10);
+        LocalDate targetDate = LocalDate.of(2026, 12, 10);
         LocalTime targetTime = LocalTime.of(15, 0);
 
-        int threadCount = 2000; // 💡 변별력을 위해 요청 수를 2,000개 정도로 크게 잡습니다.
-        ExecutorService executorService = Executors.newFixedThreadPool(200); // 200개 스레드로 동시 압박
+        int threadCount = 300; // 💡 변별력을 위해 요청 수를 2,000개 정도로 크게 잡습니다.
+
+//        AbstractReservationLimiter guard = (AbstractReservationLimiter) reservationLimiter;
+//        guard.setEnableFastFail(false); // 팻말 끄기
+
+        ExecutorService executorService = Executors.newFixedThreadPool(50); // 200개 스레드로 동시 압박
         CountDownLatch latch = new CountDownLatch(threadCount);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
 
         // ⏱️ 정밀 스톱워치 시작 (나노초 단위)
         long startTime = System.nanoTime();
@@ -129,8 +225,14 @@ class LocalLockReservationConcurrencyTest {
                     reservation.setContact(TEST_CONTACT_PREFIX + String.format("%04d", index));
                     reservation.setPaid(true);
                     reservationService.create(reservation);
+
+                    successCount.incrementAndGet(); // 예외 없이 성공 시 카운트 증가
+
                 } catch (Exception e) {
                     // 실패(마감) 처리된 것도 스레드 연산 속도에 포함되므로 둡니다.
+                    failCount.incrementAndGet(); // 예약 초과 등의 예외 발생 시 카운트 증가
+
+
                 } finally {
                     latch.countDown();
                 }
@@ -141,10 +243,31 @@ class LocalLockReservationConcurrencyTest {
         // ⏱️ 스톱워치 종료
         long endTime = System.nanoTime();
 
+        int afterCount = reservationMapper.countByDateAndTime(targetDate, targetTime);
+
+        // [데이터 누적]
+        totalTestsRun.incrementAndGet();
+        totalDbCount.addAndGet(afterCount);
+
+        if (afterCount > 10) {
+            bugReproducedCount.incrementAndGet(); // 버그 재현 성공 (10개 초과 저장됨)
+        } else {
+            bugFailedCount.incrementAndGet();     // 버그 재현 실패 (운 좋게 10개만 저장됨)
+        }
+
         long durationMillis = (endTime - startTime) / 1_000_000;
         System.out.println("=========================================");
         System.out.println("총 처리 소요 시간: " + durationMillis + " ms");
         System.out.println("=========================================");
+
+        System.out.println("=========================================");
+        System.out.println("요청한 총 스레드 수: " + threadCount);
+        System.out.println("로직상 성공 응답 수: " + successCount.get());
+        System.out.println("로직상 실패(튕겨냄) 수: " + failCount.get());
+        System.out.println("실제 DB에 쌓인 최종 예약 건수: " + afterCount);
+        System.out.println("=========================================");
+
+        resultList.add(durationMillis);
     }
 
     @Test

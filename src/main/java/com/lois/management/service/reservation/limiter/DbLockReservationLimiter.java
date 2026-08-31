@@ -28,6 +28,7 @@ public class DbLockReservationLimiter extends AbstractReservationLimiter {
         ReservationPolicy policy = reservationPolicyMapper.selectLatestPolicyWithLock();
 
         if (policy != null) {
+            System.out.println("정책 조회 완료");
             int dailyMaxLimit = policy.getDailyMaxLimit();
             int hourlyMaxLimit = policy.getHourlyMaxLimit();
 
@@ -36,7 +37,7 @@ public class DbLockReservationLimiter extends AbstractReservationLimiter {
             // -------------------------------------------------------------
             if (dailyMaxLimit != -1) {
                 int currentDailyCount = reservationMapper.countByDate(resDate);
-
+                System.out.println("날짜 예약 수량 확인");
                 // 이미 오늘 자리가 꽉 차 있다면?
                 if (currentDailyCount >= dailyMaxLimit) {
                     closeSlot(dailyCacheKey + ":DAILY"); // 부모한테 "오늘 마감이야!" 팻말 걸기
@@ -53,6 +54,7 @@ public class DbLockReservationLimiter extends AbstractReservationLimiter {
             // [시간대별 제한 체크]
             // -------------------------------------------------------------
             int currentHourlyCount = reservationMapper.countByDateAndTime(resDate, resTime);
+            System.out.println("날짜+시간 예약 수량 확인");
 
             // 이미 이 시간대가 꽉 차 있다면?
             if (currentHourlyCount >= hourlyMaxLimit) {
