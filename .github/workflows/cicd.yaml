@@ -43,6 +43,18 @@ jobs:
     needs: build-and-push
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy deployment files to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yaml,nginx/default.conf"
+          target: "/home/ubuntu/lois-management"
+
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -50,35 +62,28 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # EC2에 로그 저장할 디렉토리 생성
-            mkdir -p /home/ec2-user/lois-logs
+            cd /home/ubuntu/lois-management
 
-            # 이미지 pull 및 컨테이너 재기동
-            docker pull ghcr.io/zzinobak/lois-management:latest || true
-            docker stop lois || true
-            docker rm lois || true
-            
-            docker run -d --name lois -p 127.0.0.1:8080:8080 \
-            -e TZ=Asia/Seoul \
-            -v /etc/localtime:/etc/localtime:ro \
-            -v /home/ec2-user/lois-logs:/app/logs \
-            --env-file /home/ec2-user/lois.env \
-            ghcr.io/zzinobak/lois-management:latest
-            
-            # 🔍 헬스 체크 (최대 10번, 5초 간격 재시도)
-            sleep 5
+            mkdir -p lois-logs
+
+            docker compose -f docker-compose.yaml pull
+            docker compose -f docker-compose.yaml up -d
+
+            sleep 10
+
             for i in {1..10}; do
-              status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+              status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/actuator/health || echo "000")
+
               echo "Health check attempt $i: HTTP $status"
-  
+
               if [ "$status" -eq 200 ]; then
                 echo "Health check passed."
                 exit 0
               fi
-  
+
               sleep 5
             done
-  
+
             echo "Health check failed after 10 attempts."
-            docker logs lois
+            docker compose -f docker-compose.yaml logs lois-app
             exit 1
