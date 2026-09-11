@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title>Lois Demo - Stock Requests</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/request-dashboard.css}">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script th:src="@{/js/demo-common.js}" defer></script>
+    <script th:src="@{/js/demo-stock-request.js}" defer></script>
+</head>
+<body>
+<div class="wrap">
+    <header th:replace="~{fragments/header :: site-header}"></header>
+    <main>
+        <section class="content stock-grid-layout">
+            <section class="stock-left">
+                <div class="list-header">
+                    <h2 class="section-title">주문 요청 Demo</h2>
+                    <a class="cta" th:href="@{/demo/reservations}" role="button"><div class="title">예약 Demo</div></a>
+                </div>
+
+                <div th:each="req : ${stockRequests}"
+                     class="request-row"
+                     th:attr="id='stock-request-' + ${req.id}">
+                    <button type="button"
+                            class="request-main"
+                            th:hx-get="@{/demo/stock-requests/{id}(id=${req.id})}"
+                            hx-target="closest .request-row"
+                            hx-swap="afterend"
+                            hx-trigger="click">
+                        <span class="request-item-name" th:text="${req.itemName}"></span>
+                        <span class="request-days" th:text="'요청한 지 ' + ${req.daysSinceRequest} + '일 째'"></span>
+                    </button>
+                    <button type="button"
+                            class="request-delete"
+                            th:hx-delete="@{/demo/stock-requests/{id}(id=${req.id})}"
+                            hx-target="closest .request-row"
+                            hx-swap="outerHTML">
+                        삭제
+                    </button>
+                </div>
+
+                <div class="request-actions" th:attr="data-count=${#lists.size(stockRequests)}">
+                    <button class="action-button" onclick="sendStockRequestsSms(this)">문자</button>
+                    <button class="action-button" type="button" onclick="openStockRequestsPrint(this)">프린트</button>
+                    <button class="action-button" type="button" onclick="showPreparing()">카톡</button>
+                </div>
+            </section>
+
+            <section class="stock-right">
+                <div class="filters">
+                    <button class="chip" hx-get="/demo/items?category=전체" hx-target=".item-grid" hx-swap="innerHTML">전체</button>
+                    <button class="chip" hx-get="/demo/items?category=케이크" hx-target=".item-grid" hx-swap="innerHTML">케이크</button>
+                    <button class="chip" hx-get="/demo/items?category=음료" hx-target=".item-grid" hx-swap="innerHTML">음료</button>
+                    <button class="chip" hx-get="/demo/items?category=스티커" hx-target=".item-grid" hx-swap="innerHTML">스티커</button>
+                    <button class="chip" hx-get="/demo/items?category=베이킹" hx-target=".item-grid" hx-swap="innerHTML">베이킹</button>
+                </div>
+
+                <div class="item-grid"
+                     th:replace="~{demo/stock/fragments-item-grid :: itemGridAll(${top8Items}, ${itemsExceptTop8})}">
+                </div>
+            </section>
+        </section>
+    </main>
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+</div>
+<script>
+    document.body.addEventListener("alreadyRequested", function () {
+        alert("이미 요청된 아이템입니다!");
+    });
+    document.body.addEventListener("htmx:beforeRequest", function (event) {
+        const btn = event.target;
+        if (!btn.matches(".request-main")) return;
+        const row = btn.closest(".request-row");
+        const next = row.nextElementSibling;
+        if (next && next.classList.contains("request-detail-card")) {
+            next.remove();
+            event.preventDefault();
+        }
+    });
+</script>
+</body>
+</html>

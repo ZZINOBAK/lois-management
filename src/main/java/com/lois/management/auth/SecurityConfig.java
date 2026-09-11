@@ -97,6 +97,7 @@ public class SecurityConfig {
                                 "/auth/after-login",
                                 "/actuator/health",
                                 "/access-request/**",
+                                "/demo/**",
                                 "/error", "/error/**"
                         ).permitAll()
                         .requestMatchers("/api/**").denyAll()

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>케이크 픽업 리스트 Demo</title>
+    <style>
+        @media print { @page { size: 80mm auto; margin: 5mm 3mm; } html, body { width: 80mm; margin: 0; padding: 0; } }
+        body { font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; font-size: 20px; line-height: 1.5; }
+        .title { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .date { text-align: center; font-size: 18px; margin-bottom: 10px; }
+        .divider { border-top: 1px dashed #000; margin: 8px 0 12px; }
+        .item-row { display: flex; flex-direction: row; align-items: center; margin-bottom: 8px; }
+        .item-no { width: 8mm; text-align: left; font-weight: 600; }
+        .item-time { width: 21mm; font-weight: 600; }
+        .item-flavor { flex: 1; }
+        .time-sep { border-top: 1px dashed #000; margin: 6px 0 10px; }
+        .done { text-decoration: line-through; opacity: 0.75; }
+        .ampm-header { font-weight: 800; font-size: 20px; text-align: left; }
+        .note-row { margin-top: -4px; margin-bottom: 8px; }
+        .note-text { padding-left: calc(12mm + 18mm + 2mm); font-size: 18px; line-height: 1.6; word-break: break-word; }
+        @media print { .print-bottom-space { height: 20mm; } }
+    </style>
+</head>
+<body onload="window.print()">
+<div class="title">케이크 픽업 리스트 Demo</div>
+<div class="date" th:text="${#temporals.format(today, 'yyyy-MM-dd')}"></div>
+<div class="divider"></div>
+<div th:each="r, stat : ${reservations}">
+    <div class="ampm-header"
+         th:if="${r.resTime != null and (stat.index == 0 or (reservations[stat.index-1].resTime != null and reservations[stat.index-1].resTime.hour < 12 and r.resTime.hour >= 12))}"
+         th:text="${r.resTime.hour < 12 ? '오전' : '오후'}"></div>
+    <div class="time-sep"
+         th:if="${stat.index > 0 and reservations[stat.index-1].resTime != null and r.resTime != null and reservations[stat.index-1].resTime.hour != r.resTime.hour}"></div>
+    <div class="item-row">
+        <div class="item-no" th:text="${stat.count}"></div>
+        <div class="item-time"
+             th:text="${(stat.index > 0 and reservations[stat.index-1].resTime != null and r.resTime != null and reservations[stat.index-1].resTime == r.resTime)
+            ? ''
+            : (r.resTime != null
+                  ? (r.resTime.minute == 0
+                      ? #temporals.format(r.resTime, 'h시', T(java.util.Locale).KOREAN)
+                      : #temporals.format(r.resTime, 'h시 m분', T(java.util.Locale).KOREAN))
+                  : '')}">
+        </div>
+        <div class="item-flavor"
+             th:classappend="${r.pickupStatus != null and r.pickupStatus == 'PICKED'} ? ' done' : ''"
+             th:with="digits=${r.contact != null ? r.contact.replaceAll('\\D','') : ''},
+                      last4=${#strings.length(digits) >= 4 ? #strings.substring(digits, #strings.length(digits) - 4) : ''},
+                      payText=${r.paid == true ? '결O' : '결X'},
+                      label=${r.cakeFlavor + (last4 != '' ? ' (' + last4 + ')' : '') +  payText}"
+             th:text="${label}"></div>
+    </div>
+    <div class="note-row" th:if="${r.note != null and !#strings.isEmpty(#strings.trim(r.note))}">
+        <div class="note-text"
+             th:classappend="${r.pickupStatus != null and r.pickupStatus == 'PICKED'} ? ' done' : ''"
+             th:text="${'→ ' + r.note}"></div>
+    </div>
+</div>
+<div class="print-bottom-space"></div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title>Lois Demo - Edit Reservation</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script th:src="@{/js/demo-common.js}" defer></script>
+</head>
+<body>
+<div class="wrap">
+    <header th:replace="~{fragments/header :: site-header}"></header>
+    <main>
+        <section class="content">
+            <div class="list-header">
+                <div>
+                    <h2 class="section-title">예약 수정 Demo</h2>
+                    <p style="color: var(--muted); font-size: 14px; margin: 0;">변경 내용은 현재 세션의 Dummy Data에만 반영됩니다.</p>
+                </div>
+                <a class="cta" th:href="@{/demo/reservations}" role="button"><div class="title">목록으로</div></a>
+            </div>
+            <div class="row" style="display:block; max-width: 520px;">
+                <form th:object="${reservation}"
+                      th:action="@{/demo/reservations/{id}(id=*{id})}"
+                      method="post"
+                      style="display:flex; flex-direction:column; gap:14px;">
+                    <input type="hidden" name="_method" value="patch"/>
+                    <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" th:field="*{id}"/>
+                    <input type="hidden" th:field="*{cakeId}"/>
+
+                    <div>
+                        <label style="display:block; font-size:14px; margin-bottom:4px;">수령 날짜</label>
+                        <input type="date" th:name="resDate" th:value="${#temporals.format(reservation.resDate, 'yyyy-MM-dd')}"/>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:14px; margin-bottom:4px;">수령 시간</label>
+                        <input type="time" th:name="resTime" th:value="${#temporals.format(reservation.resTime, 'HH:mm')}"/>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:14px; margin-bottom:4px;">케이크 맛</label>
+                        <input type="text" th:field="*{cakeFlavor}" placeholder="예: 딸기 생크림" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px;"/>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:14px; margin-bottom:4px;">케이크 호수</label>
+                        <input type="number" min="1" th:field="*{cakeSize}" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px;"/>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:14px; margin-bottom:4px;">연락처</label>
+                        <input type="tel" th:field="*{contact}" placeholder="010-0000-0000" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px;"/>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                        <input type="checkbox" th:field="*{paid}" id="paid-checkbox" style="width:16px; height:16px;"/>
+                        <label for="paid-checkbox" style="font-size:14px;">결제 완료</label>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:14px; margin-bottom:4px;">메모</label>
+                        <textarea th:field="*{note}" rows="3" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px; resize: vertical;"></textarea>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+                        <button class="btn" type="button" th:onclick="|location.href='@{/demo/reservations}'|">취소</button>
+                        <button class="btn" type="submit" style="background: var(--accent); color:#fff;">저장</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+</div>
+</body>
+</html>

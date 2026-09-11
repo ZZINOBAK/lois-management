@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<body>
+<div th:fragment="requestDetail(stockRequest)" class="request-detail-card">
+    <h3 th:text="${stockRequest.itemName}">아이템 이름</h3>
+    <p>
+        <strong>카테고리:</strong>
+        <span th:text="${stockRequest.categoryName}"></span>
+    </p>
+    <p>
+        <strong>요청일:</strong>
+        <span th:text="${#temporals.format(stockRequest.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+    </p>
+</div>
+</body>
+</html>
