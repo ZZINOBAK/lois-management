@@ -3,9 +3,11 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <body>
-<header th:fragment="site-header">
+<header th:fragment="site-header"
+        th:with="currentPath=${#ctx.getExchange().getRequest().getPathWithinApplication()},
+                 isDemo=${currentPath == '/demo' or #strings.startsWith(currentPath, '/demo/')}">
 
-    <a th:href="@{/}">
+    <a th:href="${isDemo} ? @{/demo} : @{/}">
         <img th:src="@{/images/logo_lois.png}" src="/images/logo_lois.png" alt="Lois by Auntie Jin" class="logo">
     </a>
 

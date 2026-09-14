@@ -2,9 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <body>
-<footer th:fragment="site-footer" class="footer">
+<footer th:fragment="site-footer" class="footer"
+        th:with="currentPath=${#ctx.getExchange().getRequest().getPathWithinApplication()},
+                 isDemo=${currentPath == '/demo' or #strings.startsWith(currentPath, '/demo/')}">
 
-    <button type="button" th:onclick="|location.href='@{/demo}'|">
+    <button type="button"
+            th:onclick="${isDemo} ? |location.href='@{/}'| : |location.href='@{/demo}'|"
+            th:text="${isDemo} ? '로이스 메인으로 가기' : '로이스 구경하기'">
         로이스 구경하기
     </button>
 
