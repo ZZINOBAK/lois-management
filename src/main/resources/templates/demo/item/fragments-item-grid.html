@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<body>
+<div class="item-grid" th:fragment="itemGrid(items)">
+    <div class="item-card" th:each="item : ${items}">
+        <div class="item-card__name" th:text="${item.itemName}">상품명</div>
+    </div>
+</div>
+</body>
+</html>

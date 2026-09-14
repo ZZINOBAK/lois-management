@@ -141,6 +141,24 @@ public class DemoDataService {
                 .toList();
     }
 
+    public boolean createItem(HttpSession session, Long categoryId, String itemName) {
+        DemoData data = data(session);
+        if (categoryId == null || itemName == null || itemName.isBlank() || !existsCategory(data, categoryId)) {
+            return false;
+        }
+
+        Item item = new Item();
+        item.setId(data.nextItemId++);
+        item.setCategoryId(categoryId);
+        item.setItemName(itemName.trim());
+        item.setCurrentQty(0);
+        item.setMinQty(1);
+        item.setCreateAt(LocalDateTime.now(KST));
+        item.setUpdatedAt(item.getCreateAt());
+        data.items.add(item);
+        return true;
+    }
+
     public List<Item> itemsByCategory(HttpSession session, String categoryName) {
         DemoData data = data(session);
         Map<Long, String> categoryNames = data.categories.stream()
@@ -288,6 +306,11 @@ public class DemoDataService {
                 .orElse("기타");
     }
 
+    private boolean existsCategory(DemoData data, Long categoryId) {
+        return data.categories.stream()
+                .anyMatch(category -> Objects.equals(category.getId(), categoryId));
+    }
+
     private String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
@@ -417,6 +440,11 @@ public class DemoDataService {
         data.stockRequests.add(stockRequest(3L, data.items.get(7), "베이킹", now.minusHours(5)));
         data.nextReservationId = 6L;
         data.nextStockRequestId = 4L;
+        data.nextItemId = data.items.stream()
+                .map(Item::getId)
+                .filter(Objects::nonNull)
+                .max(Long::compareTo)
+                .orElse(0L) + 1;
         return data;
     }
 
@@ -494,6 +522,7 @@ public class DemoDataService {
     public static class DemoData {
         private long nextReservationId;
         private long nextStockRequestId;
+        private long nextItemId;
         private final List<Reservation> reservations = new ArrayList<>();
         private final List<StockRequest> stockRequests = new ArrayList<>();
         private final List<Cake> cakes = new ArrayList<>();

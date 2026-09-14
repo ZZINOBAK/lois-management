@@ -2,6 +2,8 @@ package com.lois.management.auth;
 
 import com.lois.management.config.filter.IpWhitelistFilter;
 import com.lois.management.controller.demo.DemoController;
+import com.lois.management.controller.demo.DemoItemController;
+import com.lois.management.controller.demo.DemoStockRequestController;
 import com.lois.management.service.demo.DemoDataService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,7 +25,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(DemoController.class)
+@WebMvcTest({
+        DemoController.class,
+        DemoItemController.class,
+        DemoStockRequestController.class
+})
 @Import({
         SecurityConfig.class,
         DemoDataService.class,
@@ -34,7 +40,7 @@ class DemoSecurityConfigTest {
     MockMvc mockMvc;
 
     @MockitoBean
-    JwtAuthenticationFilter jwtAuthenticationFilter;
+    JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
     EmployeeUserDetailsService employeeUserDetailsService;
@@ -45,6 +51,9 @@ class DemoSecurityConfigTest {
     @Test
     void demoIsPublicButOperationalPagesStillRequireLogin() throws Exception {
         mockMvc.perform(get("/demo"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/demo/items"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/reservations"))

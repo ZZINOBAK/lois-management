@@ -53,6 +53,7 @@ class DemoNavigationFragmentTest {
         mockMvc.perform(get("/").with(anonymous()).requestAttr("_csrf", csrfToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("<a href=\"/\">")))
+                .andExpect(content().string(containsString("location.href=&#39;/items&#39;")))
                 .andExpect(content().string(containsString("로이스 구경하기")))
                 .andExpect(content().string(containsString("location.href=&#39;/demo&#39;")));
     }
@@ -62,6 +63,7 @@ class DemoNavigationFragmentTest {
         mockMvc.perform(get("/demo").with(anonymous()).requestAttr("_csrf", csrfToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("<a href=\"/demo\">")))
+                .andExpect(content().string(containsString("location.href=&#39;/demo/items&#39;")))
                 .andExpect(content().string(containsString("로이스 메인으로 가기")))
                 .andExpect(content().string(containsString("location.href=&#39;/&#39;")));
     }
@@ -71,6 +73,7 @@ class DemoNavigationFragmentTest {
         mockMvc.perform(get("/demo/stock-requests").with(anonymous()).requestAttr("_csrf", csrfToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("<a href=\"/demo\">")))
+                .andExpect(content().string(containsString("location.href=&#39;/demo/items&#39;")))
                 .andExpect(content().string(containsString("로이스 메인으로 가기")))
                 .andExpect(content().string(containsString("location.href=&#39;/&#39;")));
     }
