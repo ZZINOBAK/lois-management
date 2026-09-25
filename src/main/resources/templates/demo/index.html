@@ -15,22 +15,23 @@
 <div class="wrap">
     <header th:replace="~{fragments/header :: site-header}"></header>
     <main>
+        <div th:replace="~{demo/fragments/demo-notice :: banner}"></div>
         <section class="grid">
             <div class="card" th:onclick="|location.href='@{/demo/reservations}'|">
-                <div class="card__title">Reservation Demo</div>
-                <div class="card__sub">케이크 예약 둘러보기</div>
+                <div class="card__title">Reservation</div>
+                <div class="card__sub">케이크 예약</div>
             </div>
             <div class="card" th:onclick="|location.href='@{/demo/stock-requests}'|">
-                <div class="card__title">Stock Request Demo</div>
-                <div class="card__sub">재고 주문 요청 둘러보기</div>
+                <div class="card__title">Stock Request</div>
+                <div class="card__sub">재고 주문 요청</div>
             </div>
             <div class="card" onclick="showPreparing()">
                 <div class="card__title">Check In</div>
-                <div class="card__sub">Demo 제외</div>
+                <div class="card__sub">출근 등록</div>
             </div>
             <div class="card" onclick="showPreparing()">
                 <div class="card__title">Check Out</div>
-                <div class="card__sub">Demo 제외</div>
+                <div class="card__sub">퇴근 등록</div>
             </div>
         </section>
     </main>

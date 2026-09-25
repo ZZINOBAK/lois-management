@@ -18,11 +18,11 @@
 <div class="wrap">
     <header th:replace="~{fragments/header :: site-header}"></header>
     <main>
+        <div th:replace="~{demo/fragments/demo-notice :: banner}"></div>
         <section class="content stock-grid-layout">
             <section class="stock-left">
                 <div class="list-header">
-                    <h2 class="section-title">주문 요청 Demo</h2>
-                    <a class="cta" th:href="@{/demo/reservations}" role="button"><div class="title">예약 Demo</div></a>
+                    <h2 class="section-title">주문 요청</h2>
                 </div>
 
                 <div th:each="req : ${stockRequests}"

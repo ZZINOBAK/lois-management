@@ -1,6 +1,7 @@
 package com.lois.management.service.demo;
 
 import com.lois.management.domain.Cake;
+import com.lois.management.domain.CakeMovement;
 import com.lois.management.domain.Category;
 import com.lois.management.domain.Item;
 import com.lois.management.domain.Reservation;
@@ -69,8 +70,11 @@ public class DemoDataService {
         DemoData data = data(session);
         Reservation saved = copy(reservation);
         saved.setId(data.nextReservationId++);
+        if (saved.getCakeSize() == 0) {
+            saved.setCakeSize(2);
+        }
         saved.setCakeFlavor(cakeFlavor(data, saved.getCakeId(), saved.getCakeFlavor()));
-        saved.setMakeStatus(defaultString(saved.getMakeStatus(), "PENDING"));
+        saved.setMakeStatus(defaultString(saved.getMakeStatus(), "RESERVED"));
         saved.setPickupStatus(defaultString(saved.getPickupStatus(), "WAITING"));
         saved.setPaid(Boolean.TRUE.equals(saved.getPaid()));
         saved.setCreatedAt(LocalDateTime.now(KST));
@@ -113,10 +117,85 @@ public class DemoDataService {
     }
 
     public Optional<Reservation> toggleMake(HttpSession session, Long id) {
-        return mutateReservation(session, id, reservation -> {
-            reservation.setMakeStatus("READY".equals(reservation.getMakeStatus()) ? "PENDING" : "READY");
+        DemoData data = data(session);
+        for (Reservation reservation : data.reservations) {
+            if (!Objects.equals(reservation.getId(), id)) {
+                continue;
+            }
+            boolean wasReady = "READY".equals(reservation.getMakeStatus());
+            LocalDate bizDate = LocalDate.now(KST);
+            if (wasReady) {
+                reservation.setMakeStatus("RESERVED");
+                addMovement(data, bizDate, reservation.getCakeId(), reservation.getCakeSize(),
+                        -1, "UNDO_PRODUCED", id, "RES-" + System.currentTimeMillis(),
+                        "from reservation dashboard");
+            } else {
+                reservation.setMakeStatus("READY");
+                addMovement(data, bizDate, reservation.getCakeId(), reservation.getCakeSize(),
+                        1, "PRODUCED", id, "RES-" + System.currentTimeMillis(),
+                        "from reservation dashboard");
+            }
             reservation.setUpdatedAt(LocalDateTime.now(KST));
-        });
+            return Optional.of(copy(reservation));
+        }
+        return Optional.empty();
+    }
+
+    public void produce(HttpSession session, Long cakeId, Integer cakeSize, String note) {
+        DemoData data = data(session);
+        LocalDate bizDate = LocalDate.now(KST);
+        Long reservationId = null;
+
+        Optional<Reservation> target = data.reservations.stream()
+                .filter(reservation -> Objects.equals(reservation.getResDate(), bizDate))
+                .filter(reservation -> "RESERVED".equals(reservation.getMakeStatus()))
+                .filter(reservation -> Objects.equals(reservation.getCakeId(), cakeId))
+                .filter(reservation -> reservation.getCakeSize() == cakeSize)
+                .min(Comparator.comparing(Reservation::getResTime, Comparator.nullsLast(LocalTime::compareTo))
+                        .thenComparing(Reservation::getId, Comparator.nullsLast(Long::compareTo)));
+
+        if (target.isPresent()) {
+            Reservation reservation = target.get();
+            reservation.setMakeStatus("READY");
+            reservation.setUpdatedAt(LocalDateTime.now(KST));
+            reservationId = reservation.getId();
+        }
+
+        addMovement(data, bizDate, cakeId, cakeSize, 1, "PRODUCED", reservationId,
+                "MANU-" + System.currentTimeMillis(), note);
+    }
+
+    public void sellOnSite(HttpSession session, Long cakeId, Integer cakeSize, String note) {
+        DemoData data = data(session);
+        LocalDate bizDate = LocalDate.now(KST);
+        String requestId = "ONSITE-" + System.currentTimeMillis();
+        String memoNote = note == null ? "" : note;
+
+        CakeMovement picked = newMovement(data, bizDate, cakeId, cakeSize, -1, "PICKED", null, requestId, null);
+
+        int stock = stockFor(data, bizDate, cakeId, cakeSize);
+        if (stock < 1) {
+            addMovement(data, bizDate, cakeId, cakeSize, 1, "PRODUCED", 0L,
+                    requestId + "-1", "AUTO_PRODUCE_ON_SITE");
+            picked.setMemo(memoNote);
+        } else {
+            Long reservationId = readyToReserved(data, cakeId, cakeSize, bizDate);
+            picked.setMemo(memoNote + "예약 번호" + reservationId + " 제작상태 READY -> RESERVED");
+        }
+        data.cakeMovements.add(picked);
+    }
+
+    public boolean existsExactSameReservation(HttpSession session, Reservation reserve) {
+        return data(session).reservations.stream()
+                .anyMatch(reservation -> Objects.equals(reservation.getContact(), reserve.getContact())
+                        && Objects.equals(reservation.getResDate(), reserve.getResDate())
+                        && Objects.equals(reservation.getResTime(), reserve.getResTime())
+                        && Objects.equals(reservation.getCakeId(), reserve.getCakeId()));
+    }
+
+    public boolean existsByContact(HttpSession session, String contact) {
+        return data(session).reservations.stream()
+                .anyMatch(reservation -> Objects.equals(reservation.getContact(), contact));
     }
 
     public List<Cake> cakes(HttpSession session) {
@@ -246,6 +325,55 @@ public class DemoDataService {
         return itemsByName(session).stream()
                 .filter(item -> !topIds.contains(item.getId()))
                 .toList();
+    }
+
+    private Long readyToReserved(DemoData data, Long cakeId, Integer cakeSize, LocalDate today) {
+        Optional<Reservation> target = data.reservations.stream()
+                .filter(reservation -> Objects.equals(reservation.getResDate(), today))
+                .filter(reservation -> "WAITING".equals(reservation.getPickupStatus()))
+                .filter(reservation -> "READY".equals(reservation.getMakeStatus()))
+                .filter(reservation -> Objects.equals(reservation.getCakeId(), cakeId))
+                .filter(reservation -> reservation.getCakeSize() == cakeSize)
+                .max(Comparator.comparing(Reservation::getResTime, Comparator.nullsLast(LocalTime::compareTo))
+                        .thenComparing(Reservation::getId, Comparator.nullsLast(Long::compareTo)));
+        if (target.isEmpty()) {
+            return 0L;
+        }
+        Reservation reservation = target.get();
+        reservation.setMakeStatus("RESERVED");
+        reservation.setUpdatedAt(LocalDateTime.now(KST));
+        return reservation.getId();
+    }
+
+    private int stockFor(DemoData data, LocalDate bizDate, Long cakeId, Integer cakeSize) {
+        return data.cakeMovements.stream()
+                .filter(movement -> Objects.equals(movement.getBizDate(), bizDate))
+                .filter(movement -> Objects.equals(movement.getCakeId(), cakeId))
+                .filter(movement -> Objects.equals(movement.getCakeSize(), cakeSize))
+                .mapToInt(movement -> movement.getDelta() == null ? 0 : movement.getDelta())
+                .sum();
+    }
+
+    private void addMovement(DemoData data, LocalDate bizDate, Long cakeId, Integer cakeSize,
+                             int delta, String moveType, Long reservationId, String requestId, String memo) {
+        data.cakeMovements.add(newMovement(data, bizDate, cakeId, cakeSize, delta, moveType,
+                reservationId, requestId, memo));
+    }
+
+    private CakeMovement newMovement(DemoData data, LocalDate bizDate, Long cakeId, Integer cakeSize,
+                                     int delta, String moveType, Long reservationId, String requestId, String memo) {
+        CakeMovement movement = new CakeMovement();
+        movement.setId(data.nextCakeMovementId++);
+        movement.setBizDate(bizDate);
+        movement.setCakeId(cakeId);
+        movement.setCakeSize(cakeSize);
+        movement.setDelta(delta);
+        movement.setMoveType(moveType);
+        movement.setReservationId(reservationId);
+        movement.setRequestId(requestId);
+        movement.setMemo(memo);
+        movement.setCreatedAt(LocalDateTime.now(KST));
+        return movement;
     }
 
     private Optional<Reservation> mutateReservation(HttpSession session, Long id, ReservationMutation mutation) {
@@ -403,10 +531,15 @@ public class DemoDataService {
         LocalDateTime now = LocalDateTime.now(KST);
 
         DemoData data = new DemoData();
-        data.cakes.add(cake(1L, "딸기 생크림", "strawberry"));
-        data.cakes.add(cake(2L, "초코 가나슈", "choco"));
-        data.cakes.add(cake(3L, "말차 크림", "matcha"));
-        data.cakes.add(cake(4L, "얼그레이", "earlgrey"));
+        data.cakes.add(cake(1L, "가나슈", "GANACHE"));
+        data.cakes.add(cake(2L, "모카", "MOKA"));
+        data.cakes.add(cake(3L, "바닐라", "VANILLA"));
+        data.cakes.add(cake(4L, "레몬", "LEMON"));
+        data.cakes.add(cake(5L, "딸기", "STRAWBERRY"));
+        data.cakes.add(cake(6L, "초코딸기", "CHOCOSTRAWBERRY"));
+        data.cakes.add(cake(7L, "티라미슈", "TIRAMISU"));
+        data.cakes.add(cake(8L, "바스크", "BASQUE"));
+        data.cakes.add(cake(9L, "커스텀", "CUSTOM"));
 
         data.categories.add(category(1L, "케이크"));
         data.categories.add(category(2L, "음료"));
@@ -427,11 +560,11 @@ public class DemoDataService {
         data.reservations.add(reservation(1L, today, LocalTime.of(11, 0), 1L, 1,
                 "010-0000-1122", true, "READY", "WAITING", "초 3개", now.minusHours(4)));
         data.reservations.add(reservation(2L, today, LocalTime.of(14, 30), 2L, 2,
-                "010-0000-3344", false, "PENDING", "WAITING", "문구: 축하해", now.minusHours(2)));
-        data.reservations.add(reservation(3L, today, LocalTime.of(17, 0), 3L, 1,
-                "당일-0000-7788", true, "PENDING", "WAITING", "픽업 전 연락", now.minusMinutes(30)));
-        data.reservations.add(reservation(4L, today.plusDays(1), LocalTime.of(13, 0), 4L, 2,
-                "010-0000-9911", true, "PENDING", "WAITING", "레터링 짧게", now.minusDays(1)));
+                "010-0000-3344", false, "RESERVED", "WAITING", "문구: 축하해", now.minusHours(2)));
+        data.reservations.add(reservation(3L, today, LocalTime.of(17, 0), 5L, 1,
+                "당일-0000-7788", true, "RESERVED", "WAITING", "픽업 전 연락", now.minusMinutes(30)));
+        data.reservations.add(reservation(4L, today.plusDays(1), LocalTime.of(13, 0), 7L, 2,
+                "010-0000-9911", true, "RESERVED", "WAITING", "레터링 짧게", now.minusDays(1)));
         data.reservations.add(reservation(5L, today.minusDays(1), LocalTime.of(16, 0), 1L, 1,
                 "010-0000-5566", true, "READY", "PICKED", "데모 완료건", now.minusDays(2)));
 
@@ -440,6 +573,10 @@ public class DemoDataService {
         data.stockRequests.add(stockRequest(3L, data.items.get(7), "베이킹", now.minusHours(5)));
         data.nextReservationId = 6L;
         data.nextStockRequestId = 4L;
+        data.nextCakeMovementId = 1L;
+        // READY seed 예약과 세션 재고(stockFor) 정합: 대응하는 PRODUCED movement
+        addMovement(data, today, 1L, 1, 1, "PRODUCED", 1L, "SEED-1", "seed ready");
+        addMovement(data, today.minusDays(1), 1L, 1, 1, "PRODUCED", 5L, "SEED-5", "seed ready");
         data.nextItemId = data.items.stream()
                 .map(Item::getId)
                 .filter(Objects::nonNull)
@@ -483,10 +620,15 @@ public class DemoDataService {
         reservation.setResTime(time);
         reservation.setCakeId(cakeId);
         reservation.setCakeFlavor(switch (cakeId.intValue()) {
-            case 1 -> "딸기 생크림";
-            case 2 -> "초코 가나슈";
-            case 3 -> "말차 크림";
-            default -> "얼그레이";
+            case 1 -> "가나슈";
+            case 2 -> "모카";
+            case 3 -> "바닐라";
+            case 4 -> "레몬";
+            case 5 -> "딸기";
+            case 6 -> "초코딸기";
+            case 7 -> "티라미슈";
+            case 8 -> "바스크";
+            default -> "커스텀";
         });
         reservation.setCakeSize(size);
         reservation.setCandles(3);
@@ -523,10 +665,12 @@ public class DemoDataService {
         private long nextReservationId;
         private long nextStockRequestId;
         private long nextItemId;
+        private long nextCakeMovementId;
         private final List<Reservation> reservations = new ArrayList<>();
         private final List<StockRequest> stockRequests = new ArrayList<>();
         private final List<Cake> cakes = new ArrayList<>();
         private final List<Category> categories = new ArrayList<>();
         private final List<Item> items = new ArrayList<>();
+        private final List<CakeMovement> cakeMovements = new ArrayList<>();
     }
 }

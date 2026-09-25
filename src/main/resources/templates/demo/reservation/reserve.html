@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>예약하기</title>
+    <!-- HTMX: 부분 갱신용 (CDN) -->
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+
+    <link rel="stylesheet" th:href="@{/css/steps1.css}">
+
+    <script th:src="@{/js/demo-common.js}" defer></script>
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+</head>
+<body>
+
+<div class="wrap">
+
+
+    <!-- ✨ 공통 헤더 -->
+    <header th:replace="~{fragments/header :: site-header}"></header>
+
+    <main>
+        <div th:replace="~{demo/fragments/demo-notice :: banner}"></div>
+
+
+        <div id="step-container"
+             hx-get="/demo/reservations/step/1"
+            hx-trigger="load"
+            hx-target="#step-container"
+            hx-swap="innerHTML">
+            <!-- 조각(fragment)이 삽입됨 -->
+        </div>
+    </main>
+
+    <!-- ✨ 공통 푸터 -->
+    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
+
+</div>
+
+</body>
+</html>

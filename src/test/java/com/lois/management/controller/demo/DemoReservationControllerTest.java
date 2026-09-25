@@ -54,7 +54,82 @@ class DemoReservationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("demo/reservation/reservation-dashboard"))
                 .andExpect(content().string(containsString("/demo/reservations/list")))
-                .andExpect(content().string(containsString("/demo/reservations/simple-reservation")));
+                .andExpect(content().string(containsString("/demo/reservations/produce")))
+                .andExpect(content().string(containsString("/demo/reservations/on-site")))
+                .andExpect(content().string(containsString("/demo/reservations/simple-reservation")))
+                .andExpect(content().string(containsString("/demo/reservations/new")))
+                .andExpect(content().string(not(containsString("/demo/stock-requests"))));
+    }
+
+    @Test
+    void demoGeneralReservationFinishStoresInSession() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        java.time.LocalDate pickupDate = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).plusDays(1);
+        while (pickupDate.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+            pickupDate = pickupDate.plusDays(1);
+        }
+
+        mockMvc.perform(get("/demo/reservations/new").session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("demo/reservation/reserve"));
+
+        mockMvc.perform(post("/demo/reservations/step/1").session(session).param("cakeId", "5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("demo/reservation/steps :: step2"));
+
+        mockMvc.perform(post("/demo/reservations/step/2").session(session)
+                        .param("date", pickupDate.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("demo/reservation/steps :: step3"));
+
+        mockMvc.perform(post("/demo/reservations/step/3").session(session).param("time", "15:00"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("demo/reservation/steps :: step4"));
+
+        mockMvc.perform(post("/demo/reservations/step/4").session(session).param("contact", "010-1234-5678"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("demo/reservation/steps :: step5"));
+
+        mockMvc.perform(post("/demo/reservations/step/5").session(session).param("paid", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("demo/reservation/steps :: step6"));
+
+        mockMvc.perform(post("/demo/reservations/finish").session(session).param("note", "일반예약 메모"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/demo/reservations"));
+
+        mockMvc.perform(get("/demo/reservations/search").session(session).param("contactSuffix", "5678"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("일반예약 메모")))
+                .andExpect(content().string(containsString("딸기")));
+    }
+
+    @Test
+    void demoProduceAndOnSiteUseSessionOnly() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(get("/demo/reservations/produce").session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("demo/reservation/produce"))
+                .andExpect(content().string(containsString("제작완료")));
+
+        mockMvc.perform(post("/demo/reservations/produce").session(session)
+                        .param("cakeId", "2")
+                        .param("cakeSize", "2")
+                        .param("note", "수동 제작"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/demo/reservations"));
+
+        mockMvc.perform(get("/demo/reservations/on-site").session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("demo/reservation/on-site"));
+
+        mockMvc.perform(post("/demo/reservations/on-site").session(session)
+                        .param("cakeId", "2")
+                        .param("cakeSize", "2")
+                        .param("note", "현장판매"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/demo/reservations"));
     }
 
     @Test

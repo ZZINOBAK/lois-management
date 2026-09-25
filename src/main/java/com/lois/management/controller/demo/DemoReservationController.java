@@ -2,6 +2,7 @@ package com.lois.management.controller.demo;
 
 import com.lois.management.domain.Reservation;
 import com.lois.management.service.demo.DemoDataService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,7 +16,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -25,6 +30,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/demo/reservations")
 @RequiredArgsConstructor
+@SessionAttributes("demoReserve")
 public class DemoReservationController {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
@@ -78,15 +84,107 @@ public class DemoReservationController {
     }
 
     @GetMapping("/new")
-    public String newReservation(HttpSession session, Model model) {
+    public String startReserve(Model model) {
+        model.addAttribute("demoReserve", new Reservation());
+        return "demo/reservation/reserve";
+    }
+
+    @GetMapping("/step/{no}")
+    public String step(HttpSession session, @PathVariable("no") int no, Model model) {
         model.addAttribute("cakes", demoDataService.cakes(session));
-        model.addAttribute("reserve", new Reservation());
-        return "demo/reservation/simple-reservation";
+        model.addAttribute("stepNo", no);
+        return "demo/reservation/steps :: step" + no;
+    }
+
+    @PostMapping("/step/1")
+    public String submitStep1(@RequestParam("cakeId") Long cakeId,
+                              @ModelAttribute("demoReserve") Reservation reserve,
+                              Model model) {
+        reserve.setCakeId(cakeId);
+        model.addAttribute("stepNo", 2);
+        return "demo/reservation/steps :: step2";
+    }
+
+    @PostMapping("/step/2")
+    public String submitStep2(
+            @RequestParam("date")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @ModelAttribute("demoReserve") Reservation reserve,
+            Model model
+    ) {
+        LocalDate today = LocalDate.now(KST);
+        LocalDate max = today.plusMonths(3);
+
+        if (date.isBefore(today)
+                || date.isAfter(max)
+                || date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+            model.addAttribute("stepNo", 2);
+            model.addAttribute("errorMessage", "예약이 불가능한 날짜입니다. 다시 선택해주세요.");
+            return "demo/reservation/steps :: step2";
+        }
+
+        reserve.setResDate(date);
+        model.addAttribute("stepNo", 3);
+        return "demo/reservation/steps :: step3";
+    }
+
+    @PostMapping("/step/3")
+    public String submitStep3(@RequestParam("time") LocalTime time,
+                              @ModelAttribute("demoReserve") Reservation reserve,
+                              Model model) {
+        reserve.setResTime(time);
+        model.addAttribute("stepNo", 4);
+        return "demo/reservation/steps :: step4";
+    }
+
+    @PostMapping("/step/4")
+    public String submitStep4(HttpSession session,
+                              @RequestParam("contact") String contact,
+                              @RequestParam(value = "force", defaultValue = "false") boolean force,
+                              @ModelAttribute("demoReserve") Reservation reserve,
+                              Model model,
+                              HttpServletResponse response) {
+        reserve.setContact(contact);
+
+        if (demoDataService.existsExactSameReservation(session, reserve)) {
+            response.setHeader("HX-Trigger", "{\"lois:alert\":{\"code\":\"DUP_EXACT\"}}");
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            return null;
+        }
+
+        if (!force && demoDataService.existsByContact(session, contact)) {
+            response.setHeader("HX-Trigger", "{\"lois:confirm\":{\"code\":\"DUP_CONTACT\"}}");
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            return null;
+        }
+
+        model.addAttribute("stepNo", 5);
+        return "demo/reservation/steps :: step5";
+    }
+
+    @PostMapping("/step/5")
+    public String submitStep5(@ModelAttribute("demoReserve") Reservation reserve,
+                              Model model) {
+        model.addAttribute("stepNo", 6);
+        return "demo/reservation/steps :: step6";
+    }
+
+    @PostMapping("/finish")
+    public String finish(HttpSession session,
+                         @ModelAttribute("demoReserve") Reservation reserve,
+                         SessionStatus status,
+                         RedirectAttributes redirect) {
+        demoDataService.createReservation(session, reserve);
+        status.setComplete();
+        redirect.addFlashAttribute("resvDone", true);
+        return "redirect:/demo/reservations";
     }
 
     @GetMapping("/simple-reservation")
     public String simpleReservation(HttpSession session, Model model) {
-        return newReservation(session, model);
+        model.addAttribute("cakes", demoDataService.cakes(session));
+        model.addAttribute("reserve", new Reservation());
+        return "demo/reservation/simple-reservation";
     }
 
     @PostMapping("/simple-reservation")
@@ -107,6 +205,38 @@ public class DemoReservationController {
         reservation.setPaid(paid);
         reservation.setNote(note);
         demoDataService.createReservation(session, reservation);
+        return "redirect:/demo/reservations";
+    }
+
+    @GetMapping("/produce")
+    public String produce(HttpSession session, Model model) {
+        model.addAttribute("cakes", demoDataService.cakes(session));
+        model.addAttribute("reserve", new Reservation());
+        return "demo/reservation/produce";
+    }
+
+    @PostMapping("/produce")
+    public String produceSubmit(HttpSession session,
+                                @RequestParam("cakeId") Long cakeId,
+                                @RequestParam("cakeSize") Integer cakeSize,
+                                @RequestParam(value = "note", required = false) String note) {
+        demoDataService.produce(session, cakeId, cakeSize, note);
+        return "redirect:/demo/reservations";
+    }
+
+    @GetMapping("/on-site")
+    public String onSite(HttpSession session, Model model) {
+        model.addAttribute("cakes", demoDataService.cakes(session));
+        model.addAttribute("reserve", new Reservation());
+        return "demo/reservation/on-site";
+    }
+
+    @PostMapping("/on-site")
+    public String onSiteSubmit(HttpSession session,
+                               @RequestParam("cakeId") Long cakeId,
+                               @RequestParam("cakeSize") Integer cakeSize,
+                               @RequestParam(value = "note", required = false) String note) {
+        demoDataService.sellOnSite(session, cakeId, cakeSize, note);
         return "redirect:/demo/reservations";
     }
 

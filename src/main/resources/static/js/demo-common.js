@@ -9,5 +9,5 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function showPreparing() {
-  alert("Demo에서는 예약과 발주 흐름만 둘러볼 수 있습니다.");
+  alert("준비 중입니다.");
 }

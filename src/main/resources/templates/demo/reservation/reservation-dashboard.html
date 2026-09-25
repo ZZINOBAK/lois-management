@@ -18,14 +18,18 @@
 <div class="wrap">
     <header th:replace="~{fragments/header :: site-header}"></header>
     <main>
+        <div th:replace="~{demo/fragments/demo-notice :: banner}"></div>
         <section class="content">
             <div class="list-header grid-2x2">
                 <div class="slot tl">
-                    <h2 class="section-title">케이크 예약 리스트 Demo</h2>
+                    <h2 class="section-title">케이크 예약 리스트</h2>
                 </div>
                 <div class="slot tr">
-                    <a class="cta" th:href="@{/demo/stock-requests}" role="button">
-                        <div class="title">발주 Demo</div>
+                    <a class="cta" th:href="@{/demo/reservations/produce}" role="button">
+                        <div class="title">제작완료</div>
+                    </a>
+                    <a class="cta" th:href="@{/demo/reservations/on-site}" role="button">
+                        <div class="title">현장판매</div>
                     </a>
                     <a class="cta" th:href="@{/demo/reservations/simple-reservation}" role="button">
                         <div class="title">간단예약</div>

@@ -23,9 +23,10 @@
                 상품 관리
             </button>
             <button type="button" onclick="showPreparing()">케이크 관리</button>
-            <!-- 비로그인: 로그인 버튼 -->
+            <!-- 비로그인: 로그인 버튼 (Demo에서는 숨김) -->
             <button type="button"
                     sec:authorize="isAnonymous()"
+                    th:unless="${isDemo}"
                     th:onclick="|location.href='@{/login}'|">
                 로그인
             </button>

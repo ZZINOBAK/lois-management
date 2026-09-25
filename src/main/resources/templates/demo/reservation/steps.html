@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ============ STEP 1 ============ -->
+<div th:fragment="step1">
+    <form th:action="@{/demo/reservations/step/1}" method="post"
+          th:attr="hx-post=@{/demo/reservations/step/1}"
+          hx-target="#step-container"
+          hx-swap="innerHTML"
+          class="step-form">
+
+        <!-- 제목 + 다음 버튼 한 줄 -->
+        <div class="section-head">
+            <h2 class="title">케이크 선택</h2>
+            <button type="submit" class="btn-next">다음</button>
+        </div>
+
+        <!-- 3×3 그리드 -->
+        <div class="grid cake-grid">
+            <label class="option" th:each="c : ${cakes}">
+                <input type="radio" name="cakeId" th:value="${c.id}" required />
+                <div class="card">
+                    <div class="card__title" th:text="${c.flavor}">딸기 생크림</div>
+                </div>
+            </label>
+        </div>
+
+    </form>
+</div>
+
+<!-- ============ STEP 2 ============ -->
+<div th:fragment="step2">
+    <form th:action="@{/demo/reservations/step/2}" method="post"
+          th:attr="hx-post=@{/demo/reservations/step/2}"
+          hx-target="#step-container"
+          hx-swap="innerHTML"
+          class="step-form">
+
+        <!-- 제목 + 이전/다음 버튼 (스텝1과 동일 라인) -->
+        <div class="section-head">
+            <h2 class="title">날짜 선택</h2>
+            <div class="actions">
+                <!-- 이전: 조각 GET -->
+                <button type="button" class="btn"
+                        hx-get="@{/demo/reservations/step/1}"
+                        hx-target="#step-container"
+                        hx-swap="innerHTML">이전</button>
+
+                <!-- 다음: 선택 전까지 비활성화 -->
+                <button type="submit" class="btn-primary" id="btn-next-step2" disabled>다음</button>
+            </div>
+        </div>
+
+        <!-- 서버로 보낼 실제 값 -->
+        <input type="hidden" name="date" id="picked-date">
+
+        <!-- 달력 컴포넌트 -->
+        <div class="calendar" id="calendar">
+            <div class="cal-head">
+                <button type="button" class="cal-nav" id="cal-prev" aria-label="이전 달">◀</button>
+                <div class="cal-title" id="cal-title">2025년 11월</div>
+                <button type="button" class="cal-nav" id="cal-next" aria-label="다음 달">▶</button>
+                <!-- 오늘 버튼 추가 -->
+                <button type="button" class="btn-today" id="cal-today">오늘</button>
+            </div>
+
+            <div class="cal-weekdays">
+                <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+            </div>
+
+            <div class="cal-grid" id="cal-grid">
+                <!-- JS가 날짜 셀을 채움 -->
+            </div>
+        </div>
+    </form>
+
+
+    <!-- 날짜 비활성화 표시용 CSS -->
+    <style>
+        .cal-cell.disabled {
+            cursor: not-allowed;
+            color: #cccccc !important;
+            background: #f4f4f4 !important;
+            opacity: 0.6;
+        }
+    </style>
+
+    <!-- 스텝2 전용 스크립트 (프래그먼트 안에서만 동작) -->
+    <script>
+        (function () {
+          // ===== 설정값 =====
+          const MAX_MONTHS = 3;        // 오늘로부터 3개월 후까지
+          const CLOSED_WEEKDAY = 0;    // 0 = 일요일 휴무
+
+          // ===== 날짜 유틸 =====
+          const pad = n => String(n).padStart(2, '0');
+          function fmt(date) {
+            return date.getFullYear() + '-' + pad(date.getMonth()+1) + '-' + pad(date.getDate());
+          }
+          function startOfDay(d) {
+            const x = new Date(d);
+            x.setHours(0,0,0,0);
+            return x;
+          }
+
+          const TODAY = startOfDay(new Date());
+          const maxDate = (function () {
+            const d = startOfDay(new Date());
+            d.setMonth(d.getMonth() + MAX_MONTHS);
+            return d;
+          })();
+
+          function isBefore(a, b) { return a.getTime() < b.getTime(); }
+          function isAfter(a, b)  { return a.getTime() > b.getTime(); }
+
+          // ===== 상태 =====
+          const state = {
+            viewYear: TODAY.getFullYear(),
+            viewMonth: TODAY.getMonth(), // 0~11
+            selected: null               // Date 객체
+          };
+
+          // ===== 엘리먼트 =====
+          const $title    = document.getElementById('cal-title');
+          const $grid     = document.getElementById('cal-grid');
+          const $prev     = document.getElementById('cal-prev');
+          const $next     = document.getElementById('cal-next');
+          const $btnToday = document.getElementById('cal-today');
+          const $hidden   = document.getElementById('picked-date');
+          const $btnNext  = document.getElementById('btn-next-step2');
+
+          // ===== 렌더 =====
+          function render() {
+            const y = state.viewYear, m = state.viewMonth;
+            $title.textContent = `${y}년 ${m+1}월`;
+            $grid.innerHTML = '';
+
+            const first = new Date(y, m, 1);
+            const last  = new Date(y, m+1, 0);
+            const startWeekday = first.getDay();    // 0(일)~6(토)
+            const daysInMonth  = last.getDate();
+
+            // 리드 블랭크
+            for (let i=0; i<startWeekday; i++) {
+              const blank = document.createElement('div');
+              blank.className = 'cal-cell blank';
+              $grid.appendChild(blank);
+            }
+
+            // 날짜 셀
+            for (let d=1; d<=daysInMonth; d++) {
+              const cell = document.createElement('button');
+              cell.type = 'button';
+              cell.className = 'cal-cell day';
+              cell.textContent = d;
+
+              const cellDate = startOfDay(new Date(y, m, d));
+              cell.dataset.date = fmt(cellDate);
+
+              // 오늘 표시
+              if (cellDate.getTime() === TODAY.getTime()) {
+                cell.classList.add('today');
+              }
+
+              // 선택 표시
+              if (state.selected && startOfDay(state.selected).getTime() === cellDate.getTime()) {
+                cell.classList.add('selected');
+              }
+
+              // ===== 예약 불가 조건 =====
+              let disabled = false;
+
+              // 1) 오늘 이전
+              if (isBefore(cellDate, TODAY)) disabled = true;
+
+              // 2) 최대 예약일 이후
+              if (isAfter(cellDate, maxDate)) disabled = true;
+
+              // 3) 휴무일(일요일)
+              if (cellDate.getDay() === CLOSED_WEEKDAY) disabled = true;
+
+              if (disabled) {
+                cell.classList.add('disabled');
+                cell.disabled = true; // 버튼 자체 비활성화
+              }
+
+              $grid.appendChild(cell);
+            }
+          }
+
+          // ===== 이벤트: 이전/다음 달 =====
+          $prev.addEventListener('click', () => {
+            state.viewMonth--;
+            if (state.viewMonth < 0) { state.viewMonth = 11; state.viewYear--; }
+            render();
+          });
+
+          $next.addEventListener('click', () => {
+            state.viewMonth++;
+            if (state.viewMonth > 11) { state.viewMonth = 0; state.viewYear++; }
+            render();
+          });
+
+          // ===== 이벤트: 날짜 클릭 =====
+          $grid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.cal-cell.day');
+            if (!btn || btn.disabled) return; // 비활성 셀 클릭 방지
+
+            const [yy, mm, dd] = btn.dataset.date.split('-').map(Number);
+            state.selected = new Date(yy, mm-1, dd);
+
+            // hidden 값/버튼 활성화
+            $hidden.value = btn.dataset.date;
+            $btnNext.disabled = false;
+
+            // 선택 클래스 갱신
+            $grid.querySelectorAll('.cal-cell.day.selected')
+                 .forEach(n => n.classList.remove('selected'));
+            btn.classList.add('selected');
+          });
+
+          // ===== 이벤트: 오늘 버튼 =====
+          $btnToday.addEventListener('click', () => {
+            const today = new Date(TODAY);
+
+            // 뷰를 오늘 달로 이동
+            state.viewYear  = today.getFullYear();
+            state.viewMonth = today.getMonth();
+
+            // 오늘이 휴무 / 범위 밖이면 선택은 못하게만 하고, 달만 보여줌
+            const disabled = (today.getDay() === CLOSED_WEEKDAY || isAfter(today, maxDate));
+
+            if (disabled) {
+              render();
+              alert('오늘은 예약이 불가한 날입니다.');
+              return;
+            }
+
+            // 선택 가능하면 바로 선택
+            state.selected = today;
+            $hidden.value = fmt(today);
+            $btnNext.disabled = false;
+            render();
+          });
+
+          // 초기 렌더
+          render();
+        })();
+    </script>
+</div>
+
+<!-- ============ STEP 3 ============ -->
+<div th:fragment="step3">
+    <form th:action="@{/demo/reservations/step/3}" method="post"
+          th:attr="hx-post=@{/demo/reservations/step/3}"
+          hx-target="#step-container"
+          hx-swap="innerHTML"
+          class="step-form">
+
+        <!-- 제목 + 이전/다음 버튼 -->
+        <div class="section-head">
+            <h2 class="title">수령 시간</h2>
+            <div class="actions">
+                <button type="button" class="btn"
+                        hx-get="@{/demo/reservations/step/2}"
+                        hx-target="#step-container"
+                        hx-swap="innerHTML">이전</button>
+
+                <button type="submit" class="btn-primary" id="btn-next-step3" disabled>다음</button>
+            </div>
+        </div>
+
+        <!-- 서버로 보낼 실제 값(HH:MM) -->
+        <input type="hidden" name="time" id="picked-time" required>
+
+        <!-- 시간 선택: 시 -->
+        <div class="time-section">
+            <div class="time-label">시</div>
+            <div class="time-grid" id="hour-grid" role="group" aria-label="시(hour)">
+                <!-- 9 ~ 21 버튼 생성 (아래 스크립트가 채움) -->
+            </div>
+        </div>
+
+        <!-- 시간 선택: 분 -->
+        <div class="time-section">
+            <div class="time-label">분</div>
+            <div class="time-grid" id="minute-grid" role="group" aria-label="분(minute)">
+                <!-- 00, 30 버튼 생성 (아래 스크립트가 채움) -->
+            </div>
+        </div>
+    </form>
+
+    <!-- 스텝3 전용 스크립트 -->
+    <script>
+        (function () {
+          const $hourGrid   = document.getElementById('hour-grid');
+          const $minuteGrid = document.getElementById('minute-grid');
+          const $hidden     = document.getElementById('picked-time');
+          const $btnNext    = document.getElementById('btn-next-step3');
+
+          const state = { hour: null, minute: null };
+
+          const pad = n => String(n).padStart(2, '0');
+
+          function renderHours() {
+            for (let h = 9; h <= 21; h++) {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'btn-choice';
+              btn.textContent = h;         // 시만 숫자로
+              btn.dataset.value = h;
+              $hourGrid.appendChild(btn);
+            }
+          }
+
+          function renderMinutes() {
+            [0, 30].forEach(m => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'btn-choice';
+              btn.textContent = pad(m);
+              btn.dataset.value = pad(m);
+              $minuteGrid.appendChild(btn);
+            });
+          }
+
+          function updateSelectionUI(groupEl, value) {
+            groupEl.querySelectorAll('.btn-choice.selected').forEach(b => b.classList.remove('selected'));
+            const target = groupEl.querySelector(`.btn-choice[data-value="${value}"]`);
+            if (target) target.classList.add('selected');
+          }
+
+          function tryEnableNext() {
+            if (state.hour !== null && state.minute !== null) {
+              const hh = pad(Number(state.hour));
+              const mm = state.minute; // 이미 pad 처리됨
+              $hidden.value = `${hh}:${mm}`;
+              $btnNext.disabled = false;
+            } else {
+              $hidden.value = '';
+              $btnNext.disabled = true;
+            }
+          }
+
+          // 이벤트 바인딩
+          $hourGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-choice');
+            if (!btn) return;
+            state.hour = btn.dataset.value;
+            updateSelectionUI($hourGrid, state.hour);
+            tryEnableNext();
+          });
+
+          $minuteGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-choice');
+            if (!btn) return;
+            state.minute = btn.dataset.value;
+            updateSelectionUI($minuteGrid, state.minute);
+            tryEnableNext();
+          });
+
+          // 초기 렌더
+          renderHours();
+          renderMinutes();
+        })();
+    </script>
+</div>
+
+<!-- ============ STEP 4 ============ -->
+<div th:fragment="step4">
+    <form th:action="@{/demo/reservations/step/4}" method="post"
+          th:attr="hx-post=@{/demo/reservations/step/4}"
+          hx-target="#step-container"
+          hx-swap="innerHTML"
+          class="step-form">
+
+        <!-- 제목 + 이전/다음 버튼 -->
+        <div class="section-head">
+            <h2 class="title">연락처 입력</h2>
+            <div class="actions">
+                <button type="button" class="btn"
+                        hx-get="@{/demo/reservations/step/3}"
+                        hx-target="#step-container"
+                        hx-swap="innerHTML">이전</button>
+
+                <button type="submit" class="btn-primary" id="btn-next-step4" disabled>다음</button>
+            </div>
+        </div>
+
+        <!-- 표시용 입력창 -->
+        <div class="phone-display">
+            <span id="phone-prefix">010-</span>
+            <span id="phone-body">____-____</span>
+        </div>
+
+        <!-- 실제 서버 전송용 -->
+        <input type="hidden" name="contact" id="hidden-phone" required>
+
+        <!-- 숫자 키패드 -->
+        <div class="keypad">
+            <button type="button" class="key">1</button>
+            <button type="button" class="key">2</button>
+            <button type="button" class="key">3</button>
+            <button type="button" class="key">4</button>
+            <button type="button" class="key">5</button>
+            <button type="button" class="key">6</button>
+            <button type="button" class="key">7</button>
+            <button type="button" class="key">8</button>
+            <button type="button" class="key">9</button>
+            <button type="button" class="key del">←</button>
+            <button type="button" class="key">0</button>
+            <button type="button" class="key clear">C</button>
+        </div>
+    </form>
+
+    <script>
+        (function () {
+          const $body = document.getElementById('phone-body');
+          const $hidden = document.getElementById('hidden-phone');
+          const $btnNext = document.getElementById('btn-next-step4');
+          const $keys = document.querySelectorAll('.keypad .key');
+
+          let digits = ''; // 8자리 (12345678)
+
+          function updateDisplay() {
+            let formatted = digits;
+            if (formatted.length > 4)
+              formatted = formatted.slice(0, 4) + '-' + formatted.slice(4);
+            const padded = formatted.padEnd(9, '_');
+            $body.textContent = padded;
+            $hidden.value = '010-' + formatted;
+            $btnNext.disabled = digits.length !== 8;
+          }
+
+          $keys.forEach(btn => {
+            btn.addEventListener('click', () => {
+              const val = btn.textContent;
+              if (btn.classList.contains('del')) {
+                digits = digits.slice(0, -1);
+              } else if (btn.classList.contains('clear')) {
+                digits = '';
+              } else if (digits.length < 8) {
+                digits += val;
+              }
+              updateDisplay();
+            });
+          });
+
+          updateDisplay();
+
+
+          // ====== HX-Trigger 이벤트 처리 (중복 바인딩 방지) ======
+      if (!window.__loisStep4HxBound) {
+        window.__loisStep4HxBound = true;
+
+        // 서버에서 code만 내려주고, 문구는 프론트에서 매핑
+        const MESSAGES = {
+          DUP_CONTACT: '동일한 번호의 예약이 있습니다. 그래도 예약하시겠습니까?',
+          DUP_EXACT:   '이미 예약된 건입니다.'
+        };
+
+        // 완전 동일 예약 → 진행 차단(알림만)
+        document.body.addEventListener('lois:alert', function (evt) {
+          const code = evt.detail && evt.detail.code;
+          alert(MESSAGES[code] || '알림');
+        });
+
+        // 동일 번호 예약 존재 → 확인 시 force=true로 같은 폼 재제출
+        document.body.addEventListener('lois:confirm', function (evt) {
+          const code = evt.detail && evt.detail.code;
+          const ok = confirm(MESSAGES[code] || '계속 진행할까요?');
+          if (!ok) return;
+
+          const form = document.querySelector('form.step-form');
+          if (!form) return;
+
+          // force=true hidden 필드 주입
+          let forceInput = form.querySelector('input[name="force"]');
+          if (!forceInput) {
+            forceInput = document.createElement('input');
+            forceInput.type = 'hidden';
+            forceInput.name = 'force';
+            form.appendChild(forceInput);
+          }
+          forceInput.value = 'true';
+
+          // 현재 입력된 연락처 값 유지된 상태로 재제출
+          // (CSRF 사용 중이면 폼에 포함된 _csrf 필드/헤더도 함께 전송됨)
+          htmx.trigger(form, 'submit');
+        });
+      }
+        })();
+    </script>
+</div>
+
+<!-- ============ STEP 5 ============ -->
+<div th:fragment="step5">
+    <form th:action="@{/demo/reservations/step/5}" method="post"
+          th:attr="hx-post=@{/demo/reservations/step/5}"
+          hx-target="#step-container"
+          hx-swap="innerHTML"
+          class="step-form">
+
+        <!-- 제목 + 이전/다음 버튼 -->
+        <div class="section-head">
+            <h2 class="title">결제 여부</h2>
+            <div class="actions">
+                <button type="button" class="btn"
+                        hx-get="@{/demo/reservations/step/4}"
+                        hx-target="#step-container"
+                        hx-swap="innerHTML">이전</button>
+
+                <button type="submit" class="btn-primary" id="btn-next-step5" disabled>다음</button>
+            </div>
+        </div>
+
+        <!-- 실제 전송값 -->
+        <input type="hidden" name="paid" id="hidden-paid" required>
+
+        <!-- 결제 여부 버튼 -->
+        <div class="payment-options">
+            <button type="button" class="pay-btn" data-value="true">💳 결제 완료</button>
+            <button type="button" class="pay-btn" data-value="false">💰 미결제</button>
+        </div>
+    </form>
+
+    <script>
+        (function () {
+          const $buttons = document.querySelectorAll('.pay-btn');
+          const $hidden = document.getElementById('hidden-paid');
+          const $next = document.getElementById('btn-next-step5');
+
+          $buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+              // 선택 상태 갱신
+              $buttons.forEach(b => b.classList.remove('selected'));
+              btn.classList.add('selected');
+              // 값 저장 + 다음 버튼 활성화
+              $hidden.value = btn.dataset.value;
+              $next.disabled = false;
+            });
+          });
+        })();
+    </script>
+</div>
+
+<!-- ============ STEP 6 ============ -->
+<div th:fragment="step6">
+    <form th:action="@{/demo/reservations/finish}" method="post" class="step-form"
+          onsubmit="return confirmFinish();">
+        <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="section-head">
+            <h2 class="title">확인</h2>
+            <div class="actions">
+                <button type="button" class="btn"
+                        hx-get="@{/demo/reservations/step/5}"
+                        hx-target="#step-container"
+                        hx-swap="innerHTML">이전</button>
+
+                <button type="submit" class="btn-primary">완료</button>
+            </div>
+        </div>
+
+        <p class="subtitle">예약 정보를 확인하고 완료하세요.</p>
+
+        <div class="summary-card">
+            <div class="summary-grid">
+                <div class="summary-label">수령일</div>
+                <div class="summary-value">
+                    <span th:if="${demoReserve != null and demoReserve.resDate != null}"
+                          th:text="${#temporals.format(demoReserve.resDate, 'yyyy-MM-dd')}">2025-11-10</span>
+                </div>
+
+                <div class="summary-label">수령시간</div>
+                <div class="summary-value">
+                    <span th:if="${demoReserve != null and demoReserve.resTime != null}"
+                          th:text="${#temporals.format(demoReserve.resTime, 'HH:mm')}">10:00</span>
+                </div>
+
+                <div class="summary-label">케이크</div>
+                <div class="summary-value" th:text="${demoReserve.cakeId}">딸기생크림</div>
+
+                <div class="summary-label">연락처</div>
+                <div class="summary-value" th:text="${demoReserve.contact}">010-0000-0000</div>
+
+                <div class="summary-label">결제상태</div>
+                <div class="summary-value">
+                    <span class="badge"
+                          th:classappend="${demoReserve.paid} ? 'badge-paid' : 'badge-unpaid'"
+                          th:text="${demoReserve.paid} ? '결제완료' : '미결제'">미결제</span>
+                </div>
+
+                <!-- ✅ 메모 입력 -->
+                <div class="summary-label">메모</div>
+                    <div class="summary-value">
+                      <textarea class="input-textarea"
+                                th:field="${demoReserve.note}"
+                                placeholder="요청사항/메모를 입력하세요 (선택)"
+                                rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        function confirmFinish() {
+          alert('예약이 완료되었습니다. 🎉✨🎊💥🥳💫💖');
+          return true;
+        }
+    </script>
+</div>
+
+<!-- ============ COMPLETE ============ -->
+<div th:fragment="complete">
+    <h2>예약이 완료되었습니다 🎉</h2>
+
+    <button type="button" onclick="location.href='/'">홈으로</button>
+    <button type="button"
+            hx-get="@{/demo/reservations/step/1}"
+            hx-target="#step-container"
+            hx-swap="innerHTML">
+        새 예약 시작
+    </button>
+</div>
+
+</body>
+</html>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
     <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
-    <title>Lois Demo - Reservation Form</title>
+    <title>간단예약</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/index.css}">
     <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
@@ -70,6 +70,8 @@
 <div class="wrap">
     <header th:replace="~{fragments/header :: site-header}"></header>
     <main>
+        <div th:replace="~{demo/fragments/demo-notice :: banner}"></div>
+
         <form th:action="@{/demo/reservations/simple-reservation}" method="post" class="step-form">
             <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <div class="section-head">
