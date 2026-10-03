@@ -253,3 +253,125 @@
   gap: 8px;
   align-items: center;
 }
+
+
+/* ===== 생산 현황 ===== */
+
+/* 2호 메인 영역 */
+.production-size-card {
+    padding: 18px;
+    border: 1px solid #eee;
+    border-radius: 14px;
+}
+
+.production-size-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.production-size-head strong {
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: #f5f5f5;
+    font-size: 20px;
+}
+
+
+/* 5개 현황 카드 */
+.production-status-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.status-card {
+    min-height: 130px;
+    padding: 16px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.status-card__head {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.status-card__head div {
+    display: flex;
+    flex-direction: column;
+}
+
+.status-card__head strong {
+    font-size: 15px;
+}
+
+.status-card__head span {
+    margin-top: 2px;
+    font-size: 12px;
+    color: #777;
+}
+
+
+/* 맛 목록 */
+.status-flavors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 12px;
+}
+
+.status-flavor {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.status-flavor .mk-chip {
+    flex-shrink: 0;
+}
+
+.status-flavor b {
+    font-weight: 700;
+}
+
+
+/* 추가 제작 카드 강조 */
+.status-card--tomake {
+    background: #fff8f8;
+}
+
+
+/* ===== 1호 보조 영역 ===== */
+
+.production-size-sub {
+    margin-top: 14px;
+    padding: 14px 18px;
+    border: 1px solid #eee;
+    border-radius: 14px;
+}
+
+.production-size-sub__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.production-size-sub__head strong {
+    font-size: 18px;
+}
+
+.production-size-sub__chevron {
+    font-size: 14px;
+    color: #777;
+}
+
+.production-status-grid--sub {
+    margin-top: 14px;
+}
+

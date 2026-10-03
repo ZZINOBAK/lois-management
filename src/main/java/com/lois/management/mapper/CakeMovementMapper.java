@@ -3,6 +3,7 @@ package com.lois.management.mapper;
 import com.lois.management.domain.CakeMovement;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,4 +34,13 @@ public interface CakeMovementMapper {
                                       @Param("cakeId") Long cakeId,
                                       @Param("cakeSize") Integer cakeSize);
 
+    int getExtraStockByKey(@Param("bizDate") LocalDate bizDate,
+                           @Param("cakeId") Long cakeId,
+                           @Param("cakeSize") Integer cakeSize);
+
+    List<CakeMovement> sumProducedByDate(@Param("bizDate") LocalDate bizDate);
+
+    List<CakeMovement> sumPickupReadyByDate(@Param("bizDate") LocalDate bizDate);
+
+    List<CakeMovement> sumExtraStockByDate(@Param("bizDate") LocalDate bizDate);
 }

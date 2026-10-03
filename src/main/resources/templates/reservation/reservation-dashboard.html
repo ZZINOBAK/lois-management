@@ -99,53 +99,9 @@
                     </div>
                 </div>
 
-                <!-- ✅ 생산 계획 카드: 여기부터 -->
-                <section class="plan-card">
-                    <div class="plan-card__head" onclick="togglePlanCard()">
-                        <div class="plan-card__title">오늘 생산 계획</div>
-                        <div class="plan-card__meta">
-                            <span class="plan-card__hint">필요 수량(추가생산)</span>
-                            <span id="planCardChevron" class="plan-card__chevron">▾</span>
-                        </div>
-                    </div>
-
-                    <div id="planCardBody" class="plan-card__body">
-                        <div class="mk-grid">
-
-                            <div th:each="size : ${cakeSizes}" class="mk-row">
-                                <div class="mk-size" th:text="${size + '호'}"></div>
-
-                                <div class="mk-flavors">
-                                    <div class="mk-flavor"
-                                         th:each="e : ${flavors}"
-                                         th:with="cakeId=${e.id}, name=${e.name}, css=${'mk-' + e.code}">
-
-                                        <div class="mk-flavor-head">
-
-                                            <span class="mk-chip"
-                                                  th:classappend="${css}"
-                                                  aria-hidden="true"></span>
-
-                                            <span class="mk-name" th:text="${name}"></span>
-                                        </div>
-                                        <div class="mk-values">
-                                          <span class="mk-badge mk-need">
-                                            필요 <b th:text="${toMakeMap != null and toMakeMap.get(size) != null and toMakeMap.get(size).get(cakeId) != null
-                                                ? toMakeMap.get(size).get(cakeId) : 0}">0</b>
-                                          </span>
-
-                                                                <span class="mk-badge mk-stock">
-                                            재고 <b th:text="${stockMap != null and stockMap.get(size) != null and stockMap.get(size).get(cakeId) != null
-                                                ? stockMap.get(size).get(cakeId) : 0}">0</b>
-                                          </span>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                <!-- ✅ 생산 계획 카드 조각: 여기부터 -->
+                <div th:replace="~{fragments/production-status :: productionStatus}">
+                </div>
 
                 <!-- 테이블 헤드 상단: 오늘 생성된 예약, 픽업예정 등 -->
                 <div class="reservation-toolbar">
@@ -193,7 +149,8 @@
                 <div id="list" th:fragment="list">
                     <!-- 행 반복 -->
                     <!--  조각 insert rowFragment(r) -->
-                    <div th:each="r, stat : ${reservations}" th:with="rowNo=${stat.count}"
+                    <div th:each="r, stat : ${reservations}"
+                         th:with="rowNo=${stat.count}"
                          th:insert="~{fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})}">
 
                     </div>

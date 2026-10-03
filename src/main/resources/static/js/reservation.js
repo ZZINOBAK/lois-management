@@ -107,3 +107,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (hidden) body.classList.add("hidden");
   if (chevron) chevron.textContent = hidden ? "▸" : "▾";
 });
+
+
+function toggleSizeOne() {
+    const body = document.getElementById('sizeOneBody')
+    const chevron = document.getElementById('sizeOneChevron')
+
+    if (!body || !chevron) return
+
+    const isClosed = body.style.display === 'none'
+
+    body.style.display = isClosed ? 'grid' : 'none'
+    chevron.textContent = isClosed ? '▴' : '▾'
+}

@@ -5,6 +5,7 @@ import com.lois.management.domain.Reservation;
 import com.lois.management.service.CakeMovementService;
 import com.lois.management.service.CakeService;
 import com.lois.management.service.ReservationService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -12,9 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/cake-movements")
@@ -30,8 +29,12 @@ public class CakeMovementController {
                           @RequestParam("cakeSize") Integer cakeSize,
                           @RequestParam(value = "note", required=false) String note) {
 
+        Reservation reservation = new Reservation();
+//        reservation.setId(0L);
+        reservation.setCakeId(cakeId);
+        reservation.setCakeSize(cakeSize);
         String requestId = "MANU-" + System.currentTimeMillis();
-        cakeMovementService.produce(requestId, cakeId, cakeSize, note, 0L);
+        cakeMovementService.pageProduce(reservation, requestId, note);
 
         return "redirect:/reservations";
     }
@@ -46,7 +49,7 @@ public class CakeMovementController {
         Long cakeId = r.getCakeId();
         Integer cakeSize = r.getCakeSize();
 
-        cakeMovementService.produce(requestId, cakeId, cakeSize, "from reservation dashboard", id);
+        cakeMovementService.toggleProduce(r, requestId, "from reservation dashboard");
 
         Reservation updated = reservationService.findById(id);
         model.addAttribute("r", updated);
@@ -57,7 +60,8 @@ public class CakeMovementController {
     }
 
     @PatchMapping("/{id}/produce-toggle")
-    public String produceFromReservationPatch(@PathVariable("id") Long id, Model model, @RequestParam("rowNo") int rowNo) {
+    public String produceFromReservationPatch(@PathVariable("id") Long id, Model model, @RequestParam("rowNo") int rowNo,
+                                              HttpServletResponse response) {
         // 1) 예약 조회 (현재 makeStatus가 무엇인지가 토글 기준)
         Reservation r = reservationService.findById(id);
         Long cakeId = r.getCakeId();
@@ -68,11 +72,11 @@ public class CakeMovementController {
         if (!isReady) {
             // 제작 완료 처리: +1 movement + makeStatus=READY
             String requestId = "RES-" + System.currentTimeMillis();
-            cakeMovementService.produce(requestId, cakeId, cakeSize, "from reservation dashboard", id);
+            cakeMovementService.toggleProduce(r, requestId, "from reservation dashboard");
         } else {
             // 제작 취소 처리: 정책(가장 늦은 READY만 취소 가능) + -1 movement + makeStatus=RESERVED
             String requestId = "RES-" + System.currentTimeMillis();
-            cakeMovementService.adjust(requestId, cakeId, cakeSize, "from reservation dashboard", id);
+            cakeMovementService.adjust(r, requestId, "from reservation dashboard");
         }
 
         Reservation updated = reservationService.findById(id);
@@ -80,6 +84,8 @@ public class CakeMovementController {
         model.addAttribute("today", LocalDate.now());
         model.addAttribute("rowNo", rowNo);
 
+        //케이크 제작 상태 조각 업데이트용 트리거
+        response.setHeader("HX-Trigger", "productionStatusChanged");
 
 //        return "reservation/reservation-dashboard :: rowFragment(r=${r})";
         return "fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";

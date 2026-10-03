@@ -86,7 +86,7 @@ public interface ReservationMapper {
 
     void updateWithProduce(@Param("id") Long id);
 
-    Long findReservationIdForProduce(@Param("today") LocalDate today, @Param("cakeId") Long cakeId, @Param("cakeSize") Integer cakeSize);
+    Reservation findReservationIdForProduce(@Param("today") LocalDate today, @Param("cakeId") Long cakeId, @Param("cakeSize") Integer cakeSize);
 
     // 예약 정책용 쿼리 추가
     int countByDate(LocalDate resDate);

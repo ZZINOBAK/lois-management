@@ -6,6 +6,7 @@ import com.lois.management.service.CakeMovementService;
 import com.lois.management.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +67,8 @@ public class ReservationApiController {
     }
 
     @PatchMapping("/{id}/pickup-toggle") // 픽업 상태 토글
-    public String togglePickup(@PathVariable("id") Long id, Model model, @RequestParam("rowNo") int rowNo) {
+    public String togglePickup(@PathVariable("id") Long id, Model model, @RequestParam("rowNo") int rowNo,
+                               HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         log.info("[API] authType={} name={} authorities={}",
@@ -83,6 +85,9 @@ public class ReservationApiController {
         model.addAttribute("r", updated);
         model.addAttribute("today", LocalDate.now());
         model.addAttribute("rowNo", rowNo);
+
+        //케이크 제작 상태 조각 업데이트용 트리거
+        response.setHeader("HX-Trigger", "productionStatusChanged");
 
         // ✅ 픽업 버튼 fragment만 반환
 //        return "reservation/reservation-dashboard :: pickupButton(r=${r})";

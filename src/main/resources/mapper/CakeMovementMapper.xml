@@ -31,6 +31,54 @@
         AND m.cake_size = #{cakeSize}
     </select>
 
+
+    <select id="getExtraStockByKey" resultType="int">
+        SELECT COALESCE(SUM(m.delta), 0)
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        AND m.cake_id = #{cakeId}
+        AND m.cake_size = #{cakeSize}
+        AND m.reservation_id IS NULL
+    </select>
+
+    <select id="sumProducedByDate" resultType="CakeMovement">
+        SELECT
+        m.cake_size AS cakeSize,
+        m.cake_id   AS cakeId,
+        COALESCE(SUM(
+        CASE
+        WHEN m.move_type = 'PRODUCED' THEN 1
+        WHEN m.move_type = 'UNDO_PRODUCED' THEN -1
+        ELSE 0
+        END
+        ), 0) AS stock
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        GROUP BY m.cake_size, m.cake_id
+    </select>
+
+    <select id="sumPickupReadyByDate" resultType="CakeMovement">
+        SELECT
+        m.cake_size AS cakeSize,
+        m.cake_id   AS cakeId,
+        COALESCE(SUM(m.delta), 0) AS stock
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        AND m.reservation_id IS NOT NULL
+        GROUP BY m.cake_size, m.cake_id
+    </select>
+
+    <select id="sumExtraStockByDate" resultType="CakeMovement">
+        SELECT
+        m.cake_size AS cakeSize,
+        m.cake_id   AS cakeId,
+        COALESCE(SUM(m.delta), 0) AS stock
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        AND m.reservation_id IS NULL
+        GROUP BY m.cake_size, m.cake_id
+    </select>
+
     <select id="getReservationIdsByProduced" resultType="long">
         SELECT m.reservation_id
         FROM cake_movements m

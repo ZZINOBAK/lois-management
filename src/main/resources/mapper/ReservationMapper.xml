@@ -282,8 +282,12 @@
         WHERE contact = #{contact}
     </select>
 
-    <select id="findReservationIdForProduce" resultType="long">
-        SELECT id
+    <select id="findReservationIdForProduce" resultType="Reservation">
+        SELECT id,
+            res_date,
+            res_time,
+            cake_id,
+            cake_size
         FROM reservations
         WHERE res_date = #{today}
         AND make_status = 'RESERVED'

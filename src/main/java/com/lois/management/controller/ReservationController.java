@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.lois.management.domain.Cake;
 import com.lois.management.domain.CakeMovement;
 import com.lois.management.domain.Reservation;
+import com.lois.management.dto.reservation.ProductionStatus;
 import com.lois.management.dto.reservation.ReservationPageReq;
 import com.lois.management.service.CakeMovementService;
 import com.lois.management.service.CakeService;
@@ -67,8 +68,8 @@ public class ReservationController {
         Map<Integer, Map<Long, Integer>> stockMap =
                 cakeMovementService.calcStockMap(today);
 
-//        Map<Long, Boolean> markProducedUi =
-//                reservationService.markProducedUi(reservations, stockMap);
+        ProductionStatus status =
+                cakeMovementService.getProductionStatus(today);
 
 
         try {
@@ -79,9 +80,7 @@ public class ReservationController {
 
             model.addAttribute("toMakeMap", toMakeMap);
             model.addAttribute("stockMap", stockMap);
-
-//            model.addAttribute("markProducedUi", markProducedUi);
-
+            model.addAttribute("status", status);
 
         } catch (Exception e) {
             log.error("모델에 데이터 추가 중 오류 발생(error). reservations={}", reservations, e);
@@ -519,4 +518,36 @@ public class ReservationController {
 
         return "redirect:/reservations";
     }
+
+    @GetMapping("production-status")
+    public String productionStatus(Model model) {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        List<Cake> flavors = cakeService.findFlavorsForDashboard();
+
+//        // 필요(만들어야 하는 수량) <size,<cakeId,toMake>>
+//        Map<Integer, Map<Long, Integer>> toMakeMap =
+//                cakeMovementService.calcToMakeMap(today);
+//
+//        // 재고(현재 제작된 수량) <size,<cakeId,stock(SUM(delta)>>
+//        Map<Integer, Map<Long, Integer>> stockMap =
+//                cakeMovementService.calcStockMap(today);
+
+        ProductionStatus status =
+                cakeMovementService.getProductionStatus(today);
+
+        try {
+            model.addAttribute("cakeSizes", List.of(1, 2));
+            model.addAttribute("flavors", flavors);
+//            model.addAttribute("toMakeMap", toMakeMap);
+//            model.addAttribute("stockMap", stockMap);
+            model.addAttribute("status", status);
+            model.addAttribute("flavors", cakeService.findFlavorsForDashboard());
+
+        } catch (Exception e) {
+            log.error("모델에 데이터 추가 중 오류 발생(error)", e);
+            throw e; // 오류 재발생
+        }
+        return "fragments/production-status :: productionStatus";
+    }
+
 }
