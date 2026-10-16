@@ -109,6 +109,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+function toggleSizeTwo() {
+    const body = document.getElementById('sizeTwoBody')
+    const chevron = document.getElementById('sizeTwoChevron')
+    if (!body || !chevron) return
+
+    const isClosed = body.style.display === 'none'
+
+    body.style.display = isClosed ? 'grid' : 'none'
+    chevron.textContent = isClosed ? '▴' : '▾'
+}
+
 function toggleSizeOne() {
     const body = document.getElementById('sizeOneBody')
     const chevron = document.getElementById('sizeOneChevron')

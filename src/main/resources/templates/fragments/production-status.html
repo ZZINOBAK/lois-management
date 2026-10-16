@@ -21,13 +21,15 @@
         <div id="planCardBody" class="plan-card__body">
 
             <!-- ==================== 2호 : 메인 ==================== -->
-            <div class="production-size-card">
+            <div class="production-size-sub">
 
-                <div class="production-size-head">
+                <div class="production-size-sub__head" onclick="toggleSizeTwo()">
                     <strong>2호</strong>
+                    <span id="sizeTwoChevron"
+                          class="production-size-sub__chevron">▾</span>
                 </div>
 
-                <div class="production-status-grid">
+                <div id="sizeTwoBody" class="production-status-grid production-status-grid--sub" style="display: none;">
 
                     <!-- 오늘 예약 -->
                     <div class="status-card status-card--reservation">

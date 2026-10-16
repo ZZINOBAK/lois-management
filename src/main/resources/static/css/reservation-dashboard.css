@@ -257,28 +257,6 @@
 
 /* ===== 생산 현황 ===== */
 
-/* 2호 메인 영역 */
-.production-size-card {
-    padding: 18px;
-    border: 1px solid #eee;
-    border-radius: 14px;
-}
-
-.production-size-head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.production-size-head strong {
-    padding: 6px 12px;
-    border-radius: 10px;
-    background: #f5f5f5;
-    font-size: 20px;
-}
-
-
 /* 5개 현황 카드 */
 .production-status-grid {
     display: grid;
@@ -346,13 +324,16 @@
 }
 
 
-/* ===== 1호 보조 영역 ===== */
+/* ===== 크기별 접기 영역 ===== */
 
 .production-size-sub {
-    margin-top: 14px;
     padding: 14px 18px;
     border: 1px solid #eee;
     border-radius: 14px;
+}
+
+.production-size-sub + .production-size-sub {
+    margin-top: 14px;
 }
 
 .production-size-sub__head {
