@@ -1,3 +1,103 @@
+.wrap.reservation-dashboard {
+    max-width: 900px;
+}
+
+.reservation-dashboard-layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+}
+
+.reservation-dashboard-production,
+.reservation-dashboard-reservations {
+    min-width: 0;
+}
+
+.reservation-dashboard-production .production-status-grid {
+    grid-template-columns: 1fr;
+}
+
+.reservation-dashboard-production .production-status-grid > .status-card--tomake {
+    order: -1;
+}
+
+@media (width < 888px) {
+    .reservation-dashboard-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .reservation-dashboard-production .production-status-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+.reservation-list {
+    --reservation-gap: 4px;
+    --reservation-columns: 40px 98px 48px 110px 30px 78px 100px 58px;
+    --reservation-min-width: 714px;
+    overflow-x: auto;
+}
+
+.reservation-list--today {
+    --reservation-columns: 40px 48px 110px 30px 78px 100px 58px;
+    --reservation-min-width: 616px;
+}
+
+.reservation-list--today .thead,
+.reservation-list--today .summary-row {
+    justify-content: space-between;
+}
+
+.reservation-list .thead,
+.reservation-list .summary-row {
+    grid-template-columns: var(--reservation-columns);
+    min-width: var(--reservation-min-width);
+    gap: var(--reservation-gap);
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.reservation-list .thead {
+    font-size: 16px;
+}
+
+.reservation-list .summary-row,
+.reservation-list .summary-row .flavor-btn {
+    font-size: 18px;
+}
+
+.reservation-list .summary-row .row-no {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.reservation-list .summary-row .phone {
+    font-size: 18px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.reservation-list .summary-row .badge-paid,
+.reservation-list .summary-row .badge-unpaid,
+.reservation-list .summary-row .pickup-btn {
+    font-size: 16px;
+}
+
+.reservation-list .thead > div,
+.reservation-list .summary-row > div,
+.reservation-list .summary-row .pickup-btn {
+    white-space: nowrap;
+}
+
+.reservation-list .summary-row .pickup-btn {
+    min-width: 100px;
+}
+
+.reservation-list--today .reservation-date {
+    display: none;
+}
+
 .detail-row.hidden {
     display: none;
 }
@@ -257,28 +357,6 @@
 
 /* ===== 생산 현황 ===== */
 
-/* 2호 메인 영역 */
-.production-size-card {
-    padding: 18px;
-    border: 1px solid #eee;
-    border-radius: 14px;
-}
-
-.production-size-head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.production-size-head strong {
-    padding: 6px 12px;
-    border-radius: 10px;
-    background: #f5f5f5;
-    font-size: 20px;
-}
-
-
 /* 5개 현황 카드 */
 .production-status-grid {
     display: grid;
@@ -346,13 +424,16 @@
 }
 
 
-/* ===== 1호 보조 영역 ===== */
+/* ===== 크기별 접기 영역 ===== */
 
 .production-size-sub {
-    margin-top: 14px;
     padding: 14px 18px;
     border: 1px solid #eee;
     border-radius: 14px;
+}
+
+.production-size-sub + .production-size-sub {
+    margin-top: 14px;
 }
 
 .production-size-sub__head {

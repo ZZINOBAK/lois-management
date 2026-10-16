@@ -15,7 +15,7 @@
                 data-row-no=${rowNo}">
         <!--                                <div th:text="${r.rowNumber}"></div>&lt;!&ndash; 연번 &ndash;&gt;-->
         <div class="row-no" th:text="${rowNo}"></div> <!-- 연번 -->
-        <div th:text="${#temporals.format(r.resDate, 'yyyy-MM-dd')}"></div><!-- 예약일 -->
+        <div class="reservation-date" th:text="${#temporals.format(r.resDate, 'yyyy-MM-dd')}"></div><!-- 예약일 -->
         <div th:text="${#temporals.format(r.resTime, 'HH:mm')}"></div><!-- 픽업시간 -->
         <!--  조각 replace makeButton(r) -->
         <!--                                <button th:replace="~{reservation/reservation-dashboard :: makeButton(r=${r})}"></button>&lt;!&ndash; 맛 / 제작 상태 버튼 &ndash;&gt;-->
@@ -45,8 +45,7 @@
                 th:hx-confirm="${r.pickupStatus == 'PICKED'} ? null : (${r.makeStatus == 'READY'} ? '미제작으로 변경할까요?' : '케이크를 만들었나요?')"
         >
         </button>
-        <div th:text="${r.cakeSize}"></div><!-- 케이크 사이즈 -->
-        <div class="phone" th:text="${r.contact}"></div><!-- 연락처 -->
+        <div th:text="${r.cakeSize + '호'}"></div><!-- 케이크 사이즈 -->
         <div><!-- 결제 여부 -->
             <span th:classappend="${r.paid} ? 'badge-paid' : 'badge-unpaid'">
                                         <span th:text="${r.paid} ? '결제완료' : '미결제'"></span>
@@ -79,6 +78,17 @@
             </div>
         </div>
 
+        <div class="phone" th:text="${r.contactSuffix}"></div><!-- 뒤 4자리 -->
+    </div>
+    <!-- 상세 행 -->
+    <div class="detail-row hidden"
+         th:id="'detail-' + ${r.id}">
+        <div><b>예약 날짜:</b> <span th:text="${#temporals.format(r.resDate, 'yyyy-MM-dd')}"></span></div>
+        <div><b>전체 연락처:</b> <span th:text="${r.contact}"></span></div>
+        <div><b>요청사항:</b> <span th:text="${r.note}"></span></div>
+        <div><b>초:</b> <span th:text="${r.candles}"></span></div>
+        <div><b>픽업시간:</b> <span th:text="${r.pickedUpAt}"></span></div>
+        <div><b>생성일:</b> <span th:text="${r.createdAt}"></span></div>
         <div class="actions"><!-- 수정/삭제 버튼 -->
             <button class="btn"
                     type="button"
@@ -92,14 +102,6 @@
                 삭제
             </button>
         </div>
-    </div>
-    <!-- 상세 행 -->
-    <div class="detail-row hidden"
-         th:id="'detail-' + ${r.id}">
-        <div><b>요청사항:</b> <span th:text="${r.note}"></span></div>
-        <div><b>초:</b> <span th:text="${r.candles}"></span></div>
-        <div><b>픽업시간:</b> <span th:text="${r.pickedUpAt}"></span></div>
-        <div><b>생성일:</b> <span th:text="${r.createdAt}"></span></div>
     </div>
 </div>
 <!-- 조각 rowFragment(r) 끝 -->

@@ -14,7 +14,7 @@
         <script th:src="@{/js/reservation.js}" defer></script>
     </th:block>
 
-    <div class="wrap">
+    <div class="wrap reservation-dashboard">
         <!-- ✨ 공통 헤더 -->
         <header th:replace="~{fragments/header :: site-header}"></header>
 
@@ -99,69 +99,75 @@
                     </div>
                 </div>
 
-                <!-- ✅ 생산 계획 카드 조각: 여기부터 -->
-                <div th:replace="~{fragments/production-status :: productionStatus}">
-                </div>
-
-                <!-- 테이블 헤드 상단: 오늘 생성된 예약, 픽업예정 등 -->
-                <div class="reservation-toolbar">
-                    <div class="reservation-legend">
-                        <span class="legend-chip legend-sameday"></span>
-                        <span>오늘 생성된 예약</span>
-                    </div>
-
-
-                    <div class="sorts" id="sorts">
-                        <!-- 📦 픽업예정만 보기 버튼 (이건 그대로 아래에 둠) -->
-                        <button type="button"
-                                class="chip chip--sub pickup-filter-btn hidden"
-                                data-show="today"
-                                th:attr="hx-get=@{/reservations/list?sort=waiting}"
-                                hx-target="#list"
-                                hx-swap="innerHTML">
-                            픽업예정
-                        </button>
-                        <button type="button"
-                                class="chip chip--sub pickup-filter-btn hidden"
-                                data-show="today from-today date"
-                                th:attr="hx-get=@{/reservations/list?sort=created-at}"
-                                hx-target="#list"
-                                hx-swap="innerHTML">
-                            등록순
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 예약 테이블 헤드 -->
-                <div class="thead">
-                    <div>연번</div>
-                    <div>날짜</div>
-                    <div>시간</div>
-                    <div>맛</div>
-                    <div>호수</div>
-                    <div>연락처</div>
-                    <div>결제</div>
-                    <div>픽업</div>
-                    <div>수정/삭제</div>
-                </div>
-
-                <!-- 예약 테이블 리스트 -->
-                <div id="list" th:fragment="list">
-                    <!-- 행 반복 -->
-                    <!--  조각 insert rowFragment(r) -->
-                    <div th:each="r, stat : ${reservations}"
-                         th:with="rowNo=${stat.count}"
-                         th:insert="~{fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})}">
+                <div class="reservation-dashboard-layout">
+                    <div class="reservation-dashboard-production">
+                        <!-- ✅ 생산 계획 카드 조각: 여기부터 -->
+                        <div th:replace="~{fragments/production-status :: productionStatus}">
+                        </div>
 
                     </div>
-                    <!-- ✅ 오늘(scope == 'today')일 때만 인쇄 버튼 보이기 -->
-                    <div th:if="${range == 'today' or range == 'date'}"
-                         class="list-print-actions">
-                        <button type="button"
-                                class="chip"
-                                th:onclick="|window.open('@{/reservations/print(range=${range}, date=${date})}', '_blank')|">
-                            <span th:text="${range == 'today' ? '오늘 케이크 리스트 인쇄' : '선택일 케이크 리스트 인쇄'}"></span>
-                        </button>
+                    <div class="reservation-dashboard-reservations">
+                        <!-- 테이블 헤드 상단: 오늘 생성된 예약, 픽업예정 등 -->
+                        <div class="reservation-toolbar">
+                            <div class="reservation-legend">
+                                <span class="legend-chip legend-sameday"></span>
+                                <span>오늘 생성된 예약</span>
+                            </div>
+
+
+                            <div class="sorts" id="sorts">
+                                <!-- 📦 픽업예정만 보기 버튼 (이건 그대로 아래에 둠) -->
+                                <button type="button"
+                                        class="chip chip--sub pickup-filter-btn hidden"
+                                        data-show="today"
+                                        th:attr="hx-get=@{/reservations/list?sort=waiting}"
+                                        hx-target="#list"
+                                        hx-swap="innerHTML">
+                                    픽업예정
+                                </button>
+                                <button type="button"
+                                        class="chip chip--sub pickup-filter-btn hidden"
+                                        data-show="today from-today date"
+                                        th:attr="hx-get=@{/reservations/list?sort=created-at}"
+                                        hx-target="#list"
+                                        hx-swap="innerHTML">
+                                    등록순
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 헤더와 행을 같은 필터 상태 및 Grid로 갱신 -->
+                        <div id="list" th:fragment="list">
+                            <div class="reservation-list"
+                                 th:classappend="${range == 'today'} ? ' reservation-list--today' : ''">
+                                <div class="thead">
+                                    <div>연번</div>
+                                    <div class="reservation-date">날짜</div>
+                                    <div>시간</div>
+                                    <div>맛</div>
+                                    <div>호수</div>
+                                    <div>결제</div>
+                                    <div>픽업</div>
+                                    <div>뒤 4자리</div>
+                                </div>
+                                <!-- 행 반복 -->
+                                <!--  조각 insert rowFragment(r) -->
+                                <div th:each="r, stat : ${reservations}"
+                                     th:with="rowNo=${stat.count}"
+                                     th:insert="~{fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})}">
+
+                                </div>
+                                <!-- ✅ 오늘(scope == 'today')일 때만 인쇄 버튼 보이기 -->
+                                <div th:if="${range == 'today' or range == 'date'}"
+                                     class="list-print-actions">
+                                    <button type="button"
+                                            class="chip"
+                                            th:onclick="|window.open('@{/reservations/print(range=${range}, date=${date})}', '_blank')|">
+                                        <span th:text="${range == 'today' ? '오늘 케이크 리스트 인쇄' : '선택일 케이크 리스트 인쇄'}"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
