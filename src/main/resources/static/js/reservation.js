@@ -109,25 +109,31 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-function toggleSizeTwo() {
-    const body = document.getElementById('sizeTwoBody')
-    const chevron = document.getElementById('sizeTwoChevron')
+// 현재 페이지에서만 유지하며, 새로고침 시 모두 접힌 상태로 시작한다.
+const productionSizeExpanded = { One: false, Two: false }
+
+function setProductionSizeExpanded(size, expanded) {
+    const body = document.getElementById(`size${size}Body`)
+    const chevron = document.getElementById(`size${size}Chevron`)
     if (!body || !chevron) return
 
-    const isClosed = body.style.display === 'none'
+    productionSizeExpanded[size] = expanded
+    body.style.display = expanded ? 'grid' : 'none'
+    chevron.textContent = expanded ? '▴' : '▾'
+}
 
-    body.style.display = isClosed ? 'grid' : 'none'
-    chevron.textContent = isClosed ? '▴' : '▾'
+function toggleSizeTwo() {
+    setProductionSizeExpanded('Two', !productionSizeExpanded.Two)
 }
 
 function toggleSizeOne() {
-    const body = document.getElementById('sizeOneBody')
-    const chevron = document.getElementById('sizeOneChevron')
-
-    if (!body || !chevron) return
-
-    const isClosed = body.style.display === 'none'
-
-    body.style.display = isClosed ? 'grid' : 'none'
-    chevron.textContent = isClosed ? '▴' : '▾'
+    setProductionSizeExpanded('One', !productionSizeExpanded.One)
 }
+
+document.body.addEventListener('htmx:afterSettle', (e) => {
+    // outerHTML 교체의 style 정리가 끝난 제작 현황 section만 복원한다.
+    if (!e.detail.elt?.matches('section.plan-card[hx-get="/reservations/production-status"]')) return
+
+    setProductionSizeExpanded('One', productionSizeExpanded.One)
+    setProductionSizeExpanded('Two', productionSizeExpanded.Two)
+})

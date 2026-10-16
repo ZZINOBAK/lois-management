@@ -338,7 +338,10 @@
         <set>
             <if test="resDate != null">res_date = #{resDate},</if>
             <if test="resTime != null">res_time = #{resTime},</if>
-            <if test="contact != null">contact = #{contact},</if>
+            <if test="contact != null">
+                contact = #{contact},
+                contact_suffix = #{contactSuffix},
+            </if>
             <if test="paid != null">is_paid = #{paid},</if>
             <if test="status != null">status = #{status},</if>
             <if test="note != null">note = #{note},</if>
@@ -353,7 +356,10 @@
             <if test="reservation.resDate != null">res_date = #{reservation.resDate},</if>
             <if test="reservation.resTime != null">res_time = #{reservation.resTime},</if>
             <if test="reservation.cakeSize != null">cake_size = #{reservation.cakeSize},</if>
-            <if test="reservation.contact != null">contact = #{reservation.contact},</if>
+            <if test="reservation.contact != null">
+                contact = #{reservation.contact},
+                contact_suffix = #{reservation.contactSuffix},
+            </if>
             <if test="reservation.paid != null">paid = #{reservation.paid},</if>
             <if test="reservation.note != null">note = #{reservation.note},</if>
             updated_at = NOW()

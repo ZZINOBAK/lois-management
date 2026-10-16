@@ -134,6 +134,10 @@ public class ReservationService {
     }
 
     public void update(Long id, Reservation reservation) {
+        if (reservation.getContact() != null) {
+            String contact = reservation.getContact();
+            reservation.setContactSuffix(contact.substring(contact.length() - 4));
+        }
         reservationMapper.update(id, reservation);
     }
 
@@ -221,7 +225,10 @@ public class ReservationService {
         }
         if (req.resDate() != null) r.setResDate(LocalDate.parse(req.resDate()));
         if (req.resTime() != null) r.setResTime(LocalTime.parse(req.resTime()));
-        if (req.contact() != null) r.setContact(req.contact());
+        if (req.contact() != null) {
+            r.setContact(req.contact());
+            r.setContactSuffix(req.contact().substring(req.contact().length() - 4));
+        }
         if (req.paid() != null) r.setPaid(req.paid());
         if (req.status() != null) r.setMakeStatus(req.status());
         if (req.note() != null) r.setNote(req.note());
