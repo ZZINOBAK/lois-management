@@ -17,7 +17,7 @@ import java.util.Map;
 @Mapper
 public interface ReservationMapper {
 
-    void insert(Reservation reservation);
+    int insert(Reservation reservation);
 
     List<Reservation> findAll(ReservationPageReq pageRequest);
 
@@ -35,9 +35,9 @@ public interface ReservationMapper {
 
     void update(@Param("id") Long id, @Param("reservation") Reservation reservation);
 
-    void updatePickupStatus(@Param("id") Long id, @Param("pickupStatus") String pickupStatus, @Param("pickedUpAt") Object o);
+    int updatePickupStatus(@Param("id") Long id, @Param("pickupStatus") String pickupStatus, @Param("pickedUpAt") Object o);
 
-    void updateMakeStatus(@Param("id") Long id, @Param("makeStatus")String reserved);
+    int updateMakeStatus(@Param("id") Long id, @Param("makeStatus")String reserved);
 
     void delete(Long id);
 
@@ -72,7 +72,7 @@ public interface ReservationMapper {
 
     List<Reservation> findByDateAndPickupStatusWaiting(LocalDate date);
 
-    void insertOnSite(Reservation reservation);
+    int insertOnSite(Reservation reservation);
 
     List<Reservation> findTodayForToMakeCalc(LocalDate date);
     List<Reservation> findByDateForToMakeCalc(LocalDate date);

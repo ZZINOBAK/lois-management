@@ -29,3 +29,7 @@ src/main/resources/application-dev.yaml
 src/main/webapp/
 src/test/java/com/lois/management/PasswordEncodeTest.java
 diagram/*.puml
+
+
+# 개인 작업 계획서
+/docs/

@@ -38,19 +38,23 @@ public class ReservationService {
         String contact = reservation.getContact();
         reservation.setContactSuffix(contact.substring(contact.length() - 4));
 
-        System.out.println(
-                "현재 Limiter = "
-                        + reservationConcurrencyGuard.getClass().getSimpleName()
-        );
+        log.info("현재 적용된 리미터 구현체 = {}", reservationConcurrencyGuard.getClass().getSimpleName());
 
-        // 1. 주입된 매니저가 DB 방식이든 캐시 방식이든 알아서 검증합니다.
         if (!reservationConcurrencyGuard.tryAcquireSlot(reservation.getResDate(), reservation.getResTime())) {
             throw new IllegalArgumentException("예약 가능 수량을 초과했습니다.");
         }
 
-        // 2. 검증 통과 시 최종 인서트
+        log.info("업무=예약생성 event=SQL전달 res_date={} res_time={} cake_id={} paid={} commit=미확인",
+                reservation.getResDate(), reservation.getResTime(), reservation.getCakeId(), reservation.getPaid());
 
-        reservationMapper.insert(reservation);
+        int rows = reservationMapper.insert(reservation);
+
+        log.info("업무=예약생성 event=DB처리반환 id={} affectedRows={} commit=미확인",
+                     reservation.getId(), rows);
+        if (rows == 0) {
+            log.warn("업무=예약생성 event=반환행수확인 id={} affectedRows=0 commit=미확인", reservation.getId());
+        }
+
     }
 
 //    @Transactional
@@ -94,19 +98,25 @@ public class ReservationService {
         reservation.setResDate(LocalDate.now());
         reservation.setResTime(LocalTime.now().withSecond(0).withNano(0));
 
-        // ✅ 현장판매는 이미 나간 케이크
+        // 현장판매는 이미 나간 케이크
         reservation.setPickupStatus("PICKED");   // 더 이상 WAITING 아님
         reservation.setMakeStatus("READY");      // 이미 만들어진 케이크
 
-        // ✅ 현장판매 식별자
+        // 현장판매 식별자
         reservation.setContact("ON_SITE");
 
         // 결제 완료
         reservation.setPaid(true);
 
-        log.info("reservation = {}", reservation);
+        log.info("업무=예약생성 event=SQL전달 stage=ReservationMapper.insertOnSite res_date={} res_time={} cake_id={} cake_size={} make_status={} paid={} pickup_status={} commit=미확인",
+                reservation.getResDate(), reservation.getResTime(), reservation.getCakeId(), reservation.getCakeSize(),
+                reservation.getMakeStatus(), reservation.getPaid(), reservation.getPickupStatus());
 
-        reservationMapper.insertOnSite(reservation);
+        int rows = reservationMapper.insertOnSite(reservation);
+        log.info("업무=예약생성 event=DB처리반환 stage=ReservationMapper.insertOnSite id={} affectedRows={} commit=미확인", reservation.getId(), rows);
+        if (rows == 0) {
+            log.warn("업무=예약생성 event=반환행수확인 stage=ReservationMapper.insertOnSite id={} affectedRows=0 commit=미확인", reservation.getId());
+        }
     }
 
     public List<Reservation> findAll(ReservationPageReq pageRequest) {
@@ -151,12 +161,15 @@ public class ReservationService {
         }
 
         if ("READY".equals(r.getMakeStatus())) {
-            reservationMapper.updateMakeStatus(id, "RESERVED");
+            log.info("event=SQL전달 stage=ReservationMapper.updateMakeStatus id={} make_status=RESERVED commit=미확인", id);
+            int affectedRows = reservationMapper.updateMakeStatus(id, "RESERVED");
+            log.info("event=DB처리반환 stage=ReservationMapper.updateMakeStatus id={} affectedRows={} commit=미확인", id, affectedRows);
         } else {
-            reservationMapper.updateMakeStatus(id, "READY");
+            log.info("event=SQL전달 stage=ReservationMapper.updateMakeStatus id={} make_status=READY commit=미확인", id);
+            int affectedRows = reservationMapper.updateMakeStatus(id, "READY");
+            log.info("event=DB처리반환 stage=ReservationMapper.updateMakeStatus id={} affectedRows={} commit=미확인", id, affectedRows);
         }
 
-        log.info("예약 제작 상태 변경 -> 예약 아이디= {}", r.getId());
     }
 
     public void delete(Long id) {
@@ -349,7 +362,10 @@ public class ReservationService {
     }
 
     public void updatePickupStatus(Long reservationId, String picked, LocalDateTime now) {
-        reservationMapper.updatePickupStatus(reservationId, picked, now);
+        log.info("event=SQL전달 stage=ReservationMapper.updatePickupStatus id={} pickup_status={} picked_up_at={} commit=미확인",
+                reservationId, picked, now);
+        int affectedRows = reservationMapper.updatePickupStatus(reservationId, picked, now);
+        log.info("event=DB처리반환 stage=ReservationMapper.updatePickupStatus id={} affectedRows={} commit=미확인", reservationId, affectedRows);
     }
 
     public Map<Long, Boolean> markProducedUi(List<Reservation> reservations, Map<Integer, Map<Long, Integer>> stockMap) {

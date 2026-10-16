@@ -381,6 +381,7 @@ public class ReservationController {
     public String finish(@ModelAttribute("reserve") Reservation reserve,
                          SessionStatus status,
                          RedirectAttributes redirect) {
+        log.info("업무=예약생성 event=요청진입 entry=web:finish");
         create(reserve);
         status.setComplete();
         redirect.addFlashAttribute("resvDone", true); // 완료 알림용 플래시
@@ -389,12 +390,17 @@ public class ReservationController {
 
     @PostMapping //케이크 예약 DB 생성
     public void create(Reservation reservation) {
+        log.info("업무=예약생성 event=업무시작 stage=web:create commit=미확인");
         reservationService.create(reservation);
+        log.info("업무=예약생성 event=업무처리종료 stage=web:create id={} commit=미확인",
+                reservation.getId());
     }
 
     @PostMapping("/on-site") //케이크 예약 DB 생성
     public String createOnSite(Reservation reservation) {
+        log.info("업무=예약생성 event=업무시작 entry=web:on-site commit=미확인");
         reservationService.createOnSite(reservation);
+        log.info("업무=예약생성 event=업무처리종료 entry=web:on-site id={} commit=미확인", reservation.getId());
         return "redirect:/reservations";
     }
 

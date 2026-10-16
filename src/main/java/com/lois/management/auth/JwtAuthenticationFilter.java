@@ -40,16 +40,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String uri = request.getRequestURI();
-        String qs = request.getQueryString();
-        String referer = request.getHeader("Referer");
 
-
-        log.info(">>>>> JWT필터 {} {}{} | referer={}",
+        log.info("JWT필터 요청 method={} uri={}",
                 request.getMethod(),
-                uri,
-                (qs != null ? "?" + qs : ""),
-                referer);
+                request.getRequestURI());
 
         // 헤더(Bearer) 또는 쿠키(LOIS_ACCESS_TOKEN)에서 토큰 찾기
         String token = resolveToken(request);
