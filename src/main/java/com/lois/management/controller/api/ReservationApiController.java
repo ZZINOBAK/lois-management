@@ -45,7 +45,9 @@ public class ReservationApiController {
     @Operation(summary = "예약 생성")
     @PostMapping
     public ResponseEntity<ReservationRes> create(@Valid @RequestBody ReservationCreateReq req) {
+        log.info("업무=예약생성 event=업무시작 entry=api:create commit=미확인");
         Long id = reservationService.create(req);
+        log.info("업무=예약생성 event=업무처리종료 entry=api:create id={} commit=미확인", id);
         return ResponseEntity
                 .created(URI.create("/api/reservations/" + id))
                 .body(new ReservationRes(id, "CREATED"));

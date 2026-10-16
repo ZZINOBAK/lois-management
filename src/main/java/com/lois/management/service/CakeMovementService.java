@@ -42,10 +42,11 @@ public class CakeMovementService {
         m.setMoveType("PRODUCED");
         m.setRequestId(requestId);
         m.setReservationId(reservation.getId());
-        log.info("제작 완료 후 케이크무브먼트 데이터 추가 = {}", m);
-        cakeMovementMapper.insertMovement(m);
-
-        log.info("제작완료 : {} ", cakeMovementMapper.findById(m.getId()));
+        log.info("event=SQL전달 stage=CakeMovementMapper.insertMovement biz_date={} cake_id={} cake_size={} delta={} move_type={} reservation_id={} request_id={} commit=미확인",
+                m.getBizDate(), m.getCakeId(), m.getCakeSize(), m.getDelta(), m.getMoveType(), m.getReservationId(), m.getRequestId());
+        int affectedRows = cakeMovementMapper.insertMovement(m);
+        log.info("event=DB처리반환 stage=CakeMovementMapper.insertMovement reservation_id={} request_id={} id={} affectedRows={} commit=미확인",
+                m.getReservationId(), m.getRequestId(), m.getId(), affectedRows);
     }
 
     @Transactional
@@ -233,7 +234,6 @@ public class CakeMovementService {
             if (stock < 1 || !rIdsProduced.contains(reservationId)) {
                 // 제작 완료 버튼을 클릭 안한 것으로 간주하고 해당 예약건의 제작 상태를 제작 완료로 변경
                 reservationService.toggleMakeStatus(reservationId);
-                log.info("픽업으로 인한 makeStatus 상태 변경 : RESERVED -> READY");
                 // 그리고 케이크무브먼트 테이블에도 생산 기록 추가
                 toggleProduce(r, requestId + "-1", "AUTO_PRODUCE_ON_PICKUP");
             }
@@ -248,8 +248,11 @@ public class CakeMovementService {
             m.setMoveType("PICKED");
             m.setReservationId(reservationId);
             m.setRequestId(requestId);
-            log.info("픽업 완료 후 케이크무브먼트 데이터 추가 = {}", m);
-            cakeMovementMapper.insertMovement(m);
+            log.info("업무=픽업완료 event=SQL전달 stage=CakeMovementMapper.insertMovement biz_date={} cake_id={} cake_size={} delta={} move_type={} reservation_id={} request_id={} commit=미확인",
+                    m.getBizDate(), m.getCakeId(), m.getCakeSize(), m.getDelta(), m.getMoveType(), m.getReservationId(), m.getRequestId());
+            int affectedRows = cakeMovementMapper.insertMovement(m);
+            log.info("업무=픽업완료 event=DB처리반환 stage=CakeMovementMapper.insertMovement reservation_id={} request_id={} id={} affectedRows={} commit=미확인",
+                    m.getReservationId(), m.getRequestId(), m.getId(), affectedRows);
 
             return;
         }

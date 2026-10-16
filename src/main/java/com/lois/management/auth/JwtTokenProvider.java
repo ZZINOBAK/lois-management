@@ -57,18 +57,17 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         try {
-            System.out.println("✅ [validate] 들어온 token = " + token);
+
 
             Jwts.parser()
                     .verifyWith(Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes()))
                     .build()
                     .parseSignedClaims(token); // 파싱 성공 = 검증 성공
-            System.out.println("✅ [validate] 토큰 파싱/서명 검증 성공");
 
+            log.info("[validate] 토큰 파싱/서명 검증 성공");
             return true;
         } catch (Exception e) {
-            System.out.println("❌ [validate] 토큰 검증 실패: " + e.getClass().getSimpleName()
-                    + " - " + e.getMessage());
+            log.warn("JWT 검증 실패 exceptionType={}", e.getClass().getName());
             return false;
         }
     }
