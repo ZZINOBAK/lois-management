@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- ========================================= -->
-    <!-- 1) 콘솔 로그 (컬러 적용)                    -->
-    <!-- ========================================= -->
+    <!-- 콘솔 로그 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS, Asia/Seoul} %-5level [%thread] %logger{36} - %msg%n</pattern>
@@ -11,9 +9,7 @@
     </appender>
 
 
-    <!-- ========================================= -->
-    <!-- 2) 전체 로그 파일 (WARN 이상)              -->
-    <!-- ========================================= -->
+    <!-- 전체 로그 파일 (WARN 이상) -->
     <appender name="APP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/app.log</file>
 
@@ -27,10 +23,7 @@
         </encoder>
     </appender>
 
-
-    <!-- ========================================= -->
-    <!-- 3) 비즈니스 로그 파일 (너의 코드만 따로)   -->
-    <!-- ========================================= -->
+    <!-- 비즈니스 로그 파일 (너의 코드만 따로) -->
     <appender name="BUSINESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/business.log</file>
 
@@ -44,19 +37,13 @@
         </encoder>
     </appender>
 
-
-    <!-- ========================================= -->
-    <!-- 4) root 로그 → WARN 이상만 기록            -->
-    <!-- ========================================= -->
+    <!-- root 로그 -> WARN 기록 -->
     <root level="WARN">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="APP_FILE"/>
     </root>
 
-
-    <!-- ========================================= -->
-    <!-- 5) 네 애플리케이션 로그만 INFO로 기록      -->
-    <!-- ========================================= -->
+    <!-- com.lois 로그 -> INFO 기록 -->
     <logger name="com.lois" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="BUSINESS_FILE"/>
