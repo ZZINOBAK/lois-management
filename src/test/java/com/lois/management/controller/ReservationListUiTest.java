@@ -111,6 +111,12 @@ class ReservationListUiTest {
             assertThat(html).contains("wrap reservation-dashboard", "reservation-dashboard-layout",
                     "reservation-dashboard-production", "reservation-dashboard-reservations",
                     "hx-get=\"/reservations/production-status\"", "id=\"list\"", "id=\"row-block-7\"");
+            assertThat(html).contains("reservation-list--today", "data-range=\"today\" aria-pressed=\"true\"");
+            verify(service).findTodayOrderByPickUpTime(LocalDate.now(java.time.ZoneId.of("Asia/Seoul")));
+            verify(service, never()).findAll(any(ReservationPageReq.class));
+            assertThat(html.indexOf("data-range=\"today\"")).isLessThan(html.indexOf("data-range=\"from-today\""));
+            assertThat(html.indexOf("data-range=\"from-today\"")).isLessThan(html.indexOf("data-range=\"date\""));
+            assertThat(html.indexOf("data-range=\"date\"")).isLessThan(html.indexOf("data-range=\"all\""));
             assertThat(html.indexOf("class=\"list-header")).isLessThan(html.indexOf("class=\"reservation-dashboard-layout"));
             // 실제 Thymeleaf 렌더링 결과를 브라우저 레이아웃 검증에 재사용한다.
             Path preview = Path.of("build/layout-verification/dashboard.html");

@@ -11,6 +11,9 @@ function toggleDetailRow(event, id) {
 
 
 function updateSortButtons(range) {
+  document.querySelectorAll('.filters [data-range]').forEach(btn => {
+    btn.setAttribute('aria-pressed', String(btn.dataset.range === range));
+  });
   const container = document.getElementById('sorts');
     if (!container) return;
 
@@ -32,10 +35,11 @@ document.body.addEventListener('htmx:beforeRequest', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-   // ✅ 현재 페이지가 /reservations이면 무조건 전체 초기화
+   // 기본 진입 화면과 정렬 요청의 범위를 오늘로 맞춘다.
     if (window.location.pathname === '/reservations') {
-      sessionStorage.removeItem('reservationRange');
-      updateSortButtons('all');
+      sessionStorage.setItem('reservationRange', 'today');
+      sessionStorage.removeItem('reservationDate');
+      updateSortButtons('today');
       return;
     }
 
@@ -67,6 +71,8 @@ document.body.addEventListener('htmx:configRequest', (e) => {
         sessionStorage.setItem("reservationRange", r);
       }
     }
+
+    updateSortButtons(sessionStorage.getItem("reservationRange") || "all");
 
     // 3) /reservations/list 요청이면 저장된 range/date를 강제 주입
     if (hxGet.includes("/reservations/list")) {

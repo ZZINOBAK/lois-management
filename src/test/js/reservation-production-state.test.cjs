@@ -103,3 +103,41 @@ test('행 클릭은 상세를 토글하며 버튼 클릭은 상세를 토글하�
     context.toggleDetailRow({target: {closest: () => ({})}}, 7);
     assert.equal(toggles, 1);
 });
+
+test('기본 진입은 오늘이며 전체 전환 후 정렬 요청도 전체를 유지한다', () => {
+    const handlers = {};
+    const storage = new Map([['reservationRange', 'date'], ['reservationDate', '2026-10-24']]);
+    const buttons = ['today', 'from-today', 'date', 'all'].map(range => ({
+        dataset: {range}, setAttribute(name, value) { this[name] = value; }
+    }));
+    const context = vm.createContext({
+        window: {location: {pathname: '/reservations'}},
+        sessionStorage: {
+            getItem: key => storage.get(key) ?? null,
+            setItem: (key, value) => storage.set(key, value),
+            removeItem: key => storage.delete(key)
+        },
+        document: {
+            querySelectorAll: () => buttons,
+            getElementById: () => null,
+            addEventListener(name, handler) { (handlers[name] ??= []).push(handler); },
+            body: {addEventListener(name, handler) { (handlers[name] ??= []).push(handler); }}
+        }
+    });
+    vm.runInContext(source, context);
+    handlers.DOMContentLoaded.forEach(handler => handler());
+    assert.equal(storage.get('reservationRange'), 'today');
+    assert.equal(storage.has('reservationDate'), false);
+    assert.equal(buttons[0]['aria-pressed'], 'true');
+    const request = parameters => {
+        const event = {detail: {elt: {getAttribute: () => '/reservations/list'}, parameters}};
+        handlers['htmx:configRequest'].forEach(handler => handler(event));
+        return event.detail.parameters;
+    };
+    assert.equal(request({sort: 'created-at'}).range, 'today');
+    for (const range of ['from-today', 'date', 'all']) {
+        assert.equal(request({range}).range, range);
+        assert.equal(buttons.find(button => button.dataset.range === range)['aria-pressed'], 'true');
+    }
+    assert.equal(request({sort: 'created-at'}).range, 'all');
+});

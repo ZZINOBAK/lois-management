@@ -456,3 +456,8 @@
     margin-top: 14px;
 }
 
+
+.filters .chip[aria-pressed="true"] {
+    background: #333;
+    color: #fff;
+}

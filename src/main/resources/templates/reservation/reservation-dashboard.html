@@ -45,23 +45,23 @@
                     <!-- 왼쪽 아래 -->
                     <div class="slot bl">
                         <div class="filters">
-                            <button class="chip" type="button"
-                                    hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
-                                    hx-vals='{"range":"all"}'>
-                            전체
-                            </button>
-                            <button class="chip" type="button"
-                                    hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
-                                    hx-vals='{"range":"from-today"}'>
-                                오늘부터
-                            </button>
-                            <button class="chip" type="button"
+                            <button class="chip" type="button" data-range="today" aria-pressed="true"
                                     hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
                                     hx-vals='{"range":"today"}'>
                                 오늘
                             </button>
-                            <button class="chip" type="button" onclick="toggleDatePicker()">
+                            <button class="chip" type="button" data-range="from-today" aria-pressed="false"
+                                    hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
+                                    hx-vals='{"range":"from-today"}'>
+                                오늘부터
+                            </button>
+                            <button class="chip" type="button" data-range="date" aria-pressed="false" onclick="toggleDatePicker()">
                                 날짜
+                            </button>
+                            <button class="chip" type="button" data-range="all" aria-pressed="false"
+                                    hx-get="/reservations/list" hx-target="#list" hx-swap="innerHTML"
+                                    hx-vals='{"range":"all"}'>
+                                전체
                             </button>
                             <div id="date-popover" class="date-popover hidden">
                                 <input type="date" id="pickDate" name="date"

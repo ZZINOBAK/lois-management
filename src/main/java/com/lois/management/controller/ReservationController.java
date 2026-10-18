@@ -54,7 +54,8 @@ public class ReservationController {
                 auth.isAuthenticated());
 
 //        List<Reservation> reservations = findAll();
-        List<Reservation> reservations = findAll(pageRequest);
+//        List<Reservation> reservations = findAll(pageRequest);
+        List<Reservation> reservations = reservationService.findTodayOrderByPickUpTime(today);
         log.info("예약 조회 결과 size={}", reservations.size());
 
         List<Cake> flavors = cakeService.findFlavorsForDashboard();
@@ -74,6 +75,7 @@ public class ReservationController {
 
         try {
             model.addAttribute("reservations", reservations);
+            model.addAttribute("range", "today");
             model.addAttribute("cakeSizes", List.of(1, 2));
 
             model.addAttribute("flavors", flavors);
