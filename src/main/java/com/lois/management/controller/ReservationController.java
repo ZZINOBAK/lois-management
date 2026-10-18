@@ -261,8 +261,9 @@ public class ReservationController {
 
     @GetMapping("/step/{no}") //케이크 예약 - 예약하기 버튼 클릭 후 첫 페이지 로딩
     public String step(@PathVariable("no") int no, Model model) {
-        List<Cake> cakes = findAllCakeFlavor();
-        model.addAttribute("cakes", cakes);
+        if (no == 1) {
+            model.addAttribute("cakes", findAllCakeFlavor());
+        }
 
         model.addAttribute("stepNo", no);
         return "reservation/steps :: step" + no;

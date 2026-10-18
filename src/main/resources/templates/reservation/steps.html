@@ -32,7 +32,7 @@
 <!-- ============ STEP 2 ============ -->
 <div th:fragment="step2">
     <form th:action="@{/reservations/step/2}" method="post"
-          th:attr="hx-post=@{/reservations/step/2}"
+          th:hx-post="@{/reservations/step/2}"
           hx-target="#step-container"
           hx-swap="innerHTML"
           class="step-form">
@@ -43,7 +43,7 @@
             <div class="actions">
                 <!-- 이전: 조각 GET -->
                 <button type="button" class="btn"
-                        hx-get="@{/reservations/step/1}"
+                        th:hx-get="@{/reservations/step/1}"
                         hx-target="#step-container"
                         hx-swap="innerHTML">이전</button>
 
@@ -263,7 +263,7 @@
             <h2 class="title">수령 시간</h2>
             <div class="actions">
                 <button type="button" class="btn"
-                        hx-get="@{/reservations/step/2}"
+                        th:hx-get="@{/reservations/step/2}"
                         hx-target="#step-container"
                         hx-swap="innerHTML">이전</button>
 
@@ -380,7 +380,7 @@
             <h2 class="title">연락처 입력</h2>
             <div class="actions">
                 <button type="button" class="btn"
-                        hx-get="@{/reservations/step/3}"
+                        th:hx-get="@{/reservations/step/3}"
                         hx-target="#step-container"
                         hx-swap="innerHTML">이전</button>
 
@@ -507,7 +507,7 @@
             <h2 class="title">결제 여부</h2>
             <div class="actions">
                 <button type="button" class="btn"
-                        hx-get="@{/reservations/step/4}"
+                        th:hx-get="@{/reservations/step/4}"
                         hx-target="#step-container"
                         hx-swap="innerHTML">이전</button>
 
@@ -554,7 +554,7 @@
             <h2 class="title">확인</h2>
             <div class="actions">
                 <button type="button" class="btn"
-                        hx-get="@{/reservations/step/5}"
+                        th:hx-get="@{/reservations/step/5}"
                         hx-target="#step-container"
                         hx-swap="innerHTML">이전</button>
 
