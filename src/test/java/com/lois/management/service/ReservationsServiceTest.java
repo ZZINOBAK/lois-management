@@ -5,6 +5,7 @@ import com.lois.management.dto.reservation.ReservationCreateReq;
 import com.lois.management.dto.reservation.ReservationPageReq;
 import com.lois.management.mapper.ReservationMapper;
 import com.lois.management.mapper.ReservationPolicyMapper;
+import com.lois.management.service.reservation.ReservationSlotAcquisitionSupport;
 import com.lois.management.service.reservation.limiter.ReservationLimiter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
@@ -47,18 +47,16 @@ class ReservationsServiceTest {
                 true                 // paid
         );
 
-        // Mock 객체의 특정 메서드가 호출되면 어떤 값을 반환할지 설정
+        when(reservationConcurrencyGuard.isCreationAllowed()).thenReturn(true);
         when(reservationConcurrencyGuard.tryAcquireSlot(any(), any()))
-                .thenReturn(true);
+                .thenReturn(ReservationSlotAcquisitionSupport.acquired(
+                        LocalDate.parse("2026-11-20"), LocalTime.parse("15:30")));
+        when(reservationMapper.insert(any())).thenReturn(1);
 
-        // insert가 void라서, 여기서는 따로 when().thenReturn()은 안 써도 됨
         ArgumentCaptor<Reservation> captor = ArgumentCaptor.forClass(Reservation.class);
 
-        // when
-        reservationService.create(req);  // 이 메서드를 호출하면 내부에서 mapper.insert()가 불려야 함
+        reservationService.create(req);
 
-        // then
-        // mapper.insert()가 한 번 호출되면서 Reservation 객체를 넘겼는지 확인
         verify(reservationMapper, times(1)).insert(captor.capture());
 
         Reservation saved = captor.getValue();

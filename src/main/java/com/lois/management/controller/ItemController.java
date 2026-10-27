@@ -29,7 +29,6 @@ public class ItemController {
     public String showDashboard(Model model) {
         List<Item> items = findAll();
         List<Category> categories = categoryService.findAll();
-        log.debug("상품 전체 조회={}", items.get(2));
         model.addAttribute("items", items);
         model.addAttribute("categories", categories);
         return "item/dashboard";

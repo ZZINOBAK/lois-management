@@ -26,6 +26,11 @@
 
     <main>
 
+        <div th:if="${reservationError}" class="reservation-error"
+             th:text="${reservationError}"
+             style="margin:12px;padding:12px;border:1px solid #c00;color:#c00;background:#fff5f5;">
+        </div>
+
         <div id="step-container"
              hx-get="/reservations/step/1"
             hx-trigger="load"

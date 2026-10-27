@@ -40,7 +40,8 @@ public class ReservationService {
 
         log.info("현재 적용된 리미터 구현체 = {}", reservationConcurrencyGuard.getClass().getSimpleName());
 
-        if (!reservationConcurrencyGuard.tryAcquireSlot(reservation.getResDate(), reservation.getResTime())) {
+        if (!reservationConcurrencyGuard.tryAcquireSlot(reservation.getResDate(),
+                reservation.getResTime())) {
             throw new IllegalArgumentException("예약 가능 수량을 초과했습니다.");
         }
 
@@ -202,6 +203,7 @@ public class ReservationService {
 
 
 //API GPT 코드
+    @Transactional
     public Long create(ReservationCreateReq req) {
         Reservation r = new Reservation();
         r.setCakeId(req.cakeId());

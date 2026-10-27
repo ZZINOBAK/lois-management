@@ -8,7 +8,7 @@ function sendStockRequestsSms(btn) {
       return;
     }
 
-    const ok = confirm(`재고 주문 요청 ${count}건을 문자로 전송하시겠습니까?`);
+    const ok = confirm(`비품 발주 요청 ${count}건을 문자로 전송하시겠습니까?`);
     if (!ok) return;
 
     secureFetch("/sms/send-from-stock-requests", { method: "POST" })

@@ -145,7 +145,7 @@
     <!-- 왼쪽: 상품 등록 -->
     <section class="stock-left">
 
-        <h2 class="section-title">상품 등록</h2>
+        <h2 class="section-title">비품 등록</h2>
 
         <form class="item-form"
               th:action="@{/items}"
@@ -179,7 +179,8 @@
                 <span class="item-form-photo-text">사진 추가</span>
                 <input type="file"
                        name="imageFile"
-                       class="item-form-photo-input">
+                       class="item-form-photo-input"
+                       onclick="alert('준비 중입니다.'); return false;">
             </div>
 
             <!-- 등록 버튼 -->

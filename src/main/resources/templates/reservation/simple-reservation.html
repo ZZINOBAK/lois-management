@@ -108,6 +108,11 @@
 
     <!-- 이 페이지 내용 -->
     <main>
+        <div th:if="${reservationError}" class="reservation-error"
+             th:text="${reservationError}"
+             style="margin:12px;padding:12px;border:1px solid #c00;color:#c00;background:#fff5f5;">
+        </div>
+
         <form th:action="@{/reservations/simple-reservation}" method="post" class="step-form">
 
             <!-- =========================

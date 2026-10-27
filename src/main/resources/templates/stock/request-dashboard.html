@@ -28,7 +28,7 @@
         <!-- 왼쪽: Stock Requests -->
         <section class="stock-left">
 
-            <h2 class="section-title">주문 요청</h2>
+            <h2 class="section-title">비품 발주 요청</h2>
 
             <!-- 요청 리스트 -->
             <div th:each="req : ${stockRequests}"
@@ -62,7 +62,9 @@
                         onclick="sendStockRequestsSms(this)">문자</button>
                 <button class="action-button" type="button"
                         onclick="openStockRequestsPrint(this)">프린트</button>
-                <button class="action-button">카톡</button>
+                <button class="action-button" onclick="alert('준비 중입니다.')">
+                    카톡
+                </button>
             </div>
         </section>
 

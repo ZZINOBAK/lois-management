@@ -40,7 +40,7 @@ public class SmsService {
                 .map(req -> "- " + req.getItemName())   // 앞에 "- " 붙임
                 .collect(Collectors.joining("\n"));      // 줄바꿈으로 join
 
-        String text = "[재고 주문 요청]\n" + (itemsText.isBlank() ? "- 없음" : itemsText);
+        String text = itemsText.isBlank() ? "- 없음" : itemsText;
 
         SmsDto smsDto = new SmsDto();
         smsDto.setPhoneNumber(recipientNumber);
@@ -63,6 +63,7 @@ public class SmsService {
         message.setFrom(senderNumber);
         message.setTo(smsDto.getPhoneNumber());
         message.setText(smsDto.getText());
+        message.setSubject("LOIS 비품 발주 요청");
 
         return smsApiClient.sendSMS(message);
     }
