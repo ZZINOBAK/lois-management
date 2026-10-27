@@ -56,7 +56,7 @@ class DemoItemControllerTest {
         mockMvc.perform(get("/demo/items").requestAttr("_csrf", csrfToken()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("demo/item/dashboard"))
-                .andExpect(content().string(containsString("상품 등록 Demo")))
+                .andExpect(content().string(containsString("비품 등록 Demo")))
                 .andExpect(content().string(containsString("hx-get=\"/demo/items/grid?category=전체\"")))
                 .andExpect(content().string(containsString("action=\"/demo/items\"")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")));
