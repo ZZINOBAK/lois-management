@@ -105,6 +105,13 @@
         (#{bizDate}, #{cakeId}, #{cakeSize}, #{delta}, #{moveType}, #{reservationId}, #{requestId}, #{memo})
     </insert>
 
+    <insert id="insertProductionMovement">
+        INSERT INTO cake_movements
+            (cake_id, cake_size, move_type, stock_changed, request_id)
+        VALUES
+            (#{cakeId}, #{cakeSize}, #{moveType}, #{stockChanged}, #{requestId})
+    </insert>
+
     <update id="addReservationId">
         UPDATE cake_movements
         SET reservation_id = #{reservationId}

@@ -13,6 +13,12 @@ public interface CakeMovementMapper {
 
     int insertMovement(CakeMovement m);
 
+    int insertProductionMovement(@Param("cakeId") Long cakeId,
+                                 @Param("cakeSize") Integer cakeSize,
+                                 @Param("moveType") String moveType,
+                                 @Param("stockChanged") boolean stockChanged,
+                                 @Param("requestId") String requestId);
+
     /**
      * 오늘(또는 지정일) 재고 = SUM(delta)
      * (cake_size, cake_id) 단위로 집계

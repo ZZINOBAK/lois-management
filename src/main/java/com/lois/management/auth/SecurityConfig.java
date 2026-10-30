@@ -101,7 +101,7 @@ public class SecurityConfig {
                                 "/error", "/error/**"
                         ).permitAll()
                         .requestMatchers("/api/**").denyAll()
-                        .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**", "/items/**")
+                        .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**", "/items/**", "/cake-stocks/**")
                         .hasAnyRole("ADMIN", "STAFF")
                         .anyRequest().authenticated()
                 )

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lois.management.mapper.CakeStockMapper">
+
+<!-- 제작 완료: 스톡 증가 -->
+    <update id="increaseStock">
+        UPDATE cake_stocks
+        SET quantity = quantity + 1,
+            updated_at = NOW()
+        WHERE cake_id = #{cakeId}
+          AND cake_size = #{cakeSize}
+    </update>
+
+</mapper>
