@@ -105,15 +105,15 @@
         (#{bizDate}, #{cakeId}, #{cakeSize}, #{delta}, #{moveType}, #{reservationId}, #{requestId}, #{memo})
     </insert>
 
-<!-- 케이크 제작 여부 이력 저장 -->
-    <insert id="insertProductionMovement">
+<!-- 케이크 변동 이력 저장 without reservationId: 제작 여부, 현장 판매 -->
+    <insert id="insertStockMovement">
         INSERT INTO cake_movements
             (cake_id, cake_size, move_type, stock_changed, request_id)
         VALUES
             (#{cakeId}, #{cakeSize}, #{moveType}, #{stockChanged}, #{requestId})
     </insert>
 
-<!-- 케이크 픽업 여부 이력 저장 -->
+<!-- 케이크 변동 이력 저장 with reservationId: 픽업 여부 -->
     <insert id="insertPickupMovement">
         INSERT INTO cake_movements
             (cake_id, cake_size, move_type, stock_changed, reservation_id, request_id)
