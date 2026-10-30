@@ -12,6 +12,7 @@ public class CakeMovement {
     private Long cakeId;
     private Integer cakeSize;
 
+    private Boolean stockChanged;
     private Integer delta;          // +1 / -1
     private String moveType;        // PRODUCED / PICKUP / ON_SITE / ADJUST
 

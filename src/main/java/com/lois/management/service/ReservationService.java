@@ -1,6 +1,7 @@
 package com.lois.management.service;
 
 import com.lois.management.domain.Cake;
+import com.lois.management.domain.CakeMovement;
 import com.lois.management.domain.Reservation;
 import com.lois.management.domain.ReservationPolicy;
 import com.lois.management.dto.reservation.*;
@@ -157,6 +158,7 @@ public class ReservationService {
         // 예약 조회 with 행 락
         Reservation reservation = reservationMapper.findByIdForUpdate(reservationId);
         if (reservation == null) {
+            // 예약 조회 중 예외 발생
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다.");
         }
         if ("PICKED_UP".equals(reservation.getStatus())) {
@@ -177,20 +179,75 @@ public class ReservationService {
         // 재고 있는 경우 true, 없는 경우 false
         boolean stockChanged = quantity != null && quantity > 0;
 
+        // 재고 있는 경우만 스톡 감소
         if (stockChanged && cakeStockMapper.decreaseStock(cakeId, cakeSize) != 1) {
             // 스톡 감소 중 예외 발생
             throw new IllegalStateException("Expected exactly one stock row");
         }
+
+        // 예약 상태 변경: RESERVED -> PICED_UP
         if (reservationMapper.changeStatus(reservationId, "RESERVED", "PICKED_UP") != 1) {
             // 예약 상태 변경 중 예외 발생
             throw new IllegalStateException("Expected exactly one reservation status change");
         }
 
         String requestId = UUID.randomUUID().toString();
+        // 이력 저장: 픽업 완료
         if (cakeMovementMapper.insertPickupMovement(cakeId, cakeSize, "PICKED_UP",
                 stockChanged, reservationId, requestId) != 1) {
             // 케이크 픽업 완료 이력 저장 중 예외 발생
             throw new IllegalStateException("Expected exactly one pickup movement");
+        }
+        return true;
+    }
+
+    // 픽업 취소 (신규)
+    @Transactional
+    public boolean cancelPickup(Long reservationId) {
+        // 예약 조회 with 행 락
+        Reservation reservation = reservationMapper.findByIdForUpdate(reservationId);
+        if (reservation == null) {
+            // 예약 조회 중 예외 발생
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다.");
+        }
+
+        // 스톡 변경 여부, move_type 조회 with 행 락
+        CakeMovement pickup = cakeMovementMapper.findLatestPickupMovementForUpdate(reservationId);
+
+        // 이미 픽업 취소 된 건 false 반환: 픽업 이력이 있고, 예약 상태가 RESERVED이고, 이력의 가장 최신 무브타입이 UNDO_PICKED_UP인 예약
+        if (pickup != null && "RESERVED".equals(reservation.getStatus())
+                && "UNDO_PICKED_UP".equals(pickup.getMoveType())) {
+            return false;
+        }
+
+        // 픽업 취소 불가 건 예외 반환: 예약 상태가 PICKED_UP이 아니거나, 픽업 이력이 없거나, 이력의 가장 최신 무브타입이 PICKED_UP이 아닌 예약
+        if (!"PICKED_UP".equals(reservation.getStatus()) || pickup == null
+                || !"PICKED_UP".equals(pickup.getMoveType())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "취소할 픽업 이력과 예약 상태가 일치하지 않습니다.");
+        }
+
+        Long cakeId = pickup.getCakeId();
+        Integer cakeSize = pickup.getCakeSize();
+        boolean stockChanged = pickup.getStockChanged();
+
+        // 스톡 변경이 있는 픽업 완료 건만 스톡 증가
+        if (stockChanged && cakeStockMapper.increaseStock(cakeId, cakeSize) != 1) {
+            // 스톡 증가 중 예외 발생
+            throw new IllegalStateException("Expected exactly one stock row");
+        }
+
+        // 예약 상태 변경: PICKED_UP -> RESERVED
+        if (reservationMapper.changeStatus(reservationId, "PICKED_UP", "RESERVED") != 1) {
+            // 예약 상태 변경 중 예외 발생
+            throw new IllegalStateException("Expected exactly one reservation status change");
+        }
+
+        String requestId = UUID.randomUUID().toString();
+        // 이력 저장: 픽업 취소
+        if (cakeMovementMapper.insertPickupMovement(cakeId, cakeSize, "UNDO_PICKED_UP",
+                stockChanged, reservationId, requestId) != 1) {
+            // 픽업 취소 이력 수정 중 예외 발생
+            throw new IllegalStateException("Expected exactly one pickup cancellation movement");
         }
         return true;
     }

@@ -121,6 +121,18 @@
             (#{cakeId}, #{cakeSize}, #{moveType}, #{stockChanged}, #{reservationId}, #{requestId})
     </insert>
 
+<!-- 케이크 픽업 취소 시 스톡 변경 여부, move_type 조회 with 행 락 -->
+    <select id="findLatestPickupMovementForUpdate" resultType="CakeMovement">
+        SELECT id, cake_id, cake_size, move_type, stock_changed
+        FROM cake_movements
+        WHERE reservation_id = #{reservationId}
+        AND move_type IN ('PICKED_UP', 'UNDO_PICKED_UP')
+        ORDER BY id DESC
+        LIMIT 1
+        FOR UPDATE
+    </select>
+
+
     <update id="addReservationId">
         UPDATE cake_movements
         SET reservation_id = #{reservationId}

@@ -456,13 +456,29 @@ public class ReservationController {
     @PostMapping("/{id}/pickup")
     public ResponseEntity<Void> pickup(@PathVariable("id") Long id) {
         if (id <= 0) {
+            // 유효성 검사 실패
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid reservation ID");
         }
 
-        // 이미 PICKED_UP이면 false
+        // 예약 상태가 PICKED_UP이면 false
         boolean completed = reservationService.pickup(id);
         return ResponseEntity.noContent()
                 .header("Pickup-Result", completed ? "completed" : "already-completed")
+                .build();
+    }
+
+    // 픽업 취소 API (신규)
+    @PostMapping("/{id}/pickup-cancel")
+    public ResponseEntity<Void> cancelPickup(@PathVariable("id") Long id) {
+        if (id <= 0) {
+            // 유효성 검사 실패
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid reservation ID");
+        }
+
+        // 예약 상태가 RESERVED이면 false
+        boolean completed = reservationService.cancelPickup(id);
+        return ResponseEntity.noContent()
+                .header("Pickup-Cancel-Result", completed ? "completed" : "already-completed")
                 .build();
     }
 

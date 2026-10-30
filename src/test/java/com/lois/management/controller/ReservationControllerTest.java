@@ -121,6 +121,68 @@ class ReservationControllerTest {
         verifyNoInteractions(reservationService);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"ADMIN", "STAFF"})
+    void cancelPickupCompletesForAllowedRoles(String role) throws Exception {
+        when(reservationService.cancelPickup(7L)).thenReturn(true);
+        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("operator").roles(role)).with(csrf()))
+                .andExpect(status().isNoContent()).andExpect(content().string(""))
+                .andExpect(header().string("Pickup-Cancel-Result", "completed"));
+        verify(reservationService).cancelPickup(7L);
+    }
+
+    @Test
+    void alreadyCancelledPickupReturnsDistinctHeader() throws Exception {
+        when(reservationService.cancelPickup(7L)).thenReturn(false);
+        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("operator").roles("STAFF")).with(csrf()))
+                .andExpect(status().isNoContent())
+                .andExpect(header().string("Pickup-Cancel-Result", "already-completed"));
+    }
+
+    @Test
+    void cancelPickupMissingReservationReturnsNotFound() throws Exception {
+        when(reservationService.cancelPickup(7L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("operator").roles("ADMIN")).with(csrf()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void cancelPickupConflictReturnsConflict() throws Exception {
+        when(reservationService.cancelPickup(7L)).thenThrow(new ResponseStatusException(HttpStatus.CONFLICT));
+        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("operator").roles("ADMIN")).with(csrf()))
+                .andExpect(status().isConflict());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "-1", "abc"})
+    void cancelPickupInvalidIdIsRejected(String id) throws Exception {
+        mockMvc.perform(post("/reservations/" + id + "/pickup-cancel")
+                        .with(user("operator").roles("ADMIN")).with(csrf()))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservationService);
+    }
+
+    @Test
+    void cancelPickupOtherRoleIsForbidden() throws Exception {
+        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("other").roles("USER")).with(csrf()))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(reservationService);
+    }
+
+    @Test
+    void cancelPickupAnonymousIsRedirectedToLogin() throws Exception {
+        mockMvc.perform(post("/reservations/7/pickup-cancel").with(csrf()))
+                .andExpect(status().is3xxRedirection()).andExpect(redirectedUrlPattern("**/login"));
+        verifyNoInteractions(reservationService);
+    }
+
+    @Test
+    void cancelPickupRequiresCsrf() throws Exception {
+        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("operator").roles("ADMIN")))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(reservationService);
+    }
+
     @Disabled("Security/CSRF/Thymeleaf 적용 후 테스트 환경 재정비 필요")
     @Test
     void 대시보드_조회시_예약목록과_뷰를_반환한다() throws Exception {

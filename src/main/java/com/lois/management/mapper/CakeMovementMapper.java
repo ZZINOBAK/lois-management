@@ -13,6 +13,9 @@ public interface CakeMovementMapper {
 
     int insertMovement(CakeMovement m);
 
+    // 케이크 픽업 취소 시 스톡 변경 여부, move_type 조회 with 행 락
+    CakeMovement findLatestPickupMovementForUpdate(@Param("reservationId") Long reservationId);
+
     // 케이크 픽업 여부 이력 저장
     int insertPickupMovement(@Param("cakeId") Long cakeId,
                              @Param("cakeSize") Integer cakeSize,

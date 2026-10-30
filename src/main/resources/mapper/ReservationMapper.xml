@@ -62,8 +62,11 @@
         UPDATE reservations
         SET status = #{newStatus},
             updated_at = NOW()
-            <if test="newStatus == 'PICKED_UP'">
+            <if test="expectedStatus == 'RESERVED' and newStatus == 'PICKED_UP'">
                 , picked_up_at = NOW()
+            </if>
+            <if test="expectedStatus == 'PICKED_UP' and newStatus == 'RESERVED'">
+                , picked_up_at = NULL
             </if>
         WHERE id = #{reservationId}
           AND status = #{expectedStatus}
