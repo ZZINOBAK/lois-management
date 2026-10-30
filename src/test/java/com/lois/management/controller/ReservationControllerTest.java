@@ -1,54 +1,127 @@
 package com.lois.management.controller;
 
-import com.lois.management.auth.EmployeeUserDetailsService;
-import com.lois.management.auth.JwtTokenProvider;
+import com.lois.management.auth.*;
+import com.lois.management.config.filter.IpWhitelistFilter;
 import com.lois.management.domain.Reservation;
 import com.lois.management.dto.reservation.ReservationPageReq;
 import com.lois.management.service.CakeMovementService;
 import com.lois.management.service.CakeService;
 import com.lois.management.service.ReservationService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 
-@Disabled("Security/CSRF/Thymeleaf 적용 후 테스트 환경 재정비 필요")
-@WebMvcTest(ReservationController.class)   // Controller만 로딩해서 웹 계층 테스트
-@AutoConfigureMockMvc(addFilters = false) // 그런데 지금 테스트 목적은 이거잖아.
-// /reservations 요청하면 reservation/dashboard 뷰와 reservations 모델을 반환하는가? 이건 JWT 검증 테스트가 아니니까 필터 끄는 게 더 적절해.
-@WithMockUser(username = "testUser")
-//@ActiveProfiles("local")
-@ActiveProfiles("test")
+@WebMvcTest(ReservationController.class)
+@Import(SecurityConfig.class)
 class ReservationControllerTest {
-    @Autowired
-    MockMvc mockMvc;        // HTTP 요청 흉내 내 주는 친구
+    @Autowired MockMvc mockMvc;
+    @MockitoBean ReservationService reservationService;
+    @MockitoBean CakeMovementService cakeMovementService;
+    @MockitoBean CakeService cakeService;
+    @MockitoBean EmployeeUserDetailsService employeeUserDetailsService;
+    @MockitoBean LoginSuccessHandler loginSuccessHandler;
+    @MockitoBean JwtAuthenticationFilter jwtFilter;
+    @MockitoBean IpWhitelistFilter ipFilter;
 
-    @MockitoBean
-    JwtTokenProvider jwtTokenProvider;
+    @BeforeEach
+    void passInfrastructureFilters() throws Exception {
+        doAnswer(invocation -> {
+            invocation.getArgument(2, FilterChain.class).doFilter(
+                    invocation.getArgument(0, ServletRequest.class),
+                    invocation.getArgument(1, ServletResponse.class));
+            return null;
+        }).when(ipFilter).doFilter(any(), any(), any());
+        doAnswer(invocation -> {
+            invocation.getArgument(2, FilterChain.class).doFilter(
+                    invocation.getArgument(0, ServletRequest.class),
+                    invocation.getArgument(1, ServletResponse.class));
+            return null;
+        }).when(jwtFilter).doFilter(any(), any(), any());
+    }
 
-    @MockitoBean
-    ReservationService reservationService;   // 컨트롤러가 의존하는 서비스는 Mock으로 대체
-    @MockitoBean
-    EmployeeUserDetailsService employeeUserDetailsService;
+    @ParameterizedTest
+    @ValueSource(strings = {"ADMIN", "STAFF"})
+    void pickupCompletesForAllowedRoles(String role) throws Exception {
+        when(reservationService.pickup(7L)).thenReturn(true);
+        mockMvc.perform(post("/reservations/7/pickup").with(user("operator").roles(role)).with(csrf()))
+                .andExpect(status().isNoContent()).andExpect(content().string(""))
+                .andExpect(header().string("Pickup-Result", "completed"));
+        verify(reservationService).pickup(7L);
+    }
 
-    @MockitoBean
-    CakeMovementService cakeMovementService;
-    @MockitoBean
-    CakeService cakeService;
+    @Test
+    void alreadyPickedUpReturnsDistinctHeader() throws Exception {
+        when(reservationService.pickup(7L)).thenReturn(false);
+        mockMvc.perform(post("/reservations/7/pickup").with(user("operator").roles("STAFF")).with(csrf()))
+                .andExpect(status().isNoContent())
+                .andExpect(header().string("Pickup-Result", "already-completed"));
+    }
 
+    @Test
+    void missingReservationReturnsNotFound() throws Exception {
+        when(reservationService.pickup(7L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+        mockMvc.perform(post("/reservations/7/pickup").with(user("operator").roles("ADMIN")).with(csrf()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void disallowedReservationStatusReturnsConflict() throws Exception {
+        when(reservationService.pickup(7L)).thenThrow(new ResponseStatusException(HttpStatus.CONFLICT));
+        mockMvc.perform(post("/reservations/7/pickup").with(user("operator").roles("ADMIN")).with(csrf()))
+                .andExpect(status().isConflict());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "-1", "abc"})
+    void invalidReservationIdIsRejected(String id) throws Exception {
+        mockMvc.perform(post("/reservations/" + id + "/pickup").with(user("operator").roles("ADMIN")).with(csrf()))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservationService);
+    }
+
+    @Test
+    void pickupOtherRoleIsForbidden() throws Exception {
+        mockMvc.perform(post("/reservations/7/pickup").with(user("other").roles("USER")).with(csrf()))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(reservationService);
+    }
+
+    @Test
+    void pickupAnonymousIsRedirectedToLogin() throws Exception {
+        mockMvc.perform(post("/reservations/7/pickup").with(csrf()))
+                .andExpect(status().is3xxRedirection()).andExpect(redirectedUrlPattern("**/login"));
+        verifyNoInteractions(reservationService);
+    }
+
+    @Test
+    void pickupRequiresCsrf() throws Exception {
+        mockMvc.perform(post("/reservations/7/pickup").with(user("operator").roles("ADMIN")))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(reservationService);
+    }
+
+    @Disabled("Security/CSRF/Thymeleaf 적용 후 테스트 환경 재정비 필요")
     @Test
     void 대시보드_조회시_예약목록과_뷰를_반환한다() throws Exception {
         // given

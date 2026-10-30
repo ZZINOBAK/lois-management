@@ -49,6 +49,26 @@
         FROM cakes
     </select>
 
+<!-- 예약 조회 with 행 락 -->
+    <select id="findByIdForUpdate" resultType="Reservation">
+        SELECT id, cake_id, cake_size, status
+        FROM reservations
+        WHERE id = #{reservationId}
+        FOR UPDATE
+    </select>
+
+<!-- 예약 상태 변경 -->
+    <update id="changeStatus">
+        UPDATE reservations
+        SET status = #{newStatus},
+            updated_at = NOW()
+            <if test="newStatus == 'PICKED_UP'">
+                , picked_up_at = NOW()
+            </if>
+        WHERE id = #{reservationId}
+          AND status = #{expectedStatus}
+    </update>
+
     <select id="findById" parameterType="long" resultType="Reservation">
         SELECT
         r.*,

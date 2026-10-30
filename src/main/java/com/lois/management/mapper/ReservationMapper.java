@@ -25,6 +25,14 @@ public interface ReservationMapper {
 
     Reservation findById(Long id);
 
+    // 예약 조회 with 행 락
+    Reservation findByIdForUpdate(@Param("reservationId") Long reservationId);
+
+    // 예약 상태 변경
+    int changeStatus(@Param("reservationId") Long reservationId,
+                     @Param("expectedStatus") String expectedStatus,
+                     @Param("newStatus") String newStatus);
+
 
     List<Cake> findAllCakeFlavor();
 

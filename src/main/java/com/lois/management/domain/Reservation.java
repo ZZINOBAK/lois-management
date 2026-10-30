@@ -21,6 +21,7 @@ public class Reservation {
     private String contact;
     private Boolean paid;
     private String makeStatus;
+    private String status;
     private String note;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -3,6 +3,8 @@ package com.lois.management.service;
 import com.lois.management.domain.Reservation;
 import com.lois.management.dto.reservation.ReservationUpdateReq;
 import com.lois.management.mapper.ReservationMapper;
+import com.lois.management.mapper.CakeStockMapper;
+import com.lois.management.mapper.CakeMovementMapper;
 import com.lois.management.mapper.ReservationPolicyMapper;
 import com.lois.management.service.reservation.limiter.ReservationLimiter;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
@@ -18,7 +20,7 @@ import static org.mockito.Mockito.*;
 class ReservationContactUpdateTest {
     private final ReservationMapper mapper = mock(ReservationMapper.class);
     private final ReservationService service = new ReservationService(
-            mapper, mock(ReservationPolicyMapper.class), mock(ReservationLimiter.class));
+            mapper, mock(ReservationPolicyMapper.class), mock(ReservationLimiter.class), mock(CakeStockMapper.class), mock(CakeMovementMapper.class));
 
     @Test
     void webUpdateUsesLastFourCharactersAndWritesBothColumns() throws Exception {

@@ -7,6 +7,8 @@ import ch.qos.logback.core.read.ListAppender;
 import com.lois.management.domain.Reservation;
 import com.lois.management.dto.reservation.ReservationCreateReq;
 import com.lois.management.mapper.ReservationMapper;
+import com.lois.management.mapper.CakeStockMapper;
+import com.lois.management.mapper.CakeMovementMapper;
 import com.lois.management.mapper.ReservationPolicyMapper;
 import com.lois.management.service.reservation.limiter.ReservationLimiter;
 import org.junit.jupiter.api.*;
@@ -18,7 +20,7 @@ import static org.mockito.Mockito.*;
 class ReservationCreationLoggingTest {
     ReservationMapper mapper = mock(ReservationMapper.class);
     ReservationLimiter limiter = mock(ReservationLimiter.class);
-    ReservationService service = new ReservationService(mapper, mock(ReservationPolicyMapper.class), limiter);
+    ReservationService service = new ReservationService(mapper, mock(ReservationPolicyMapper.class), limiter, mock(CakeStockMapper.class), mock(CakeMovementMapper.class));
     Logger logger = (Logger) LoggerFactory.getLogger(ReservationService.class);
     ListAppender<ILoggingEvent> logs = new ListAppender<>();
 

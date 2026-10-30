@@ -5,6 +5,10 @@ import com.lois.management.domain.Reservation;
 import com.lois.management.domain.ReservationPolicy;
 import com.lois.management.dto.reservation.*;
 import com.lois.management.mapper.ReservationMapper;
+import com.lois.management.mapper.CakeStockMapper;
+import com.lois.management.mapper.CakeMovementMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import com.lois.management.mapper.ReservationPolicyMapper;
 import com.lois.management.service.reservation.limiter.ReservationLimiter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,15 +26,20 @@ import java.util.*;
 //@RequiredArgsConstructor
 public class ReservationService {
     private final ReservationMapper reservationMapper;
+    private final CakeStockMapper cakeStockMapper;
+    private final CakeMovementMapper cakeMovementMapper;
     private final ReservationPolicyMapper reservationPolicyMapper;
 //    @Qualifier("localLockConcurrencyGuard")
     private final ReservationLimiter reservationConcurrencyGuard;
 
     public ReservationService(ReservationMapper reservationMapper, ReservationPolicyMapper reservationPolicyMapper,
-                             ReservationLimiter reservationConcurrencyGuard) {
+                             ReservationLimiter reservationConcurrencyGuard,
+                             CakeStockMapper cakeStockMapper, CakeMovementMapper cakeMovementMapper) {
         this.reservationMapper = reservationMapper;
         this.reservationPolicyMapper = reservationPolicyMapper;
         this.reservationConcurrencyGuard = reservationConcurrencyGuard;
+        this.cakeStockMapper = cakeStockMapper;
+        this.cakeMovementMapper = cakeMovementMapper;
     }
 
     @Transactional
@@ -140,6 +149,50 @@ public class ReservationService {
             reservation.setContactSuffix(contact.substring(contact.length() - 4));
         }
         reservationMapper.update(id, reservation);
+    }
+
+    // 픽업 완료 (신규)
+    @Transactional
+    public boolean pickup(Long reservationId) {
+        // 예약 조회 with 행 락
+        Reservation reservation = reservationMapper.findByIdForUpdate(reservationId);
+        if (reservation == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다.");
+        }
+        if ("PICKED_UP".equals(reservation.getStatus())) {
+            // 이미 픽업 완료 건으로 false 반환
+            return false;
+        }
+        if (!"RESERVED".equals(reservation.getStatus())) {
+            // 예약 완료(RESERVED)인 경우에만 PICKED_UP 상태 변경 가능
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "예약 완료 상태에서만 픽업할 수 있습니다.");
+        }
+
+        Long cakeId = reservation.getCakeId();
+        int cakeSize = reservation.getCakeSize();
+
+        // 스톡 수량 조회 with 행 락
+        Integer quantity = cakeStockMapper.findQuantityForUpdate(cakeId, cakeSize);
+
+        // 재고 있는 경우 true, 없는 경우 false
+        boolean stockChanged = quantity != null && quantity > 0;
+
+        if (stockChanged && cakeStockMapper.decreaseStock(cakeId, cakeSize) != 1) {
+            // 스톡 감소 중 예외 발생
+            throw new IllegalStateException("Expected exactly one stock row");
+        }
+        if (reservationMapper.changeStatus(reservationId, "RESERVED", "PICKED_UP") != 1) {
+            // 예약 상태 변경 중 예외 발생
+            throw new IllegalStateException("Expected exactly one reservation status change");
+        }
+
+        String requestId = UUID.randomUUID().toString();
+        if (cakeMovementMapper.insertPickupMovement(cakeId, cakeSize, "PICKED_UP",
+                stockChanged, reservationId, requestId) != 1) {
+            // 케이크 픽업 완료 이력 저장 중 예외 발생
+            throw new IllegalStateException("Expected exactly one pickup movement");
+        }
+        return true;
     }
 
     @Transactional

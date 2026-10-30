@@ -13,6 +13,15 @@ public interface CakeMovementMapper {
 
     int insertMovement(CakeMovement m);
 
+    // 케이크 픽업 여부 이력 저장
+    int insertPickupMovement(@Param("cakeId") Long cakeId,
+                             @Param("cakeSize") Integer cakeSize,
+                             @Param("moveType") String moveType,
+                             @Param("stockChanged") boolean stockChanged,
+                             @Param("reservationId") Long reservationId,
+                             @Param("requestId") String requestId);
+
+    // 케이크 제작 여부 이력 저장
     int insertProductionMovement(@Param("cakeId") Long cakeId,
                                  @Param("cakeSize") Integer cakeSize,
                                  @Param("moveType") String moveType,
