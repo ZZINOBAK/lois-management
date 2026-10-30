@@ -98,6 +98,121 @@ class CakeStockServiceTest {
                 .doesNotContain("reservation_id", "delta", "biz_date");
     }
 
+    @Test
+    void cancellationCommitsBothWritesAfterLockedRead() {
+        when(stocks.findQuantityForUpdate(1L, 2)).thenAnswer(invocation -> {
+            assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
+            return 1;
+        });
+        when(stocks.decreaseStock(1L, 2)).thenAnswer(invocation -> {
+            assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
+            return 1;
+        });
+        when(movements.insertProductionMovement(eq(1L), eq(2), eq("UNDO_PRODUCED"), eq(true), anyString()))
+                .thenAnswer(invocation -> {
+                    assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
+                    assertThat(UUID.fromString(invocation.getArgument(4, String.class)).toString())
+                            .isEqualTo(invocation.getArgument(4, String.class));
+                    return 1;
+                });
+
+        assertThat(service.cancelProduction(1L, 2)).isTrue();
+
+        var order = inOrder(stocks, movements);
+        order.verify(stocks).findQuantityForUpdate(1L, 2);
+        order.verify(stocks).decreaseStock(1L, 2);
+        order.verify(movements).insertProductionMovement(eq(1L), eq(2), eq("UNDO_PRODUCED"), eq(true), anyString());
+        assertThat(manager.begins).isEqualTo(1);
+        assertThat(manager.commits).isEqualTo(1);
+        assertThat(manager.rollbacks).isZero();
+        assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
+    }
+
+    @Test
+    void cancellationWithZeroStockDoesNotWrite() {
+        when(stocks.findQuantityForUpdate(1L, 2)).thenReturn(0);
+        assertThat(service.cancelProduction(1L, 2)).isFalse();
+        verify(stocks, never()).decreaseStock(anyLong(), anyInt());
+        verifyNoInteractions(movements);
+    }
+
+    @Test
+    void cancellationWithoutStockRowDoesNotWrite() {
+        when(stocks.findQuantityForUpdate(1L, 2)).thenReturn(null);
+        assertThat(service.cancelProduction(1L, 2)).isFalse();
+        verify(stocks, never()).decreaseStock(anyLong(), anyInt());
+        verifyNoInteractions(movements);
+    }
+
+    @Test
+    void duplicateStockRowsAbortCancellation() {
+        var failure = new org.apache.ibatis.exceptions.TooManyResultsException("duplicate stocks");
+        when(stocks.findQuantityForUpdate(1L, 2)).thenThrow(failure);
+        assertThatThrownBy(() -> service.cancelProduction(1L, 2)).isSameAs(failure);
+        verify(stocks, never()).decreaseStock(anyLong(), anyInt());
+        verifyNoInteractions(movements);
+        assertRolledBack();
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 2})
+    void cancellationWithInvalidDecreaseCountRollsBack(int count) {
+        when(stocks.findQuantityForUpdate(1L, 2)).thenReturn(3);
+        when(stocks.decreaseStock(1L, 2)).thenReturn(count);
+        assertThatThrownBy(() -> service.cancelProduction(1L, 2)).isInstanceOf(IllegalStateException.class);
+        verifyNoInteractions(movements);
+        assertRolledBack();
+    }
+
+    @Test
+    void cancellationDecreaseFailureRollsBack() {
+        when(stocks.findQuantityForUpdate(1L, 2)).thenReturn(3);
+        var failure = new IllegalStateException("decrease failure");
+        when(stocks.decreaseStock(1L, 2)).thenThrow(failure);
+        assertThatThrownBy(() -> service.cancelProduction(1L, 2)).isSameAs(failure);
+        verifyNoInteractions(movements);
+        assertRolledBack();
+    }
+
+    @Test
+    void cancellationMovementFailureRollsBack() {
+        when(stocks.findQuantityForUpdate(1L, 2)).thenReturn(3);
+        when(stocks.decreaseStock(1L, 2)).thenReturn(1);
+        var failure = new IllegalStateException("movement failure");
+        when(movements.insertProductionMovement(eq(1L), eq(2), eq("UNDO_PRODUCED"), eq(true), anyString()))
+                .thenThrow(failure);
+        assertThatThrownBy(() -> service.cancelProduction(1L, 2)).isSameAs(failure);
+        assertRolledBack();
+    }
+
+    @Test
+    void cancellationMissingMovementRollsBack() {
+        when(stocks.findQuantityForUpdate(1L, 2)).thenReturn(3);
+        when(stocks.decreaseStock(1L, 2)).thenReturn(1);
+        assertThatThrownBy(() -> service.cancelProduction(1L, 2)).isInstanceOf(IllegalStateException.class);
+        assertRolledBack();
+    }
+
+    @Test
+    void cancellationReadSqlLocksMatchingStockAndBindsKeys() throws Exception {
+        Configuration configuration = new Configuration();
+        try (InputStream input = getClass().getResourceAsStream("/mapper/CakeStockMapper.xml")) {
+            new XMLMapperBuilder(input, configuration, "CakeStockMapper.xml", configuration.getSqlFragments()).parse();
+        }
+        var statement = configuration.getMappedStatement(CakeStockMapper.class.getName() + ".findQuantityForUpdate");
+        assertThat(statement.getResultMaps().getFirst().getType()).isEqualTo(Integer.class);
+        var boundSql = statement.getBoundSql(Map.of("cakeId", 1L, "cakeSize", 2));
+        assertThat(boundSql.getSql()).contains("SELECT quantity", "WHERE cake_id = ?", "AND cake_size = ?", "FOR UPDATE");
+        assertThat(boundSql.getParameterMappings()).extracting("property").containsExactly("cakeId", "cakeSize");
+    }
+
+    @Test
+    void cancellationDecreaseSqlPreventsNegativeStock() throws Exception {
+        String statement = sql("CakeStockMapper", "decreaseStock", Map.of("cakeId", 1L, "cakeSize", 2));
+        assertThat(statement).contains("quantity = quantity - 1", "updated_at = NOW()",
+                "WHERE cake_id = ?", "AND cake_size = ?", "AND quantity > 0");
+    }
+
     private String sql(String mapper, String statement, Object parameter) throws Exception {
         Configuration configuration = new Configuration();
         configuration.getTypeAliasRegistry().registerAliases("com.lois.management.domain");

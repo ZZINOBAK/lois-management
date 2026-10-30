@@ -12,4 +12,23 @@
           AND cake_size = #{cakeSize}
     </update>
 
+<!-- 현재 수량 조회 with 행 락-->
+    <select id="findQuantityForUpdate" resultType="java.lang.Integer">
+        SELECT quantity
+        FROM cake_stocks
+        WHERE cake_id = #{cakeId}
+          AND cake_size = #{cakeSize}
+        FOR UPDATE
+    </select>
+
+<!-- 제작 취소: 스톡 감소 -->
+    <update id="decreaseStock">
+        UPDATE cake_stocks
+        SET quantity = quantity - 1,
+            updated_at = NOW()
+        WHERE cake_id = #{cakeId}
+          AND cake_size = #{cakeSize}
+          AND quantity > 0
+    </update>
+
 </mapper>
