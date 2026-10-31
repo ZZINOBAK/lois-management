@@ -45,8 +45,9 @@
     </select>
 
     <select id="findAllCakeFlavor" resultType="Cake">
-        SELECT id, flavor
+        SELECT id, flavor, flavor_code AS code
         FROM cakes
+        ORDER BY id ASC
     </select>
 
 <!-- 예약 조회 with 행 락 -->

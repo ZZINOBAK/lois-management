@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lois.management.mapper.CakeProductionMapper">
+    <select id="findProductionNeeds" resultType="com.lois.management.dto.production.CakeProductionNeedDto">
+        SELECT c.id AS cakeId,
+               c.flavor AS cakeFlavor,
+               #{cakeSize} AS cakeSize,
+               COALESCE(r.reservation_quantity, 0) AS reservationQuantity,
+               COALESCE((
+                   SELECT s.quantity
+                   FROM cake_stocks s
+                   WHERE s.cake_id = c.id
+                     AND s.cake_size = #{cakeSize}
+               ), 0) AS stockQuantity
+        FROM cakes c
+        LEFT JOIN (
+            SELECT cake_id, COUNT(*) AS reservation_quantity
+            FROM reservations
+            WHERE res_date = #{today}
+              AND cake_size = #{cakeSize}
+              AND make_status = 'RESERVED'
+            GROUP BY cake_id
+        ) r ON r.cake_id = c.id
+        ORDER BY c.id ASC
+    </select>
+</mapper>
