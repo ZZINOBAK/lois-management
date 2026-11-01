@@ -19,6 +19,10 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
         disabled: false,
         closest() { return this; }
     }));
+    const cardStocks = flavors.map((flavor, i) => ({
+        dataset: { cakeId: String(11 + i), cakeSize: '2' }, textContent: '0',
+        closest: () => buttons[i]
+    }));
     const cancelButtons = flavors.map((flavor, i) => ({
         dataset: { cakeId: String(11 + i), flavor, productionAction: 'cancel' },
         disabled: false, closest() { return this; }
@@ -27,10 +31,11 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
     let click;
     const attrs = {};
     const root = {
-        dataset: { produceUrl: '/cake-stocks/produce', cancelUrl: '/cake-stocks/produce-cancel', needsUrl: '/cake-movements/production-needs' },
+        dataset: { produceUrl: '/cake-stocks/produce', cancelUrl: '/cake-stocks/produce-cancel', needsUrl: '/cake-production/production-needs' },
         querySelector: selector => selector === '[data-production-needs]' ? needsList
             : selector === '[data-production-needs-warning]' ? needsWarning : toast,
         querySelectorAll: selector => {
+            if (selector === '[data-card-stock]') return cardStocks;
             if (selector === '[data-production-reservation]') return state.rows || [];
             if (selector === '[data-production-need]') return (state.needs || []).map(need => ({
                 dataset: { cakeId: String(need.cakeId), cakeSize: String(need.cakeSize), stockQuantity: String(need.stockQuantity) }
@@ -65,7 +70,7 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
     });
     vm.runInContext(load('auth-common.js'), context);
     vm.runInContext(load('cake-production.js'), context);
-    return { calls, readCalls, needsList, needsWarning, buttons, cancelButtons, other, toast, timers, attrs, click: button => click({ target: button }) };
+    return { calls, readCalls, needsList, needsWarning, cardStocks, buttons, cancelButtons, other, toast, timers, attrs, click: button => click({ target: button }) };
 }
 
 for (let i = 0; i < 5; i++) {
@@ -230,7 +235,7 @@ for (const action of ['produce', 'cancel']) {
         ] }));
         await p.click(action === 'produce' ? p.buttons[0] : p.cancelButtons[0]);
         assert.equal(p.readCalls.length, 1);
-        assert.equal(p.readCalls[0].url, '/cake-movements/production-needs');
+        assert.equal(p.readCalls[0].url, '/cake-production/production-needs');
         assert.equal(p.readCalls[0].options.cache, 'no-store');
         assert.equal(p.needsList.children[0].className, 'cake-production-need is-needed');
         assert.equal(p.needsList.children[1].className, 'cake-production-need');
@@ -385,4 +390,41 @@ test('picked-up reservation does not receive production-needed emphasis', () => 
     page(undefined, undefined, { rows: [row] });
     assert.equal(row.status.textContent, '픽업 완료');
     assert.equal(row.needsProduction, false);
+});
+
+test('card shows current quantity matched by ID and size, not shortage or position', () => {
+    const p = page(undefined, undefined, { needs: [
+        { cakeId: 12, cakeSize: 2, stockQuantity: 3, requiredQuantity: 9 },
+        { cakeId: 11, cakeSize: 1, stockQuantity: 8 },
+        { cakeId: 11, cakeSize: 2, stockQuantity: 0 }
+    ] });
+    assert.equal(p.cardStocks[0].textContent, '0');
+    assert.equal(p.cardStocks[1].textContent, '3');
+    assert.equal(p.cardStocks[2].textContent, '0');
+});
+test('card current quantity refreshes after production and cancellation', async () => {
+    let stock = 4;
+    const p = page(undefined, async () => ({ status: 200, json: async () => [
+        { cakeId: 11, cakeSize: 2, stockQuantity: stock, requiredQuantity: 0, cakeFlavor: '가나슈' }
+    ] }));
+    await p.click(p.buttons[0]);
+    assert.equal(p.cardStocks[0].textContent, '4');
+    stock = 3;
+    await p.click(p.cancelButtons[0]);
+    assert.equal(p.cardStocks[0].textContent, '3');
+});
+test('clicking card quantity sends exactly one production request', async () => {
+    const p = page();
+    await p.click(p.cardStocks[0]);
+    assert.equal(p.calls.length, 1);
+    assert.equal(p.calls[0].url, '/cake-stocks/produce');
+    assert.equal(p.calls[0].options.body.get('cake_id'), '11');
+});
+test('refresh failure preserves displayed current quantity', async () => {
+    const p = page(undefined, async () => ({ status: 500 }), {
+        needs: [{ cakeId: 11, cakeSize: 2, stockQuantity: 5 }]
+    });
+    await p.click(p.buttons[0]);
+    assert.equal(p.cardStocks[0].textContent, '5');
+    assert.equal(p.needsWarning.hidden, false);
 });

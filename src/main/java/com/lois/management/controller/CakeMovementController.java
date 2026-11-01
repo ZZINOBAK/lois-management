@@ -1,13 +1,7 @@
 package com.lois.management.controller;
 
-import com.lois.management.domain.Cake;
 import com.lois.management.domain.Reservation;
 import com.lois.management.service.CakeMovementService;
-import com.lois.management.service.CakeService;
-import com.lois.management.service.CakeProductionService;
-import com.lois.management.dto.production.CakeProductionNeedDto;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.CacheControl;
 import com.lois.management.service.ReservationService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Controller
 @RequestMapping("/cake-movements")
@@ -26,8 +19,6 @@ import java.util.List;
 public class CakeMovementController {
     private final ReservationService reservationService;
     private final CakeMovementService cakeMovementService;
-    private final CakeService cakeService;
-    private final CakeProductionService cakeProductionService;
 
     @PostMapping("/produce")
     public String produce(@RequestParam("cakeId") Long cakeId,
@@ -108,26 +99,6 @@ public class CakeMovementController {
                 cakeId, cakeSize, note
         );
         return "redirect:/reservations";
-    }
-
-    @GetMapping("/produce") // 제작 완료 페이지
-    public String showProductionPage(Model model) {
-        List<Cake> cakes = findAllCakeFlavor();
-        model.addAttribute("cakes", cakes);
-        LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
-        model.addAttribute("reservations", reservationService.findTodayOrderByPickUpTime(today));
-        model.addAttribute("reserve", new Reservation());
-        model.addAttribute("productionNeeds", cakeProductionService.findTodayProductionNeeds());
-        return "cake-movement/produce";
-    }
-    @GetMapping("/production-needs")
-    public ResponseEntity<List<CakeProductionNeedDto>> showProductionNeeds() {
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
-                .body(cakeProductionService.findTodayProductionNeeds());
-    }
-
-    public List<Cake> findAllCakeFlavor() {
-        return reservationService.findAllCakeFlavor();
     }
 
 }

@@ -461,3 +461,5 @@
     background: #333;
     color: #fff;
 }
+
+.reservation-list .summary-row .reservation-flavor { font-weight: 600; text-align: center; }

@@ -55,7 +55,7 @@
 .cake-production .cake-production-button {
     --cake-color: #d4c5ad; --cake-ink: #392d24;
     min-width: 0; min-height: 154px; aspect-ratio: 1.55; padding: 24px;
-    display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px;
     background: var(--cake-color); color: var(--cake-ink); border: 0; border-radius: 20px;
     font: inherit; text-align: left; cursor: pointer; touch-action: manipulation;
     transition: transform .12s, opacity .12s;
@@ -131,3 +131,11 @@
 .cake-production .is-production-ready .cake-production-reservation-status { color: #356346; font-weight: 700; }
 
 .cake-production .is-production-needed .cake-production-reservation-status { font-size: 18px; font-weight: 750; }
+
+.cake-production .cake-production-stock {
+    align-self: center; font-size: 54px; font-weight: 800; line-height: 1;
+    font-variant-numeric: tabular-nums; letter-spacing: -.04em;
+}
+.cake-production .cake-production-button[data-production-action="other"] {
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
+}

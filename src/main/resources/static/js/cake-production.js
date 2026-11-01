@@ -18,6 +18,16 @@
         }
     }
 
+    function updateCardStocks(needs) {
+        const quantities = new Map(needs.map(need => [
+            String(need.cakeId) + ':' + String(need.cakeSize), need.stockQuantity
+        ]));
+        for (const element of root.querySelectorAll('[data-card-stock]')) {
+            const key = element.dataset.cakeId + ':' + element.dataset.cakeSize;
+            element.textContent = String(quantities.get(key) ?? 0);
+        }
+    }
+
     function updateReservationReadiness(needs) {
         const remaining = new Map();
         for (const need of needs) {
@@ -45,9 +55,11 @@
         }
     }
 
-    updateReservationReadiness([...root.querySelectorAll('[data-production-need]')].map(item => ({
+    const initialNeeds = [...root.querySelectorAll('[data-production-need]')].map(item => ({
         cakeId: item.dataset.cakeId, cakeSize: item.dataset.cakeSize, stockQuantity: item.dataset.stockQuantity
-    })));
+    }));
+    updateCardStocks(initialNeeds);
+    updateReservationReadiness(initialNeeds);
 
     async function refreshNeeds() {
         const response = await window.secureFetch(root.dataset.needsUrl, {
@@ -68,6 +80,7 @@
             item.append(name, quantity);
             fragment.append(item);
         }
+        updateCardStocks(needs);
         updateReservationReadiness(needs);
         needsList.replaceChildren(fragment);
         needsWarning.hidden = true;

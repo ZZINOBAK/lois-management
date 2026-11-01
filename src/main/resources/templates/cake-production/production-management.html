@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <title>제작 완료 · Lois Management</title>
+    <title>케이크 제작 관리 · Lois Management</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/cake-production.css}">
     <script th:src="@{/js/common.js}" defer></script>
@@ -16,16 +16,16 @@
 <div class="wrap">
     <header th:replace="~{fragments/header :: site-header}"></header>
     <main class="cake-production-main" data-production-root
-          th:attr="data-produce-url=@{/cake-stocks/produce},data-cancel-url=@{/cake-stocks/produce-cancel},data-needs-url=@{/cake-movements/production-needs}">
+          th:attr="data-produce-url=@{/cake-stocks/produce},data-cancel-url=@{/cake-stocks/produce-cancel},data-needs-url=@{/cake-production/production-needs}">
         <div class="cake-production-heading">
             <p class="cake-production-eyebrow">CAKE PRODUCTION</p>
-            <h1>제작 완료 <span class="cake-production-size">2호</span></h1>
-            <p class="cake-production-description">완성한 케이크를 누르면 1개가 등록됩니다.</p>
+            <h1>제작 관리 <span class="cake-production-size">2호</span></h1>
         </div>
         <div class="cake-production-layout">
         <div class="cake-production-grid" aria-label="케이크 제작 완료">
             <div class="cake-production-card" th:each="c : ${cakes}"
-                 th:attr="data-flavor-code=${c.code},data-flavor=${c.flavor}">
+                 th:attr="data-flavor-code=${c.code},data-flavor=${c.flavor}"
+                 th:with="cardNeed=${productionNeeds.?[cakeId == #vars.c.id and cakeSize == 2]}">
             <button type="button" class="cake-production-cancel"
                     th:unless="${c.code == 'CUSTOM' or c.flavor == '기타'}"
                     th:attr="data-cake-id=${c.id},data-flavor=${c.flavor},
@@ -35,8 +35,12 @@
                     th:attr="data-cake-id=${c.id},data-flavor=${c.flavor},data-flavor-code=${c.code},
                              data-production-action=${c.code == 'CUSTOM' or c.flavor == '기타' ? 'other' : 'produce'}">
                 <span class="cake-production-flavor" th:text="${c.flavor}">가나슈</span>
+                <span class="cake-production-stock" data-card-stock
+                      th:unless="${c.code == 'CUSTOM' or c.flavor == '기타'}"
+                      th:attr="data-cake-id=${c.id},data-cake-size=2,aria-label=|${c.flavor} 현재 수량|"
+                      th:text="${#lists.isEmpty(cardNeed) ? 0 : cardNeed[0].stockQuantity}">0</span>
                 <span class="cake-production-button-note"
-                      th:text="${c.code == 'CUSTOM' or c.flavor == '기타' ? '준비 중' : '2호 · +1'}">2호 · +1</span>
+                      th:if="${c.code == 'CUSTOM' or c.flavor == '기타'}">준비 중</span>
             </button>
             </div>
             <button type="button" class="cake-production-button"

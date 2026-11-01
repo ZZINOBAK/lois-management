@@ -183,6 +183,45 @@ class ReservationControllerTest {
         verifyNoInteractions(reservationService);
     }
 
+    @Test
+    void reservationRowShowsFlavorWithoutProductionAction() throws Exception {
+        Reservation reservation = new Reservation();
+        reservation.setId(7L);
+        reservation.setCakeFlavor("가나슈");
+        reservation.setMakeStatus("READY");
+        reservation.setPickupStatus("WAITING");
+        reservation.setCakeSize(2);
+        reservation.setResDate(java.time.LocalDate.now());
+        reservation.setResTime(java.time.LocalTime.of(13, 0));
+        reservation.setContact("010-1234-0056");
+        reservation.setContactSuffix("0056");
+        reservation.setPaid(true);
+        when(reservationService.findByContactSuffix("0056")).thenReturn(List.of(reservation));
+        String html = mockMvc.perform(get("/reservations/search").param("contactSuffix", "0056")
+                .with(user("staff").roles("STAFF"))).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        org.assertj.core.api.Assertions.assertThat(html).contains("reservation-flavor ellipsis", "가나슈", "/api/reservations/7/pickup-toggle")
+                .doesNotContain("produce-toggle", "make-toggle", "flavor-btn", "케이크를 만들었나요?");
+    }
+
+    @Test
+    void onSitePageTargetsNewSaleApiWithCsrf() throws Exception {
+        com.lois.management.domain.Cake cake = new com.lois.management.domain.Cake();
+        cake.setId(1L);
+        cake.setFlavor("가나슈");
+        when(reservationService.findAllCakeFlavor()).thenReturn(List.of(cake));
+        String html = mockMvc.perform(get("/reservations/on-site").with(user("staff").roles("STAFF")).with(csrf()))
+                .andExpect(status().isOk()).andExpect(view().name("reservation/on-site"))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        org.assertj.core.api.Assertions.assertThat(html).contains("action=\"/cake-stocks/on-site-sales\"",
+                "name=\"cake_id\"", "name=\"cake_size\"", "/js/auth-common.js",
+                "/js/on-site-sale.js", "name=\"_csrf\"", "data-sale-feedback")
+                .doesNotContain("/cake-movements/on-site", "name=\"note\"");
+        java.nio.file.Path preview = java.nio.file.Path.of("build/reports/on-site-sale-preview.html");
+        java.nio.file.Files.createDirectories(preview.getParent());
+        java.nio.file.Files.writeString(preview, html);
+    }
+
     @Disabled("Security/CSRF/Thymeleaf 적용 후 테스트 환경 재정비 필요")
     @Test
     void 대시보드_조회시_예약목록과_뷰를_반환한다() throws Exception {

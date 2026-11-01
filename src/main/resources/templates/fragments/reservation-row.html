@@ -17,34 +17,7 @@
         <div class="row-no" th:text="${rowNo}"></div> <!-- 연번 -->
         <div class="reservation-date" th:text="${#temporals.format(r.resDate, 'M월 d일')}"></div><!-- 예약일 -->
         <div th:text="${#temporals.format(r.resTime, 'HH:mm')}"></div><!-- 픽업시간 -->
-        <!--  조각 replace makeButton(r) -->
-        <!--                                <button th:replace="~{reservation/reservation-dashboard :: makeButton(r=${r})}"></button>&lt;!&ndash; 맛 / 제작 상태 버튼 &ndash;&gt;-->
-        <!-- ========================= -->
-        <!--  제작 상태 토글 버튼 조각 makeButton(r) -->
-        <!-- ========================= -->
-        <!--                                <button-->
-        <!--                                        th:fragment="makeButton(r)"-->
-        <!--                                        type="button"-->
-        <!--                                        class="flavor-btn ellipsis"-->
-        <!--                                        th:text="${r.cakeFlavor}"-->
-        <!--                                        th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"-->
-        <!--                                        th:disabled="${r.pickupStatus == 'PICKED'}"-->
-        <!--                                        th:onclick="${r.pickupStatus == 'PICKED'} ? 'alert(''픽업완료건은 미제작으로 변경할 수 없습니다.''); return false;' : null"-->
-        <!--                                        th:hx-patch="${r.pickupStatus == 'PICKED'} ? null : @{/cake-movements/{id}/produce-toggle(id=${r.id})}"-->
-        <!--                                        th:hx-confirm="${r.pickupStatus == 'PICKED'} ? null : (${r.makeStatus == 'READY'} ? '미제작으로 변경할까요?' : '케이크를 만들었나요?')"-->
-        <!--                                        hx-swap="outerHTML">-->
-        <!--                                </button>-->
-        <button
-                type="button"
-                class="flavor-btn ellipsis"
-                th:text="${r.cakeFlavor}"
-                th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"
-                th:disabled="${r.pickupStatus == 'PICKED'}"
-                th:hx-patch="${r.pickupStatus == 'PICKED'} ? null : @{/cake-movements/{id}/produce-toggle(id=${r.id}, rowNo=${rowNo})}"
-                th:attr="hx-target=${'#row-block-' + r.id}, hx-swap='outerHTML'"
-                th:hx-confirm="${r.pickupStatus == 'PICKED'} ? null : (${r.makeStatus == 'READY'} ? '미제작으로 변경할까요?' : '케이크를 만들었나요?')"
-        >
-        </button>
+        <span class="reservation-flavor ellipsis" th:text="${r.cakeFlavor}"></span>
         <div th:text="${r.cakeSize + '호'}"></div><!-- 케이크 사이즈 -->
         <div><!-- 결제 여부 -->
             <span th:classappend="${r.paid} ? 'badge-paid' : 'badge-unpaid'">
