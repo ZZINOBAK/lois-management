@@ -3,7 +3,7 @@
 <body>
 
 <!-- 조각 rowFragment(r) 시작 -->
-<div th:fragment="rowFragment(r, rowNo)" data-reservation-row th:attr="data-reservation-id=${r.id}, data-status=${r.status}" th:id="'row-block-' + ${r.id}">
+<div th:fragment="rowFragment(r, rowNo)" data-reservation-row th:attr="data-reservation-id=${r.id}, data-status=${r.status}, data-cake-size=${r.cakeSize}" th:id="'row-block-' + ${r.id}">
 
     <!-- 요약 행 -->
     <div class="row summary-row" data-reservation-summary
@@ -27,9 +27,9 @@
         <div class="pickup-cell"><!-- 픽업 상태 버튼 -->
             <div class="pickup-cell">
                 <button type="button" class="btn pickup-btn" data-reservation-pickup
-                        th:classappend="${r.status == 'PICKED_UP'} ? ' picked-btn' : ''"
+                        th:classappend="${r.status == 'PICKED_UP' ? 'picked-btn' : (r.cakeSize == 2 and r.status == 'RESERVED' and productionReadyIds != null and #lists.contains(productionReadyIds, r.id) ? 'production-ready-btn' : '')}"
                         th:attr="data-pickup-url=@{/api/reservations/pickup/{id}(id=${r.id})}, data-cancel-url=@{/api/reservations/pickup-cancel/{id}(id=${r.id})}">
-                    <span data-pickup-label th:text="${r.status == 'PICKED_UP' ? '픽업완료' : '픽업예정'}"></span>
+                    <span data-pickup-label th:text="${r.status == 'PICKED_UP' ? '픽업 완료' : (r.cakeSize == 2 ? (r.status == 'RESERVED' ? (productionReadyIds != null and #lists.contains(productionReadyIds, r.id) ? '제작 완료' : '제작 필요') : '-') : '픽업예정')}"></span>
                 </button>
             </div>
         </div>

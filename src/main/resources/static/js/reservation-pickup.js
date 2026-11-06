@@ -11,6 +11,7 @@
             if (success) toastTimer = setTimeout(() => { feedback.hidden = true; }, 2500);
         }
     }
+    document.addEventListener('reservation:feedback', event => notify(event.detail.message, event.detail.success));
     let cancelDialogBusy = false;
     function selectCancelReason(dialog) {
         const buttons = [...dialog.querySelectorAll('button')];
@@ -36,6 +37,20 @@
             dialog.addEventListener('close', onClose);
         });
     }
+    document.addEventListener('htmx:afterSettle', event => {
+        if (!event.detail.elt?.matches('[data-ready-reservation-ids]')) return;
+        const card = document.querySelector('[data-ready-reservation-ids]');
+        if (!card) return;
+        const readyIds = new Set((card.dataset.readyReservationIds || '').split(','));
+        for (const row of document.querySelectorAll('[data-reservation-row]')) {
+            if (row.dataset.cakeSize !== '2') continue;
+            row.querySelector('[data-reservation-pickup]')?.classList.toggle('production-ready-btn',
+                row.dataset.status === 'RESERVED' && readyIds.has(row.dataset.reservationId));
+            const label = row.querySelector('[data-pickup-label]');
+            if (label) label.textContent = row.dataset.status === 'PICKED_UP' ? '픽업 완료' :
+                row.dataset.status === 'RESERVED' ? (readyIds.has(row.dataset.reservationId) ? '제작 완료' : '제작 필요') : '-';
+        }
+    });
     document.addEventListener('click', async event => {
         const button = event.target.closest('[data-reservation-pickup]');
         if (!button || button.disabled) return;
@@ -79,11 +94,14 @@
             currentRow.dataset.status = cancel ? 'RESERVED' : 'PICKED_UP';
             currentRow.querySelector('[data-reservation-summary]').classList.toggle('picked', !cancel);
             currentButton.classList.toggle('picked-btn', !cancel);
-            currentButton.querySelector('[data-pickup-label]').textContent = cancel ? '픽업예정' : '픽업완료';
+            currentButton.classList.toggle('production-ready-btn', false);
+            currentButton.querySelector('[data-pickup-label]').textContent = cancel ? (currentRow.dataset.cakeSize === '2' ? '제작 필요' : '픽업예정') : '픽업 완료';
             const time = currentRow.querySelector('[data-pickup-time]');
             if (time) time.hidden = true;
             const already = response.headers.get(cancel ? 'Pickup-Cancel-Result' : 'Pickup-Result') === 'already-completed';
             notify(already ? '이미 처리된 요청입니다.' : cancel ? '픽업을 취소했습니다.' : '픽업을 완료했습니다.', true);
+            // 카드의 기존 HTMX 갱신 경로를 사용한다. 픽업 변경 요청은 재전송하지 않는다.
+            window.htmx.trigger(document.body, 'productionStatusChanged');
         } catch (error) {
             notify(sent ? '처리 결과를 확인할 수 없습니다. 새로고침하여 상태를 확인해 주세요.' : '인증을 준비하지 못했습니다. 로그인 상태를 확인해 주세요.');
         } finally {

@@ -19,7 +19,10 @@
           th:attr="data-produce-url=@{/cake-stocks/produce},data-cancel-url=@{/cake-stocks/produce-cancel},data-needs-url=@{/cake-production/production-needs}">
         <div class="cake-production-heading">
             <p class="cake-production-eyebrow">CAKE PRODUCTION</p>
-            <h1>제작 관리 <span class="cake-production-size">2호</span></h1>
+            <div class="cake-production-title-row">
+                <h1>제작 관리 <span class="cake-production-size">2호</span></h1>
+                <a class="cake-production-reservations-link" th:href="@{/reservations}">예약 리스트 이동</a>
+            </div>
         </div>
         <div class="cake-production-layout">
         <div class="cake-production-grid" aria-label="케이크 제작 완료">
@@ -80,7 +83,6 @@
             <section class="cake-production-reservation-panel" aria-labelledby="production-reservations-title">
             <div class="cake-production-reservations-heading">
                 <h2 id="production-reservations-title">오늘 예약</h2>
-                <a class="cake-production-reservations-link" th:href="@{/reservations}">예약 리스트 이동</a>
             </div>
             <div class="cake-production-reservation-scroll" tabindex="0" role="region" aria-label="오늘 예약 목록">
             <table class="cake-production-reservation-table">

@@ -204,3 +204,5 @@
 .cake-production .cake-production-needs-one .cake-production-need { gap: 5px; font-size: 13px; }
 .cake-production .cake-production-needs-one .cake-production-need.is-needed { font-size: 14px; }
 .cake-production .cake-production-needs-one .cake-production-need-quantity { font-size: 14px; }
+
+.cake-production .cake-production-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }

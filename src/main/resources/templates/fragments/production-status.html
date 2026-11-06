@@ -5,6 +5,7 @@
 
     <section class="plan-card"
              th:fragment="productionStatus"
+             th:attr="data-ready-reservation-ids=${productionReadyIds != null ? #strings.listJoin(productionReadyIds, ',') : ''}"
             hx-get="/reservations/production-status"
             hx-trigger="productionStatusChanged from:body"
             hx-swap="outerHTML">
@@ -26,96 +27,12 @@
                 <div class="production-size-sub__head" onclick="toggleSizeTwo()">
                     <strong>2호</strong>
                     <span id="sizeTwoChevron"
-                          class="production-size-sub__chevron">▾</span>
+                          class="production-size-sub__chevron">▴</span>
                 </div>
 
-                <div id="sizeTwoBody" class="production-status-grid production-status-grid--sub" style="display: none;">
+                <div id="sizeTwoBody" class="production-status-grid production-status-grid--sub" style="display: grid;">
 
                     <!-- 오늘 예약 -->
-                    <div class="status-card status-card--reservation">
-                        <div class="status-card__head">
-                            <div>
-                                <strong>오늘 예약은</strong>
-                                <span>이렇게 들어왔어요.</span>
-                            </div>
-                        </div>
-
-                        <div class="status-flavors">
-                            <th:block th:each="e : ${flavors}"
-                                      th:with="
-                                count=${status.demand.get(2) != null
-                                    and status.demand.get(2).get(e.id) != null
-                                    ? status.demand.get(2).get(e.id) : 0},
-                                css=${'mk-' + e.code}">
-
-                        <span th:if="${count > 0}" class="status-flavor">
-                            <i class="mk-chip"
-                               th:classappend="${css}"></i>
-                            <span th:text="${e.name}"></span>
-                            <b th:text="${count + '개'}"></b>
-                        </span>
-                            </th:block>
-                        </div>
-                    </div>
-
-
-                    <!-- 지금까지 제작 -->
-                    <div class="status-card status-card--produced">
-                        <div class="status-card__head">
-                            <div>
-                                <strong>지금까지</strong>
-                                <span>이만큼 만들었어요.</span>
-                            </div>
-                        </div>
-
-                        <div class="status-flavors">
-                            <th:block th:each="e : ${flavors}"
-                                      th:with="
-                                count=${status.produced.get(2) != null
-                                    and status.produced.get(2).get(e.id) != null
-                                    ? status.produced.get(2).get(e.id) : 0},
-                                css=${'mk-' + e.code}">
-
-                        <span th:if="${count > 0}" class="status-flavor">
-                            <i class="mk-chip"
-                               th:classappend="${css}"></i>
-                            <span th:text="${e.name}"></span>
-                            <b th:text="${count + '개'}"></b>
-                        </span>
-                            </th:block>
-                        </div>
-                    </div>
-
-
-                    <!-- 픽업 가능 -->
-                    <div class="status-card status-card--pickup">
-                        <div class="status-card__head">
-                            <div>
-                                <strong>현재 픽업 가능한 예약은</strong>
-                                <span>이렇게 있어요.</span>
-                            </div>
-                        </div>
-
-                        <div class="status-flavors">
-                            <th:block th:each="e : ${flavors}"
-                                      th:with="
-                                count=${status.pickupReady.get(2) != null
-                                    and status.pickupReady.get(2).get(e.id) != null
-                                    ? status.pickupReady.get(2).get(e.id) : 0},
-                                css=${'mk-' + e.code}">
-
-                        <span th:if="${count > 0}" class="status-flavor">
-                            <i class="mk-chip"
-                               th:classappend="${css}"></i>
-                            <span th:text="${e.name}"></span>
-                            <b th:text="${count + '개'}"></b>
-                        </span>
-                            </th:block>
-                        </div>
-                    </div>
-
-
-                    <!-- 더 제작 -->
                     <div class="status-card status-card--tomake">
                         <div class="status-card__head">
                             <div>
@@ -142,8 +59,32 @@
                         </div>
                     </div>
 
+                    <div class="status-card status-card--pickup">
+                        <div class="status-card__head">
+                            <div>
+                                <strong>현재 픽업 가능한 예약은</strong>
+                                <span>이렇게 있어요.</span>
+                            </div>
+                        </div>
 
-                    <!-- 여분 -->
+                        <div class="status-flavors">
+                            <th:block th:each="e : ${flavors}"
+                                      th:with="
+                                count=${status.pickupReady.get(2) != null
+                                    and status.pickupReady.get(2).get(e.id) != null
+                                    ? status.pickupReady.get(2).get(e.id) : 0},
+                                css=${'mk-' + e.code}">
+
+                        <span th:if="${count > 0}" class="status-flavor">
+                            <i class="mk-chip"
+                               th:classappend="${css}"></i>
+                            <span th:text="${e.name}"></span>
+                            <b th:text="${count + '개'}"></b>
+                        </span>
+                            </th:block>
+                        </div>
+                    </div>
+
                     <div class="status-card status-card--extra">
                         <div class="status-card__head">
                             <div>
@@ -158,6 +99,58 @@
                                 count=${status.extraStock.get(2) != null
                                     and status.extraStock.get(2).get(e.id) != null
                                     ? status.extraStock.get(2).get(e.id) : 0},
+                                css=${'mk-' + e.code}">
+
+                        <span th:if="${count > 0}" class="status-flavor">
+                            <i class="mk-chip"
+                               th:classappend="${css}"></i>
+                            <span th:text="${e.name}"></span>
+                            <b th:text="${count + '개'}"></b>
+                        </span>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <div class="status-card status-card--reservation">
+                        <div class="status-card__head">
+                            <div>
+                                <strong>오늘 예약은</strong>
+                                <span>이렇게 들어왔어요.</span>
+                            </div>
+                        </div>
+
+                        <div class="status-flavors">
+                            <th:block th:each="e : ${flavors}"
+                                      th:with="
+                                count=${status.demand.get(2) != null
+                                    and status.demand.get(2).get(e.id) != null
+                                    ? status.demand.get(2).get(e.id) : 0},
+                                css=${'mk-' + e.code}">
+
+                        <span th:if="${count > 0}" class="status-flavor">
+                            <i class="mk-chip"
+                               th:classappend="${css}"></i>
+                            <span th:text="${e.name}"></span>
+                            <b th:text="${count + '개'}"></b>
+                        </span>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <div class="status-card status-card--produced">
+                        <div class="status-card__head">
+                            <div>
+                                <strong>지금까지</strong>
+                                <span>이만큼 만들었어요.</span>
+                            </div>
+                        </div>
+
+                        <div class="status-flavors">
+                            <th:block th:each="e : ${flavors}"
+                                      th:with="
+                                count=${status.produced.get(2) != null
+                                    and status.produced.get(2).get(e.id) != null
+                                    ? status.produced.get(2).get(e.id) : 0},
                                 css=${'mk-' + e.code}">
 
                         <span th:if="${count > 0}" class="status-flavor">
@@ -190,6 +183,81 @@
                 <div id="sizeOneBody"
                      class="production-status-grid production-status-grid--sub"
                      style="display: none;">
+
+                    <div class="status-card status-card--tomake">
+                        <div class="status-card__head">
+                            <div>
+                                <strong>사장님~ 아직</strong>
+                                <span>더 만들어주세요~</span>
+                            </div>
+                        </div>
+
+                        <div class="status-flavors">
+                            <th:block th:each="e : ${flavors}"
+                                      th:with="
+                                count=${status.toMake.get(1) != null
+                                    and status.toMake.get(1).get(e.id) != null
+                                    ? status.toMake.get(1).get(e.id) : 0},
+                                css=${'mk-' + e.code}">
+
+                        <span th:if="${count > 0}" class="status-flavor">
+                            <i class="mk-chip" th:classappend="${css}"></i>
+                            <span th:text="${e.name}"></span>
+                            <b th:text="${count + '개'}"></b>
+                        </span>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <div class="status-card">
+                        <div class="status-card__head">
+                            <div>
+                                <strong>현재 픽업 가능한 예약은</strong>
+                                <span>이렇게 있어요.</span>
+                            </div>
+                        </div>
+
+                        <div class="status-flavors">
+                            <th:block th:each="e : ${flavors}"
+                                      th:with="
+                                count=${status.pickupReady.get(1) != null
+                                    and status.pickupReady.get(1).get(e.id) != null
+                                    ? status.pickupReady.get(1).get(e.id) : 0},
+                                css=${'mk-' + e.code}">
+
+                        <span th:if="${count > 0}" class="status-flavor">
+                            <i class="mk-chip" th:classappend="${css}"></i>
+                            <span th:text="${e.name}"></span>
+                            <b th:text="${count + '개'}"></b>
+                        </span>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <div class="status-card">
+                        <div class="status-card__head">
+                            <div>
+                                <strong>오늘은</strong>
+                                <span>예약 없이 구매 가능해요!</span>
+                            </div>
+                        </div>
+
+                        <div class="status-flavors">
+                            <th:block th:each="e : ${flavors}"
+                                      th:with="
+                                count=${status.extraStock.get(1) != null
+                                    and status.extraStock.get(1).get(e.id) != null
+                                    ? status.extraStock.get(1).get(e.id) : 0},
+                                css=${'mk-' + e.code}">
+
+                        <span th:if="${count > 0}" class="status-flavor">
+                            <i class="mk-chip" th:classappend="${css}"></i>
+                            <span th:text="${e.name}"></span>
+                            <b th:text="${count + '개'}"></b>
+                        </span>
+                            </th:block>
+                        </div>
+                    </div>
 
                     <div class="status-card">
                         <div class="status-card__head">
@@ -230,81 +298,6 @@
                                 count=${status.produced.get(1) != null
                                     and status.produced.get(1).get(e.id) != null
                                     ? status.produced.get(1).get(e.id) : 0},
-                                css=${'mk-' + e.code}">
-
-                        <span th:if="${count > 0}" class="status-flavor">
-                            <i class="mk-chip" th:classappend="${css}"></i>
-                            <span th:text="${e.name}"></span>
-                            <b th:text="${count + '개'}"></b>
-                        </span>
-                            </th:block>
-                        </div>
-                    </div>
-
-                    <div class="status-card">
-                        <div class="status-card__head">
-                            <div>
-                                <strong>현재 픽업 가능한 예약은</strong>
-                                <span>이렇게 있어요.</span>
-                            </div>
-                        </div>
-
-                        <div class="status-flavors">
-                            <th:block th:each="e : ${flavors}"
-                                      th:with="
-                                count=${status.pickupReady.get(1) != null
-                                    and status.pickupReady.get(1).get(e.id) != null
-                                    ? status.pickupReady.get(1).get(e.id) : 0},
-                                css=${'mk-' + e.code}">
-
-                        <span th:if="${count > 0}" class="status-flavor">
-                            <i class="mk-chip" th:classappend="${css}"></i>
-                            <span th:text="${e.name}"></span>
-                            <b th:text="${count + '개'}"></b>
-                        </span>
-                            </th:block>
-                        </div>
-                    </div>
-
-                    <div class="status-card status-card--tomake">
-                        <div class="status-card__head">
-                            <div>
-                                <strong>사장님~ 아직</strong>
-                                <span>더 만들어주세요~</span>
-                            </div>
-                        </div>
-
-                        <div class="status-flavors">
-                            <th:block th:each="e : ${flavors}"
-                                      th:with="
-                                count=${status.toMake.get(1) != null
-                                    and status.toMake.get(1).get(e.id) != null
-                                    ? status.toMake.get(1).get(e.id) : 0},
-                                css=${'mk-' + e.code}">
-
-                        <span th:if="${count > 0}" class="status-flavor">
-                            <i class="mk-chip" th:classappend="${css}"></i>
-                            <span th:text="${e.name}"></span>
-                            <b th:text="${count + '개'}"></b>
-                        </span>
-                            </th:block>
-                        </div>
-                    </div>
-
-                    <div class="status-card">
-                        <div class="status-card__head">
-                            <div>
-                                <strong>오늘은</strong>
-                                <span>예약 없이 구매 가능해요!</span>
-                            </div>
-                        </div>
-
-                        <div class="status-flavors">
-                            <th:block th:each="e : ${flavors}"
-                                      th:with="
-                                count=${status.extraStock.get(1) != null
-                                    and status.extraStock.get(1).get(e.id) != null
-                                    ? status.extraStock.get(1).get(e.id) : 0},
                                 css=${'mk-' + e.code}">
 
                         <span th:if="${count > 0}" class="status-flavor">

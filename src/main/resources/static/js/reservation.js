@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // 현재 페이지에서만 유지하며, 새로고침 시 모두 접힌 상태로 시작한다.
-const productionSizeExpanded = { One: false, Two: false }
+const productionSizeExpanded = { One: false, Two: true }
 
 function setProductionSizeExpanded(size, expanded) {
     const body = document.getElementById(`size${size}Body`)

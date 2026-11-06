@@ -516,3 +516,27 @@
 .pickup-cancel-option strong { font-size: 21px; }
 .pickup-cancel-option span { font-size: 14px; }
 .pickup-cancel-option svg { width: 120px; height: 100px; fill: none; stroke: #51765e; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+
+.reservation-dashboard .reservation-list .summary-row .pickup-btn.production-ready-btn {
+    background-color: #e2f1cc;
+    border-color: #c7dfa5;
+    color: #36502b;
+}
+
+.reservation-dashboard .reservation-stock-panel { margin: 0 0 20px; padding: 18px; border: 1px solid #dcded4; border-radius: 14px; background: #f8f9f3; }
+.reservation-dashboard .reservation-stock-panel[hidden] { display: none; }
+.reservation-dashboard .reservation-stock-panel h3 { margin: 0 0 14px; font-size: 18px; }
+.reservation-dashboard .reservation-stock-panel h3 span { margin-left: 6px; font-size: 13px; font-weight: 400; }
+.reservation-dashboard .reservation-stock-panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; }
+.reservation-dashboard .reservation-stock-item { padding: 12px; border-radius: 10px; background: #e9e7df; color: #292823; }
+.reservation-dashboard .reservation-stock-item[data-flavor="가나슈"] { background: #f0dce4; }
+.reservation-dashboard .reservation-stock-item[data-flavor="모카"] { background: #eadcc7; }
+.reservation-dashboard .reservation-stock-item[data-flavor="무화과"] { background: #f2dfeb; }
+.reservation-dashboard .reservation-stock-item[data-flavor="레몬"] { background: #faf1b4; }
+.reservation-dashboard .reservation-stock-item[data-flavor="바닐라"] { background: #f0e4c2; }
+.reservation-dashboard .reservation-stock-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.reservation-dashboard .reservation-stock-controls button { width: 40px; height: 40px; border: 0; border-radius: 50%; background: #fff9; color: inherit; font-size: 24px; cursor: pointer; touch-action: manipulation; }
+.reservation-dashboard .reservation-stock-controls button:disabled { opacity: .45; cursor: wait; }
+.reservation-dashboard .reservation-stock-controls button:focus-visible { outline: 2px solid #51765e; outline-offset: 2px; }
+.reservation-dashboard .reservation-stock-controls strong { font-size: 28px; }
+.reservation-dashboard [data-stock-panel-toggle][aria-expanded="true"] { background: #e2f1cc; color: #36502b; }
