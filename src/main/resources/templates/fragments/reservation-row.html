@@ -3,13 +3,13 @@
 <body>
 
 <!-- 조각 rowFragment(r) 시작 -->
-<div th:fragment="rowFragment(r, rowNo)" th:id="'row-block-' + ${r.id}">
+<div th:fragment="rowFragment(r, rowNo)" data-reservation-row th:attr="data-reservation-id=${r.id}, data-status=${r.status}" th:id="'row-block-' + ${r.id}">
 
     <!-- 요약 행 -->
-    <div class="row summary-row"
+    <div class="row summary-row" data-reservation-summary
          th:id="'row-' + ${r.id}"
          th:onclick="|toggleDetailRow(event, ${r.id})|"
-         th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked' : ''"
+         th:classappend="${r.status == 'PICKED_UP'} ? ' picked' : ''"
          th:attr="data-sameday=${r.createdAt != null
                                      and #temporals.format(r.createdAt, 'yyyy-MM-dd') == #temporals.format(today, 'yyyy-MM-dd')},
                 data-row-no=${rowNo}">
@@ -26,27 +26,10 @@
         </div>
         <div class="pickup-cell"><!-- 픽업 상태 버튼 -->
             <div class="pickup-cell">
-                <!--  조각 replace pickupButton(r) -->
-                <!--                                        <button th:replace="~{reservation/reservation-dashboard :: pickupButton(r=${r})}"></button>-->
-                <!-- ========================= -->
-                <!--  픽업 상태 토글 버튼 조각 pickupButton(r) -->
-                <!-- ========================= -->
-                <!--                                        <button-->
-                <!--                                                th:fragment="pickupButton(r)"-->
-                <!--                                                class="btn pickup-btn"-->
-                <!--                                                th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked-btn' : ''"-->
-                <!--                                                th:attr="hx-patch=@{/api/reservations/{id}/pickup-toggle(id=${r.id})},-->
-                <!--                                                        hx-confirm='픽업상태를 변경할까요?'"-->
-                <!--                                                hx-swap="outerHTML">-->
-                <!--                                            <span th:text="${r.pickupStatus == 'PICKED' ? '픽업완료' : '픽업예정'}"></span>-->
-                <!--                                        </button>-->
-                <button
-                        class="btn pickup-btn"
-                        th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked-btn' : ''"
-                        th:hx-patch="@{/api/reservations/{id}/pickup-toggle(id=${r.id}, rowNo=${rowNo})}"
-                        th:attr="hx-target=${'#row-block-' + r.id}, hx-swap='outerHTML'"
-                        hx-confirm="픽업상태를 변경할까요?">
-                    <span th:text="${r.pickupStatus == 'PICKED' ? '픽업완료' : '픽업예정'}"></span>
+                <button type="button" class="btn pickup-btn" data-reservation-pickup
+                        th:classappend="${r.status == 'PICKED_UP'} ? ' picked-btn' : ''"
+                        th:attr="data-pickup-url=@{/api/reservations/pickup/{id}(id=${r.id})}, data-cancel-url=@{/api/reservations/pickup-cancel/{id}(id=${r.id})}">
+                    <span data-pickup-label th:text="${r.status == 'PICKED_UP' ? '픽업완료' : '픽업예정'}"></span>
                 </button>
             </div>
         </div>
@@ -60,7 +43,7 @@
         <div><b>전체 연락처:</b> <span th:text="${r.contact}"></span></div>
         <div><b>요청사항:</b> <span th:text="${r.note}"></span></div>
         <div><b>초:</b> <span th:text="${r.candles}"></span></div>
-        <div><b>픽업시간:</b> <span th:text="${r.pickedUpAt}"></span></div>
+        <div data-pickup-time th:if="${r.status == 'PICKED_UP' and r.pickedUpAt != null}"><b>픽업시간:</b> <span th:text="${r.pickedUpAt}"></span></div>
         <div><b>생성일:</b> <span th:text="${r.createdAt}"></span></div>
         <div class="actions"><!-- 수정/삭제 버튼 -->
             <button class="btn"

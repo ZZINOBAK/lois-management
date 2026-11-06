@@ -20,7 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -450,36 +449,6 @@ public class ReservationController {
     public String update(@PathVariable("id") Long id, @ModelAttribute Reservation reservation) {
         reservationService.update(id, reservation);
         return "redirect:/reservations#row-" + id;
-    }
-
-    // 픽업 완료 API (신규)
-    @PostMapping("/{id}/pickup")
-    public ResponseEntity<Void> pickup(@PathVariable("id") Long id) {
-        if (id <= 0) {
-            // 유효성 검사 실패
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid reservation ID");
-        }
-
-        // 예약 상태가 PICKED_UP이면 false
-        boolean completed = reservationService.pickup(id);
-        return ResponseEntity.noContent()
-                .header("Pickup-Result", completed ? "completed" : "already-completed")
-                .build();
-    }
-
-    // 픽업 취소 API (신규)
-    @PostMapping("/{id}/pickup-cancel")
-    public ResponseEntity<Void> cancelPickup(@PathVariable("id") Long id) {
-        if (id <= 0) {
-            // 유효성 검사 실패
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid reservation ID");
-        }
-
-        // 예약 상태가 RESERVED이면 false
-        boolean completed = reservationService.cancelPickup(id);
-        return ResponseEntity.noContent()
-                .header("Pickup-Cancel-Result", completed ? "completed" : "already-completed")
-                .build();
     }
 
     @PatchMapping("/{id}/pickup-toggle") // 픽업 상태 토글

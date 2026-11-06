@@ -12,6 +12,7 @@
         <link rel="stylesheet" th:href="@{/css/reservation-dashboard.css}">
 
         <script th:src="@{/js/reservation.js}" defer></script>
+        <script th:src="@{/js/reservation-pickup.js}" defer></script>
     </th:block>
 
     <div class="wrap reservation-dashboard">
@@ -20,6 +21,7 @@
 
         <!-- 메인 -->
         <main>
+            <p class="reservation-pickup-toast" data-pickup-feedback role="status" aria-live="polite" hidden></p>
             <section class="content">
                 <!-- 🔹 레전드(왼쪽) + 검색폼(오른쪽) 한 줄 -->
                 <div class="list-header grid-2x2">

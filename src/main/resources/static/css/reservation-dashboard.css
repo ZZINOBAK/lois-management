@@ -463,3 +463,25 @@
 }
 
 .reservation-list .summary-row .reservation-flavor { font-weight: 600; text-align: center; }
+
+/* 픽업 요청 결과 토스트 */
+.reservation-dashboard .reservation-pickup-toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1100;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    box-sizing: border-box;
+    margin: 0;
+    padding: 14px 22px;
+    border-radius: 12px;
+    background: #26382f;
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .2);
+    text-align: center;
+    pointer-events: none;
+}
+.reservation-dashboard .reservation-pickup-toast[data-kind="error"] { background: #8b3237; }
+.reservation-dashboard .reservation-pickup-toast[hidden] { display: none; }

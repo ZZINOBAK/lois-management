@@ -61,133 +61,12 @@ class ReservationControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"ADMIN", "STAFF"})
-    void pickupCompletesForAllowedRoles(String role) throws Exception {
-        when(reservationService.pickup(7L)).thenReturn(true);
-        mockMvc.perform(post("/reservations/7/pickup").with(user("operator").roles(role)).with(csrf()))
-                .andExpect(status().isNoContent()).andExpect(content().string(""))
-                .andExpect(header().string("Pickup-Result", "completed"));
-        verify(reservationService).pickup(7L);
-    }
-
-    @Test
-    void alreadyPickedUpReturnsDistinctHeader() throws Exception {
-        when(reservationService.pickup(7L)).thenReturn(false);
-        mockMvc.perform(post("/reservations/7/pickup").with(user("operator").roles("STAFF")).with(csrf()))
-                .andExpect(status().isNoContent())
-                .andExpect(header().string("Pickup-Result", "already-completed"));
-    }
-
-    @Test
-    void missingReservationReturnsNotFound() throws Exception {
-        when(reservationService.pickup(7L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
-        mockMvc.perform(post("/reservations/7/pickup").with(user("operator").roles("ADMIN")).with(csrf()))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void disallowedReservationStatusReturnsConflict() throws Exception {
-        when(reservationService.pickup(7L)).thenThrow(new ResponseStatusException(HttpStatus.CONFLICT));
-        mockMvc.perform(post("/reservations/7/pickup").with(user("operator").roles("ADMIN")).with(csrf()))
-                .andExpect(status().isConflict());
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"0", "-1", "abc"})
-    void invalidReservationIdIsRejected(String id) throws Exception {
-        mockMvc.perform(post("/reservations/" + id + "/pickup").with(user("operator").roles("ADMIN")).with(csrf()))
-                .andExpect(status().isBadRequest());
-        verifyNoInteractions(reservationService);
-    }
-
-    @Test
-    void pickupOtherRoleIsForbidden() throws Exception {
-        mockMvc.perform(post("/reservations/7/pickup").with(user("other").roles("USER")).with(csrf()))
-                .andExpect(status().isForbidden());
-        verifyNoInteractions(reservationService);
-    }
-
-    @Test
-    void pickupAnonymousIsRedirectedToLogin() throws Exception {
-        mockMvc.perform(post("/reservations/7/pickup").with(csrf()))
-                .andExpect(status().is3xxRedirection()).andExpect(redirectedUrlPattern("**/login"));
-        verifyNoInteractions(reservationService);
-    }
-
-    @Test
-    void pickupRequiresCsrf() throws Exception {
-        mockMvc.perform(post("/reservations/7/pickup").with(user("operator").roles("ADMIN")))
-                .andExpect(status().isForbidden());
-        verifyNoInteractions(reservationService);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"ADMIN", "STAFF"})
-    void cancelPickupCompletesForAllowedRoles(String role) throws Exception {
-        when(reservationService.cancelPickup(7L)).thenReturn(true);
-        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("operator").roles(role)).with(csrf()))
-                .andExpect(status().isNoContent()).andExpect(content().string(""))
-                .andExpect(header().string("Pickup-Cancel-Result", "completed"));
-        verify(reservationService).cancelPickup(7L);
-    }
-
-    @Test
-    void alreadyCancelledPickupReturnsDistinctHeader() throws Exception {
-        when(reservationService.cancelPickup(7L)).thenReturn(false);
-        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("operator").roles("STAFF")).with(csrf()))
-                .andExpect(status().isNoContent())
-                .andExpect(header().string("Pickup-Cancel-Result", "already-completed"));
-    }
-
-    @Test
-    void cancelPickupMissingReservationReturnsNotFound() throws Exception {
-        when(reservationService.cancelPickup(7L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
-        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("operator").roles("ADMIN")).with(csrf()))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void cancelPickupConflictReturnsConflict() throws Exception {
-        when(reservationService.cancelPickup(7L)).thenThrow(new ResponseStatusException(HttpStatus.CONFLICT));
-        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("operator").roles("ADMIN")).with(csrf()))
-                .andExpect(status().isConflict());
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"0", "-1", "abc"})
-    void cancelPickupInvalidIdIsRejected(String id) throws Exception {
-        mockMvc.perform(post("/reservations/" + id + "/pickup-cancel")
-                        .with(user("operator").roles("ADMIN")).with(csrf()))
-                .andExpect(status().isBadRequest());
-        verifyNoInteractions(reservationService);
-    }
-
-    @Test
-    void cancelPickupOtherRoleIsForbidden() throws Exception {
-        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("other").roles("USER")).with(csrf()))
-                .andExpect(status().isForbidden());
-        verifyNoInteractions(reservationService);
-    }
-
-    @Test
-    void cancelPickupAnonymousIsRedirectedToLogin() throws Exception {
-        mockMvc.perform(post("/reservations/7/pickup-cancel").with(csrf()))
-                .andExpect(status().is3xxRedirection()).andExpect(redirectedUrlPattern("**/login"));
-        verifyNoInteractions(reservationService);
-    }
-
-    @Test
-    void cancelPickupRequiresCsrf() throws Exception {
-        mockMvc.perform(post("/reservations/7/pickup-cancel").with(user("operator").roles("ADMIN")))
-                .andExpect(status().isForbidden());
-        verifyNoInteractions(reservationService);
-    }
-
-    @Test
-    void reservationRowShowsFlavorWithoutProductionAction() throws Exception {
+    @ValueSource(strings = {"RESERVED", "PICKED_UP"})
+    void reservationRowShowsFlavorWithoutProductionAction(String state) throws Exception {
         Reservation reservation = new Reservation();
         reservation.setId(7L);
         reservation.setCakeFlavor("가나슈");
+        reservation.setStatus(state);
         reservation.setMakeStatus("READY");
         reservation.setPickupStatus("WAITING");
         reservation.setCakeSize(2);
@@ -200,8 +79,8 @@ class ReservationControllerTest {
         String html = mockMvc.perform(get("/reservations/search").param("contactSuffix", "0056")
                 .with(user("staff").roles("STAFF"))).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
-        org.assertj.core.api.Assertions.assertThat(html).contains("reservation-flavor ellipsis", "가나슈", "/api/reservations/7/pickup-toggle")
-                .doesNotContain("produce-toggle", "make-toggle", "flavor-btn", "케이크를 만들었나요?");
+        org.assertj.core.api.Assertions.assertThat(html).contains("reservation-flavor ellipsis", "가나슈", "/api/reservations/pickup/7", "/api/reservations/pickup-cancel/7", state.equals("PICKED_UP") ? "픽업완료" : "픽업예정")
+                .doesNotContain("pickup-toggle", "픽업 불가", "produce-toggle", "make-toggle", "flavor-btn", "케이크를 만들었나요?");
     }
 
     @Test
