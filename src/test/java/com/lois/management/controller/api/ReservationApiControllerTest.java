@@ -127,39 +127,39 @@ class ReservationApiControllerTest {
     @ParameterizedTest
     @ValueSource(strings = {"ADMIN", "STAFF"})
     void cancelPickupCompletesForAllowedRoles(String role) throws Exception {
-        when(reservationService.cancelPickup(7L)).thenReturn(true);
-        mockMvc.perform(post("/api/reservations/pickup-cancel/7").with(jwt(role)).with(csrf()))
+        when(reservationService.cancelPickup(7L, "MISTAKE")).thenReturn(true);
+        mockMvc.perform(post("/api/reservations/pickup-cancel/7").param("cancelReason", "MISTAKE").with(jwt(role)).with(csrf()))
                 .andExpect(status().isNoContent()).andExpect(content().string(""))
                 .andExpect(header().string("Pickup-Cancel-Result", "completed"));
-        verify(reservationService).cancelPickup(7L);
+        verify(reservationService).cancelPickup(7L, "MISTAKE");
     }
 
     @Test
     void alreadyCancelledPickupReturnsDistinctHeader() throws Exception {
-        when(reservationService.cancelPickup(7L)).thenReturn(false);
-        mockMvc.perform(post("/api/reservations/pickup-cancel/7").with(jwt("STAFF")).with(csrf()))
+        when(reservationService.cancelPickup(7L, "MISTAKE")).thenReturn(false);
+        mockMvc.perform(post("/api/reservations/pickup-cancel/7").param("cancelReason", "MISTAKE").with(jwt("STAFF")).with(csrf()))
                 .andExpect(status().isNoContent())
                 .andExpect(header().string("Pickup-Cancel-Result", "already-completed"));
     }
 
     @Test
     void cancelPickupMissingReservationReturnsNotFound() throws Exception {
-        when(reservationService.cancelPickup(7L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
-        mockMvc.perform(post("/api/reservations/pickup-cancel/7").with(jwt("ADMIN")).with(csrf()))
+        when(reservationService.cancelPickup(7L, "MISTAKE")).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+        mockMvc.perform(post("/api/reservations/pickup-cancel/7").param("cancelReason", "MISTAKE").with(jwt("ADMIN")).with(csrf()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void cancelPickupConflictReturnsConflict() throws Exception {
-        when(reservationService.cancelPickup(7L)).thenThrow(new ResponseStatusException(HttpStatus.CONFLICT));
-        mockMvc.perform(post("/api/reservations/pickup-cancel/7").with(jwt("ADMIN")).with(csrf()))
+        when(reservationService.cancelPickup(7L, "MISTAKE")).thenThrow(new ResponseStatusException(HttpStatus.CONFLICT));
+        mockMvc.perform(post("/api/reservations/pickup-cancel/7").param("cancelReason", "MISTAKE").with(jwt("ADMIN")).with(csrf()))
                 .andExpect(status().isConflict());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"0", "-1", "abc"})
     void cancelPickupInvalidIdIsRejected(String id) throws Exception {
-        mockMvc.perform(post("/api/reservations/pickup-cancel/" + id)
+        mockMvc.perform(post("/api/reservations/pickup-cancel/" + id).param("cancelReason", "MISTAKE")
                         .with(jwt("ADMIN")).with(csrf()))
                 .andExpect(status().isBadRequest());
         verifyNoInteractions(reservationService);
@@ -167,23 +167,23 @@ class ReservationApiControllerTest {
 
     @Test
     void cancelPickupOtherRoleIsForbidden() throws Exception {
-        mockMvc.perform(post("/api/reservations/pickup-cancel/7").with(jwt("USER")).with(csrf()))
+        mockMvc.perform(post("/api/reservations/pickup-cancel/7").param("cancelReason", "MISTAKE").with(jwt("USER")).with(csrf()))
                 .andExpect(status().isForbidden());
         verifyNoInteractions(reservationService);
     }
 
     @Test
     void cancelPickupAnonymousIsUnauthorized() throws Exception {
-        mockMvc.perform(post("/api/reservations/pickup-cancel/7").with(csrf()))
+        mockMvc.perform(post("/api/reservations/pickup-cancel/7").param("cancelReason", "MISTAKE").with(csrf()))
                 .andExpect(status().isUnauthorized());
         verifyNoInteractions(reservationService);
     }
 
     @Test
     void cancelPickupUsesJwtChainWithoutCsrf() throws Exception {
-        mockMvc.perform(post("/api/reservations/pickup-cancel/7").with(jwt("ADMIN")))
+        mockMvc.perform(post("/api/reservations/pickup-cancel/7").param("cancelReason", "MISTAKE").with(jwt("ADMIN")))
                 .andExpect(status().isNoContent());
-        verify(reservationService).cancelPickup(7L);
+        verify(reservationService).cancelPickup(7L, "MISTAKE");
     }
 
 
@@ -204,5 +204,27 @@ class ReservationApiControllerTest {
         mockMvc.perform(post("/api/reservations/pickup/7").session(session))
                 .andExpect(status().isUnauthorized());
         verifyNoInteractions(reservationService);
+    }
+    @ParameterizedTest
+    @ValueSource(strings = {"", "invalid", "returned"})
+    void invalidCancelReasonDoesNotCallService(String reason) throws Exception {
+        mockMvc.perform(post("/api/reservations/pickup-cancel/7").param("cancelReason", reason).with(jwt("STAFF")))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservationService);
+    }
+
+    @Test
+    void missingCancelReasonDoesNotCallService() throws Exception {
+        mockMvc.perform(post("/api/reservations/pickup-cancel/7").with(jwt("STAFF")))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservationService);
+    }
+
+    @Test
+    void returnReasonIsPassedToService() throws Exception {
+        when(reservationService.cancelPickup(7L, "RETURNED")).thenReturn(true);
+        mockMvc.perform(post("/api/reservations/pickup-cancel/7").param("cancelReason", "RETURNED").with(jwt("STAFF")))
+                .andExpect(status().isNoContent());
+        verify(reservationService).cancelPickup(7L, "RETURNED");
     }
 }

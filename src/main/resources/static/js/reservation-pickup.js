@@ -11,6 +11,31 @@
             if (success) toastTimer = setTimeout(() => { feedback.hidden = true; }, 2500);
         }
     }
+    let cancelDialogBusy = false;
+    function selectCancelReason(dialog) {
+        const buttons = [...dialog.querySelectorAll('button')];
+        buttons.forEach(button => { button.disabled = false; });
+        dialog.showModal();
+        return new Promise(resolve => {
+            function finish(reason) {
+                dialog.removeEventListener('click', onClick);
+                dialog.removeEventListener('cancel', onCancel);
+                dialog.removeEventListener('close', onClose);
+                if (reason) buttons.forEach(button => { button.disabled = true; });
+                resolve(reason);
+            }
+            function onClick(event) {
+                const option = event.target.closest('[data-cancel-reason]');
+                if (option && !option.disabled) finish(option.dataset.cancelReason);
+                else if (event.target.closest('[data-cancel-dismiss]')) finish(null);
+            }
+            function onCancel(event) { event.preventDefault(); finish(null); }
+            function onClose() { finish(null); }
+            dialog.addEventListener('click', onClick);
+            dialog.addEventListener('cancel', onCancel);
+            dialog.addEventListener('close', onClose);
+        });
+    }
     document.addEventListener('click', async event => {
         const button = event.target.closest('[data-reservation-pickup]');
         if (!button || button.disabled) return;
@@ -18,16 +43,28 @@
         const id = row.dataset.reservationId;
         if (pendingIds.has(id)) return;
         const cancel = row.dataset.status === 'PICKED_UP';
-        if (!window.confirm(cancel ? '픽업을 취소할까요?' : '픽업을 완료할까요?')) return;
+        if (cancel && cancelDialogBusy) return;
+        if (!cancel && !window.confirm('픽업을 완료할까요?')) return;
         pendingIds.add(id);
         button.disabled = true;
         let sent = false;
+        let dialog;
+        const preventDismiss = event => event.preventDefault();
         try {
+            let cancelReason;
+            if (cancel) {
+                cancelDialogBusy = true;
+                dialog = document.querySelector('[data-pickup-cancel-dialog]');
+                cancelReason = await selectCancelReason(dialog);
+                if (!cancelReason) return;
+                dialog.addEventListener('cancel', preventDismiss);
+            }
             const token = await ensureToken();
             sent = true;
             const response = await fetch(cancel ? button.dataset.cancelUrl : button.dataset.pickupUrl, {
                 method: 'POST', credentials: 'same-origin', redirect: 'error',
-                headers: { Authorization: 'Bearer ' + token }
+                headers: { Authorization: 'Bearer ' + token },
+                ...(cancel ? { body: new URLSearchParams({ cancelReason }) } : {})
             });
             if (response.status !== 204) {
                 if (response.status === 401) clearToken();
@@ -50,6 +87,11 @@
         } catch (error) {
             notify(sent ? '처리 결과를 확인할 수 없습니다. 새로고침하여 상태를 확인해 주세요.' : '인증을 준비하지 못했습니다. 로그인 상태를 확인해 주세요.');
         } finally {
+            if (cancel) {
+                if (dialog?.open) dialog.close();
+                dialog?.removeEventListener('cancel', preventDismiss);
+                cancelDialogBusy = false;
+            }
             pendingIds.delete(id);
             button.disabled = false;
         }

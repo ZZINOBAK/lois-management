@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 const source = fs.readFileSync('src/main/resources/static/js/reservation-pickup.js', 'utf8');
-function page({ status = 'RESERVED', response = 204, token = async () => 'token', fetcher } = {}) {
+function page({ status = 'RESERVED', response = 204, token = async () => 'token', fetcher, reason = 'MISTAKE', autoSelect = true } = {}) {
     let click;
     const calls = [];
     const feedback = { hidden: true, dataset: {} };
@@ -12,14 +12,30 @@ function page({ status = 'RESERVED', response = 204, token = async () => 'token'
     const classes = () => ({ toggle() {} });
     const button = { disabled: false, dataset: { pickupUrl: '/api/reservations/pickup/7', cancelUrl: '/api/reservations/pickup-cancel/7' }, classList: classes(), closest: () => row, querySelector: () => label };
     const row = { dataset: { reservationId: '7', status }, querySelector: s => s === '[data-reservation-pickup]' ? button : s === '[data-reservation-summary]' ? { classList: classes() } : null };
+    const listeners = new Map();
+    const options = ['MISTAKE', 'RETURNED'].map(reason => ({ dataset: { cancelReason: reason }, disabled: false }));
+    const dismiss = { disabled: false };
+    const dialog = {
+        open: false,
+        querySelectorAll: () => [...options, dismiss],
+        addEventListener: (name, fn) => { listeners.set(name, fn); },
+        removeEventListener: (name, fn) => { if (listeners.get(name) === fn) listeners.delete(name); },
+        showModal() { this.open = true; if (autoSelect) queueMicrotask(() => choose(reason)); },
+        close() { this.open = false; listeners.get('close')?.(); }
+    };
+    function choose(reason) {
+        const option = options.find(button => button.dataset.cancelReason === reason);
+        listeners.get('click')?.({ target: { closest: selector => selector === '[data-cancel-reason]' ? option : reason === null ? dismiss : null } });
+    }
     let renderedRow = row;
     vm.runInNewContext(source, {
-        document: { addEventListener: (_, fn) => { click = fn; }, querySelector: () => feedback, getElementById: () => renderedRow },
+        document: { addEventListener: (_, fn) => { click = fn; }, querySelector: selector => selector === '[data-pickup-cancel-dialog]' ? dialog : feedback, getElementById: () => renderedRow },
+        URLSearchParams,
         setTimeout: fn => { timer = fn; return 1; }, clearTimeout: () => { timer = null; },
         window: { confirm: () => true }, ensureToken: token, clearToken() {},
         fetch: async (...args) => { calls.push(args); return fetcher ? fetcher() : { status: response, headers: { get: () => 'completed' } }; }
     });
-    return { click: () => click({ target: { closest: () => button } }), replace: newRow => { renderedRow = newRow; }, calls, row, button, feedback, label, expire: () => timer?.() };
+    return { click: () => click({ target: { closest: () => button } }), replace: newRow => { renderedRow = newRow; }, calls, row, button, feedback, label, dialog, options, choose, expire: () => timer?.() };
 }
 test('RESERVED requests pickup and updates only after 204', async () => {
     const p = page(); await p.click();
@@ -69,4 +85,31 @@ test('success toast disappears after timeout', async () => {
 test('failure toast stays visible for checking the result', async () => {
     const p = page({ response: 500 }); await p.click(); p.expire();
     assert.equal(p.feedback.hidden, false); assert.equal(p.feedback.dataset.kind, 'error');
+});
+
+test('return selection sends RETURNED reason', async () => {
+    const p = page({ status: 'PICKED_UP', reason: 'RETURNED' }); await p.click();
+    assert.equal(p.calls[0][1].body.get('cancelReason'), 'RETURNED');
+});
+test('mistake selection sends MISTAKE reason', async () => {
+    const p = page({ status: 'PICKED_UP' }); await p.click();
+    assert.equal(p.calls[0][1].body.get('cancelReason'), 'MISTAKE');
+});
+test('closing the choice dialog sends no request', async () => {
+    const p = page({ status: 'PICKED_UP', autoSelect: false });
+    const pending = p.click(); assert.equal(p.dialog.open, true); assert.equal(p.calls.length, 0);
+    p.choose(null); await pending;
+    assert.equal(p.calls.length, 0); assert.equal(p.button.disabled, false); assert.equal(p.dialog.open, false);
+});
+test('choices remain disabled during cancellation request', async () => {
+    let release; const response = new Promise(resolve => { release = resolve; });
+    const p = page({ status: 'PICKED_UP', fetcher: () => response });
+    const pending = p.click(); await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+    assert.equal(p.options.every(option => option.disabled), true); await p.click(); assert.equal(p.calls.length, 1);
+    release({ status: 204, headers: { get: () => 'completed' } }); await pending;
+    assert.equal(p.dialog.open, false);
+});
+test('failed cancellation preserves pickup state', async () => {
+    const p = page({ status: 'PICKED_UP', response: 409 }); await p.click();
+    assert.equal(p.row.dataset.status, 'PICKED_UP'); assert.equal(p.calls.length, 1);
 });

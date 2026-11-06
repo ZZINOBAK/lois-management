@@ -139,3 +139,24 @@
 .cake-production .cake-production-button[data-production-action="other"] {
     display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
 }
+
+.cake-production .cake-production-reservations-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.cake-production .cake-production-reservations-heading h2 { margin: 0; }
+.cake-production .cake-production-reservations-link {
+    padding: 9px 14px;
+    border-radius: 9px;
+    background: #356346;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.cake-production .cake-production-reservations-link:hover { background: #294e37; }
+.cake-production .cake-production-reservations-link:focus-visible { outline: 3px solid #88a891; outline-offset: 3px; }

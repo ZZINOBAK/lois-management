@@ -87,14 +87,19 @@ public class ReservationApiController {
 
     // 픽업 취소 API (신규)
     @PostMapping("/pickup-cancel/{id}")
-    public ResponseEntity<Void> cancelPickup(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> cancelPickup(@PathVariable("id") Long id,
+                                             @RequestParam("cancelReason") String cancelReason) {
         if (id <= 0) {
             // 유효성 검사 실패
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid reservation ID");
         }
 
-        // 예약 상태가 RESERVED이면 false
-        boolean completed = reservationService.cancelPickup(id);
+        // 취소 이유는 둘 중 하나여야 함.
+        if (!"MISTAKE".equals(cancelReason) && !"RETURNED".equals(cancelReason)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pickup cancellation reason");
+        }
+        // 예약 상태가 RESERVED이고 이미 취소된 경우 false
+        boolean completed = reservationService.cancelPickup(id, cancelReason);
         return ResponseEntity.noContent()
                 .header("Pickup-Cancel-Result", completed ? "completed" : "already-completed")
                 .build();

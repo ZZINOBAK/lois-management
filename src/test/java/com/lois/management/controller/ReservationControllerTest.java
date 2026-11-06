@@ -121,4 +121,15 @@ class ReservationControllerTest {
 
         verify(reservationService).findAll(reservationPageReq);
     }
+    @Test
+    void dashboardRendersCancelChoicesAndPictures() throws Exception {
+        mockMvc.perform(get("/reservations").with(user("staff").roles("STAFF")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.allOf(
+                        org.hamcrest.Matchers.containsString("아직 픽업 전이에요"),
+                        org.hamcrest.Matchers.containsString("케이크를 돌려받았어요"),
+                        org.hamcrest.Matchers.containsString("data-cancel-reason=\"MISTAKE\""),
+                        org.hamcrest.Matchers.containsString("data-cancel-reason=\"RETURNED\""),
+                        org.hamcrest.Matchers.containsString("<svg"))));
+    }
 }

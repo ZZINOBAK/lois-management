@@ -22,7 +22,8 @@ public interface CakeMovementMapper {
                              @Param("moveType") String moveType,
                              @Param("stockChanged") boolean stockChanged,
                              @Param("reservationId") Long reservationId,
-                             @Param("requestId") String requestId);
+                             @Param("requestId") String requestId,
+                             @Param("memo") String memo);
 
     // 케이크 변동 이력 저장 without reservationId: 제작 여부, 현장 판매
     int insertStockMovement(@Param("cakeId") Long cakeId,

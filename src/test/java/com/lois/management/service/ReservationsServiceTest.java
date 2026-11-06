@@ -151,7 +151,7 @@ class ReservationsServiceTest {
         when(cakeStockMapper.findQuantityForUpdate(3L, 2)).thenReturn(1);
         when(cakeStockMapper.decreaseStock(3L, 2)).thenReturn(1);
         when(reservationMapper.changeStatus(7L, "RESERVED", "PICKED_UP")).thenReturn(1);
-        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(true), eq(7L), anyString()))
+        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(true), eq(7L), anyString(), nullable(String.class)))
                 .thenAnswer(invocation -> {
                     assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
                     assertThat(UUID.fromString(invocation.getArgument(5, String.class)).toString())
@@ -166,7 +166,7 @@ class ReservationsServiceTest {
         order.verify(cakeStockMapper).findQuantityForUpdate(3L, 2);
         order.verify(cakeStockMapper).decreaseStock(3L, 2);
         order.verify(reservationMapper).changeStatus(7L, "RESERVED", "PICKED_UP");
-        order.verify(cakeMovementMapper).insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(true), eq(7L), anyString());
+        order.verify(cakeMovementMapper).insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(true), eq(7L), anyString(), nullable(String.class));
         assertThat(manager.begins).isEqualTo(1);
         assertThat(manager.commits).isEqualTo(1);
         assertThat(manager.rollbacks).isZero();
@@ -180,14 +180,14 @@ class ReservationsServiceTest {
         when(reservationMapper.findByIdForUpdate(7L)).thenReturn(pickupReservation("RESERVED"));
         when(cakeStockMapper.findQuantityForUpdate(3L, 2)).thenReturn(quantity);
         when(reservationMapper.changeStatus(7L, "RESERVED", "PICKED_UP")).thenReturn(1);
-        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(false), eq(7L), anyString())).thenReturn(1);
+        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(false), eq(7L), anyString(), nullable(String.class))).thenReturn(1);
 
         assertThat(transactionalService(manager).pickup(7L)).isTrue();
 
         verify(cakeStockMapper, never()).decreaseStock(anyLong(), anyInt());
         var order = inOrder(reservationMapper, cakeMovementMapper);
         order.verify(reservationMapper).changeStatus(7L, "RESERVED", "PICKED_UP");
-        order.verify(cakeMovementMapper).insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(false), eq(7L), anyString());
+        order.verify(cakeMovementMapper).insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(false), eq(7L), anyString(), nullable(String.class));
         assertThat(manager.commits).isEqualTo(1);
     }
 
@@ -208,11 +208,11 @@ class ReservationsServiceTest {
         when(cakeStockMapper.findQuantityForUpdate(3L, 2)).thenReturn(1);
         when(cakeStockMapper.decreaseStock(3L, 2)).thenReturn(1);
         when(reservationMapper.changeStatus(7L, "RESERVED", "PICKED_UP")).thenReturn(1);
-        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(true), eq(7L), anyString())).thenReturn(1);
+        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(true), eq(7L), anyString(), nullable(String.class))).thenReturn(1);
         assertThat(proxy.pickup(7L)).isTrue();
         assertThat(proxy.pickup(7L)).isFalse();
         verify(cakeStockMapper, times(1)).decreaseStock(3L, 2);
-        verify(cakeMovementMapper, times(1)).insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(true), eq(7L), anyString());
+        verify(cakeMovementMapper, times(1)).insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(true), eq(7L), anyString(), nullable(String.class));
     }
 
     @Test
@@ -283,7 +283,7 @@ class ReservationsServiceTest {
         var manager = new CountingTransactionManager();
         when(reservationMapper.findByIdForUpdate(7L)).thenReturn(pickupReservation("RESERVED"));
         when(reservationMapper.changeStatus(7L, "RESERVED", "PICKED_UP")).thenReturn(1);
-        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(false), eq(7L), anyString())).thenReturn(count);
+        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(false), eq(7L), anyString(), nullable(String.class))).thenReturn(count);
         assertThatThrownBy(() -> transactionalService(manager).pickup(7L)).isInstanceOf(IllegalStateException.class);
         assertPickupRolledBack(manager);
     }
@@ -303,7 +303,7 @@ class ReservationsServiceTest {
                 when(reservationMapper.changeStatus(7L, "RESERVED", "PICKED_UP")).thenThrow(failure);
             } else {
                 when(reservationMapper.changeStatus(7L, "RESERVED", "PICKED_UP")).thenReturn(1);
-                when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(true), eq(7L), anyString()))
+                when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("PICKED_UP"), eq(true), eq(7L), anyString(), nullable(String.class)))
                         .thenThrow(failure);
             }
         }
@@ -338,15 +338,15 @@ class ReservationsServiceTest {
         var sql = pickupSql("CakeMovementMapper", "insertPickupMovement",
                 Map.of("cakeId", 3L, "cakeSize", 2, "moveType", "PICKED_UP",
                         "stockChanged", false, "reservationId", 7L, "requestId", "test"));
-        assertThat(sql.getSql()).contains("(cake_id, cake_size, move_type, stock_changed, reservation_id, request_id)")
+        assertThat(sql.getSql()).contains("(cake_id, cake_size, move_type, stock_changed, reservation_id, request_id, memo)")
                 .doesNotContain("delta", "biz_date");
         assertThat(sql.getParameterMappings()).extracting("property")
-                .containsExactly("cakeId", "cakeSize", "moveType", "stockChanged", "reservationId", "requestId");
+                .containsExactly("cakeId", "cakeSize", "moveType", "stockChanged", "reservationId", "requestId", "memo");
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void cancelPickupRestoresOnlyOriginallyChangedStock(boolean stockChanged) {
+    @org.junit.jupiter.params.provider.CsvSource({"MISTAKE,true,true", "MISTAKE,false,false", "RETURNED,true,true", "RETURNED,false,true"})
+    void cancelPickupRestoresStockAccordingToReason(String reason, boolean originalChanged, boolean stockChanged) {
         var manager = new CountingTransactionManager();
         Reservation reservation = pickupReservation("PICKED_UP");
         reservation.setCakeId(99L);
@@ -355,20 +355,20 @@ class ReservationsServiceTest {
             assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
             return reservation;
         });
-        when(cakeMovementMapper.findLatestPickupMovementForUpdate(7L)).thenReturn(pickupMovement("PICKED_UP", stockChanged));
+        when(cakeMovementMapper.findLatestPickupMovementForUpdate(7L)).thenReturn(pickupMovement("PICKED_UP", originalChanged));
         if (stockChanged) {
             when(cakeStockMapper.increaseStock(3L, 2)).thenReturn(1);
         }
         when(reservationMapper.changeStatus(7L, "PICKED_UP", "RESERVED")).thenReturn(1);
         when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"),
-                eq(stockChanged), eq(7L), anyString())).thenAnswer(invocation -> {
+                eq(stockChanged), eq(7L), anyString(), eq("RETURNED".equals(reason) ? "케이크를 돌려받았어요" : "아직 픽업 전이에요"))).thenAnswer(invocation -> {
             assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
             assertThat(UUID.fromString(invocation.getArgument(5, String.class)).toString())
                     .isEqualTo(invocation.getArgument(5, String.class));
             return 1;
         });
 
-        assertThat(transactionalService(manager).cancelPickup(7L)).isTrue();
+        assertThat(transactionalService(manager).cancelPickup(7L, reason)).isTrue();
 
         var order = inOrder(reservationMapper, cakeStockMapper, cakeMovementMapper);
         order.verify(reservationMapper).findByIdForUpdate(7L);
@@ -380,14 +380,15 @@ class ReservationsServiceTest {
         }
         order.verify(reservationMapper).changeStatus(7L, "PICKED_UP", "RESERVED");
         order.verify(cakeMovementMapper).insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"),
-                eq(stockChanged), eq(7L), anyString());
+                eq(stockChanged), eq(7L), anyString(), eq("RETURNED".equals(reason) ? "케이크를 돌려받았어요" : "아직 픽업 전이에요"));
         assertThat(manager.begins).isEqualTo(1);
         assertThat(manager.commits).isEqualTo(1);
         assertThat(manager.rollbacks).isZero();
     }
 
-    @Test
-    void cancelPickupRepeatedRequestDoesNotRestoreTwice() {
+    @ParameterizedTest
+    @ValueSource(strings = {"MISTAKE", "RETURNED"})
+    void cancelPickupRepeatedRequestDoesNotRestoreTwice(String reason) {
         var manager = new CountingTransactionManager();
         var proxy = transactionalService(manager);
         when(reservationMapper.findByIdForUpdate(7L))
@@ -396,14 +397,14 @@ class ReservationsServiceTest {
                 .thenReturn(pickupMovement("PICKED_UP", true), pickupMovement("UNDO_PICKED_UP", true));
         when(cakeStockMapper.increaseStock(3L, 2)).thenReturn(1);
         when(reservationMapper.changeStatus(7L, "PICKED_UP", "RESERVED")).thenReturn(1);
-        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(true), eq(7L), anyString())).thenReturn(1);
+        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(true), eq(7L), anyString(), nullable(String.class))).thenReturn(1);
 
-        assertThat(proxy.cancelPickup(7L)).isTrue();
-        assertThat(proxy.cancelPickup(7L)).isFalse();
+        assertThat(proxy.cancelPickup(7L, reason)).isTrue();
+        assertThat(proxy.cancelPickup(7L, reason)).isFalse();
 
         verify(cakeStockMapper, times(1)).increaseStock(3L, 2);
         verify(reservationMapper, times(1)).changeStatus(7L, "PICKED_UP", "RESERVED");
-        verify(cakeMovementMapper, times(1)).insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(true), eq(7L), anyString());
+        verify(cakeMovementMapper, times(1)).insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(true), eq(7L), anyString(), nullable(String.class));
     }
 
     @Test
@@ -414,22 +415,22 @@ class ReservationsServiceTest {
         when(cakeMovementMapper.findLatestPickupMovementForUpdate(7L))
                 .thenReturn(pickupMovement("PICKED_UP", false), pickupMovement("PICKED_UP", true));
         when(reservationMapper.changeStatus(7L, "PICKED_UP", "RESERVED")).thenReturn(1);
-        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), anyBoolean(), eq(7L), anyString())).thenReturn(1);
+        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), anyBoolean(), eq(7L), anyString(), nullable(String.class))).thenReturn(1);
 
-        assertThat(proxy.cancelPickup(7L)).isTrue();
+        assertThat(proxy.cancelPickup(7L, "MISTAKE")).isTrue();
         verifyNoInteractions(cakeStockMapper);
 
         when(cakeStockMapper.increaseStock(3L, 2)).thenReturn(1);
-        assertThat(proxy.cancelPickup(7L)).isTrue();
+        assertThat(proxy.cancelPickup(7L, "MISTAKE")).isTrue();
         verify(cakeStockMapper, times(1)).increaseStock(3L, 2);
-        verify(cakeMovementMapper).insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(false), eq(7L), anyString());
-        verify(cakeMovementMapper).insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(true), eq(7L), anyString());
+        verify(cakeMovementMapper).insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(false), eq(7L), anyString(), nullable(String.class));
+        verify(cakeMovementMapper).insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(true), eq(7L), anyString(), nullable(String.class));
     }
 
     @Test
     void cancelPickupMissingReservationDoesNotWrite() {
         var manager = new CountingTransactionManager();
-        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L))
+        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L, "MISTAKE"))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         ex -> assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND));
         verifyNoInteractions(cakeStockMapper, cakeMovementMapper);
@@ -440,12 +441,12 @@ class ReservationsServiceTest {
     void cancelPickupMissingMovementIsRejected() {
         var manager = new CountingTransactionManager();
         when(reservationMapper.findByIdForUpdate(7L)).thenReturn(pickupReservation("PICKED_UP"));
-        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L))
+        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L, "MISTAKE"))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         ex -> assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
         verifyNoInteractions(cakeStockMapper);
         verify(reservationMapper, never()).changeStatus(anyLong(), anyString(), anyString());
-        verify(cakeMovementMapper, never()).insertPickupMovement(anyLong(), anyInt(), anyString(), anyBoolean(), anyLong(), anyString());
+        verify(cakeMovementMapper, never()).insertPickupMovement(anyLong(), anyInt(), anyString(), anyBoolean(), anyLong(), anyString(), nullable(String.class));
         assertPickupRolledBack(manager);
     }
 
@@ -457,12 +458,12 @@ class ReservationsServiceTest {
         var manager = new CountingTransactionManager();
         when(reservationMapper.findByIdForUpdate(7L)).thenReturn(pickupReservation(status));
         when(cakeMovementMapper.findLatestPickupMovementForUpdate(7L)).thenReturn(pickupMovement(moveType, true));
-        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L))
+        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L, "MISTAKE"))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         ex -> assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
         verifyNoInteractions(cakeStockMapper);
         verify(reservationMapper, never()).changeStatus(anyLong(), anyString(), anyString());
-        verify(cakeMovementMapper, never()).insertPickupMovement(anyLong(), anyInt(), anyString(), anyBoolean(), anyLong(), anyString());
+        verify(cakeMovementMapper, never()).insertPickupMovement(anyLong(), anyInt(), anyString(), anyBoolean(), anyLong(), anyString(), nullable(String.class));
         assertPickupRolledBack(manager);
     }
 
@@ -473,9 +474,9 @@ class ReservationsServiceTest {
         when(reservationMapper.findByIdForUpdate(7L)).thenReturn(pickupReservation("PICKED_UP"));
         when(cakeMovementMapper.findLatestPickupMovementForUpdate(7L)).thenReturn(pickupMovement("PICKED_UP", true));
         when(cakeStockMapper.increaseStock(3L, 2)).thenReturn(count);
-        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L, "MISTAKE")).isInstanceOf(IllegalStateException.class);
         verify(reservationMapper, never()).changeStatus(anyLong(), anyString(), anyString());
-        verify(cakeMovementMapper, never()).insertPickupMovement(anyLong(), anyInt(), anyString(), anyBoolean(), anyLong(), anyString());
+        verify(cakeMovementMapper, never()).insertPickupMovement(anyLong(), anyInt(), anyString(), anyBoolean(), anyLong(), anyString(), nullable(String.class));
         assertPickupRolledBack(manager);
     }
 
@@ -487,8 +488,8 @@ class ReservationsServiceTest {
         when(cakeMovementMapper.findLatestPickupMovementForUpdate(7L)).thenReturn(pickupMovement("PICKED_UP", true));
         when(cakeStockMapper.increaseStock(3L, 2)).thenReturn(1);
         when(reservationMapper.changeStatus(7L, "PICKED_UP", "RESERVED")).thenReturn(count);
-        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L)).isInstanceOf(IllegalStateException.class);
-        verify(cakeMovementMapper, never()).insertPickupMovement(anyLong(), anyInt(), anyString(), anyBoolean(), anyLong(), anyString());
+        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L, "MISTAKE")).isInstanceOf(IllegalStateException.class);
+        verify(cakeMovementMapper, never()).insertPickupMovement(anyLong(), anyInt(), anyString(), anyBoolean(), anyLong(), anyString(), nullable(String.class));
         assertPickupRolledBack(manager);
     }
 
@@ -500,8 +501,8 @@ class ReservationsServiceTest {
         when(cakeMovementMapper.findLatestPickupMovementForUpdate(7L)).thenReturn(pickupMovement("PICKED_UP", true));
         when(cakeStockMapper.increaseStock(3L, 2)).thenReturn(1);
         when(reservationMapper.changeStatus(7L, "PICKED_UP", "RESERVED")).thenReturn(1);
-        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(true), eq(7L), anyString())).thenReturn(count);
-        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L)).isInstanceOf(IllegalStateException.class);
+        when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(true), eq(7L), anyString(), nullable(String.class))).thenReturn(count);
+        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L, "MISTAKE")).isInstanceOf(IllegalStateException.class);
         assertPickupRolledBack(manager);
     }
 
@@ -520,10 +521,10 @@ class ReservationsServiceTest {
                 when(reservationMapper.changeStatus(7L, "PICKED_UP", "RESERVED")).thenThrow(failure);
             } else {
                 when(reservationMapper.changeStatus(7L, "PICKED_UP", "RESERVED")).thenReturn(1);
-                when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(true), eq(7L), anyString())).thenThrow(failure);
+                when(cakeMovementMapper.insertPickupMovement(eq(3L), eq(2), eq("UNDO_PICKED_UP"), eq(true), eq(7L), anyString(), nullable(String.class))).thenThrow(failure);
             }
         }
-        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L)).isSameAs(failure);
+        assertThatThrownBy(() -> transactionalService(manager).cancelPickup(7L, "MISTAKE")).isSameAs(failure);
         assertPickupRolledBack(manager);
     }
 
