@@ -1,10 +1,8 @@
 package com.lois.management.auth;
 
 import com.lois.management.config.filter.IpWhitelistFilter;
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -28,6 +26,8 @@ public class SecurityConfig {
     private final IpWhitelistFilter ipWhitelistFilter;
     private final EmployeeUserDetailsService employeeUserDetailsService;
     private final LoginSuccessHandler loginSuccessHandler;
+    private final CustomOAuth2Service customOAuth2Service;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
 
     @Bean
@@ -40,13 +40,14 @@ public class SecurityConfig {
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/**")
+
                 // API는 CSRF 불필요(헤더 JWT 기반)
                 .csrf(csrf -> csrf.disable())
                 // 세션 사용 금지(세션이 와도 무시)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/public/**").permitAll()
-                        .anyRequest().hasAnyRole("ADMIN", "STAFF")
+                        .anyRequest().hasAnyRole("ADMIN")
                 )
                 // JWT 필터는 API 체인에만 적용
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -78,32 +79,24 @@ public class SecurityConfig {
         http
                 .securityMatcher("/**")
 
-//                // 페이지는 CSRF 켜는 게 정석
-//                .csrf(csrf -> csrf.enable())
-
-                // k6 부하 테스트에서 POST /reservations 요청 시 CSRF 토큰을 전송하지 않아
-                // 403 Forbidden이 발생하므로 해당 경로의 CSRF 검증을 임시로 제외한다.
-                // TODO 운영 배포 전 제거하고 정상적인 CSRF 토큰 처리를 적용할 것.
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/reservations")
-                )
-
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/public/**",
                                 "/favicon.ico",
                                 "/css/**", "/js/**", "/images/**",
                                 "/login",
+                                "/oauth2/**", "/login/oauth2/**",
                                 "/auth/after-login",
                                 "/actuator/health",
                                 "/access-request/**",
                                 "/demo/**",
                                 "/error", "/error/**"
                         ).permitAll()
+                        .requestMatchers("/auth/pending").authenticated()
                         .requestMatchers("/api/**").denyAll()
                         .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**", "/items/**", "/cake-stocks/**")
-                        .hasAnyRole("ADMIN", "STAFF")
-                        .anyRequest().authenticated()
+                        .hasAnyRole("ADMIN")
+                        .anyRequest().hasAnyRole("ADMIN")
                 )
 
                 .userDetailsService(employeeUserDetailsService)
@@ -118,6 +111,14 @@ public class SecurityConfig {
                             res.sendRedirect("/login?error");
                         })
                         .permitAll()
+                )
+
+                .oauth2Login(oauth -> oauth
+                        .loginPage("/login")
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2Service)
+                        )
+                        .successHandler(oAuth2LoginSuccessHandler)
                 )
 
                 .logout(logout -> logout

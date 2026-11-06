@@ -12,7 +12,7 @@
     </select>
 
     <select id="findById" parameterType="long" resultType="Employee">
-        SELECT id, employee_name, phone, note, created_at, updated_at
+        SELECT *
         FROM employees
         WHERE id = #{id}
     </select>
@@ -24,10 +24,12 @@
     </select>
 
     <!-- 삽입/수정 -->
-    <insert id="create" parameterType="Employee" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO employees (employee_name)
-        VALUES (#{employeeName})
+    <insert id="insert" parameterType="Employee" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO employees (employee_name, role)
+        VALUES (#{employeeName}, #{role})
     </insert>
+
+
 
     <update id="update" parameterType="Employee">
         UPDATE employees

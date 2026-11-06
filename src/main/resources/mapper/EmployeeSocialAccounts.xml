@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lois.management.mapper.EmployeeSocialAccountsMapper">
+
+    <select id="findByProviderNProviderUserId" resultType="long">
+        SELECT employee_id
+        FROM employee_social_accounts
+        WHERE provider = #{provider}
+        AND provider_user_id = #{providerUserId}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO employee_social_accounts
+        (employee_id, provider, provider_user_id, email, created_at )
+        VALUES
+        (#{employeeId}, #{provider}, #{providerUserId}, #{email}, NOW() )
+    </insert>
+</mapper>

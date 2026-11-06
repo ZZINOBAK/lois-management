@@ -1,6 +1,8 @@
 package com.lois.management.auth;
 
+import com.lois.management.domain.Employee;
 import com.lois.management.dto.employee.EmployeeRequest;
+import com.lois.management.service.EmployeeService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +25,7 @@ import java.util.Map;
 public class AuthApiController {
     private final AuthService authService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EmployeeService employeeService;
 
 
 
@@ -71,9 +75,39 @@ public class AuthApiController {
 
         log.info("여기");
 
-        EmployeeUserDetails principal = (EmployeeUserDetails) authentication.getPrincipal();
-        String username = principal.getEmployee().getEmployeeName();
-        String role = principal.getEmployee().getRole();
+        // TODO OAuth2 이식 후속 작업: 소셜 로그인 principal은 OAuth2User이므로 아래 강제 변환 시
+        // ClassCastException이 발생할 수 있다. 현재는 기존 동작을 보존하고 principal 호환 처리를 보류한다.
+
+//        EmployeeUserDetails principal = (EmployeeUserDetails) authentication.getPrincipal();
+
+        Object principal = authentication.getPrincipal();
+
+        Employee employee;
+
+        if (principal instanceof EmployeeUserDetails user) {
+            employee = user.getEmployee();
+
+        } else if (principal instanceof OAuth2User user) {
+            String employeeId = user.getAttribute("employeeId");
+
+            if (employeeId == null) {
+                return ResponseEntity.status(401).build();
+            }
+            employee = employeeService.findById(Long.valueOf(employeeId));
+        } else {
+            return ResponseEntity.status(401).build();
+        }
+
+        if (employee == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String username = employee.getEmployeeName();
+        String role = employee.getRole();
+
+        if (!"ADMIN".equals(role) && !"STAFF".equals(role)) {
+            return ResponseEntity.status(403).build();
+        }
         log.info("여기222222");
 
         String token = jwtTokenProvider.createToken(username, role);
@@ -82,4 +116,6 @@ public class AuthApiController {
         session.setAttribute("LOIS_ACCESS_TOKEN", token);
         return ResponseEntity.ok(Map.of("accessToken", token));
     }
+
+
 }

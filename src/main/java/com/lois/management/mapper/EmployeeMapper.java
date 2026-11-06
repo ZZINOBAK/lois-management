@@ -1,7 +1,6 @@
 package com.lois.management.mapper;
 
 import com.lois.management.domain.Employee;
-import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
@@ -23,4 +22,6 @@ public interface EmployeeMapper {
     int delete(Long id);
 
     Employee findByEmployeeName(String employeeName);
+
+
 }
