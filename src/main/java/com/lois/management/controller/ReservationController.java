@@ -11,6 +11,8 @@ import com.lois.management.dto.reservation.ProductionStatus;
 import com.lois.management.dto.reservation.ReservationPageReq;
 import com.lois.management.service.CakeMovementService;
 import com.lois.management.service.CakeService;
+import com.lois.management.service.CakeProductionService;
+import com.lois.management.dto.production.CakeProductionNeedDto;
 import com.lois.management.service.ReservationService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +43,8 @@ public class ReservationController {
     private final ReservationService reservationService;
     private final CakeMovementService cakeMovementService;
     private final CakeService cakeService;
+    @org.springframework.beans.factory.annotation.Autowired
+    private CakeProductionService cakeProductionService;
 
     @GetMapping //케이크 예약 버튼
     public String showDashboard(ReservationPageReq pageRequest, Model model) {
@@ -63,17 +66,7 @@ public class ReservationController {
         List<Cake> flavors = cakeService.findFlavorsForDashboard();
 
 
-        // 필요(만들어야 하는 수량) <size,<cakeId,toMake>>
-        Map<Integer, Map<Long, Integer>> toMakeMap =
-                cakeMovementService.calcToMakeMap(today);
-
-        // 재고(현재 제작된 수량) <size,<cakeId,stock(SUM(delta)>>
-        Map<Integer, Map<Long, Integer>> stockMap =
-                cakeMovementService.calcStockMap(today);
-
-        ProductionStatus status =
-                cakeMovementService.getProductionStatus(today);
-
+        ProductionStatus status = dashboardProductionStatus(today, reservations, model);
 
         try {
             model.addAttribute("reservations", reservations);
@@ -82,8 +75,7 @@ public class ReservationController {
 
             model.addAttribute("flavors", flavors);
 
-            model.addAttribute("toMakeMap", toMakeMap);
-            model.addAttribute("stockMap", stockMap);
+
             model.addAttribute("status", status);
 
         } catch (Exception e) {
@@ -162,6 +154,7 @@ public class ReservationController {
         Map<Integer, Map<Long, Integer>> stockMap =
                 cakeMovementService.calcStockMap(today);
 
+        addTodayProductionReadyIds(model);
         model.addAttribute("reservations", reservations);
         model.addAttribute("cakeSizes", List.of(2, 1));
 
@@ -194,6 +187,7 @@ public class ReservationController {
         List<Reservation> reservations = reservationService.findByContactSuffix(contactSuffix);
 
 
+        addTodayProductionReadyIds(model);
         model.addAttribute("reservations", reservations);
 
         // ✅ showDashboard랑 똑같이 today도 내려주기
@@ -207,6 +201,7 @@ public class ReservationController {
     public String filterByPickupStatus(@RequestParam("pickupStatus") String pickupStatus,
                                        Model model) {
         List<Reservation> reservations = reservationService.findByPickupStatus(pickupStatus);
+        addTodayProductionReadyIds(model);
         model.addAttribute("reservations", reservations);
         model.addAttribute("today", LocalDate.now());
         return "reservation/reservation-dashboard :: list";
@@ -452,36 +447,6 @@ public class ReservationController {
         return "redirect:/reservations#row-" + id;
     }
 
-    // 픽업 완료 API (신규)
-    @PostMapping("/{id}/pickup")
-    public ResponseEntity<Void> pickup(@PathVariable("id") Long id) {
-        if (id <= 0) {
-            // 유효성 검사 실패
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid reservation ID");
-        }
-
-        // 예약 상태가 PICKED_UP이면 false
-        boolean completed = reservationService.pickup(id);
-        return ResponseEntity.noContent()
-                .header("Pickup-Result", completed ? "completed" : "already-completed")
-                .build();
-    }
-
-    // 픽업 취소 API (신규)
-    @PostMapping("/{id}/pickup-cancel")
-    public ResponseEntity<Void> cancelPickup(@PathVariable("id") Long id) {
-        if (id <= 0) {
-            // 유효성 검사 실패
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid reservation ID");
-        }
-
-        // 예약 상태가 RESERVED이면 false
-        boolean completed = reservationService.cancelPickup(id);
-        return ResponseEntity.noContent()
-                .header("Pickup-Cancel-Result", completed ? "completed" : "already-completed")
-                .build();
-    }
-
     @PatchMapping("/{id}/pickup-toggle") // 픽업 상태 토글
     public String togglePickup(@PathVariable("id") Long id, Model model) {
 //        reservationService.togglePickupStatus(id);
@@ -564,17 +529,8 @@ public class ReservationController {
     public String productionStatus(Model model) {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         List<Cake> flavors = cakeService.findFlavorsForDashboard();
-
-//        // 필요(만들어야 하는 수량) <size,<cakeId,toMake>>
-//        Map<Integer, Map<Long, Integer>> toMakeMap =
-//                cakeMovementService.calcToMakeMap(today);
-//
-//        // 재고(현재 제작된 수량) <size,<cakeId,stock(SUM(delta)>>
-//        Map<Integer, Map<Long, Integer>> stockMap =
-//                cakeMovementService.calcStockMap(today);
-
-        ProductionStatus status =
-                cakeMovementService.getProductionStatus(today);
+        ProductionStatus status = dashboardProductionStatus(today,
+                reservationService.findTodayOrderByPickUpTime(today), model);
 
         try {
             model.addAttribute("cakeSizes", List.of(1, 2));
@@ -589,6 +545,64 @@ public class ReservationController {
             throw e; // 오류 재발생
         }
         return "fragments/production-status :: productionStatus";
+    }
+
+    private ProductionStatus dashboardProductionStatus(LocalDate today, List<Reservation> reservations, Model model) {
+        // 1호와 제작 누적 집계는 기존 기준을 유지한다.
+        ProductionStatus legacy = cakeMovementService.getProductionStatus(today);
+        Map<Long, Integer> demandTwo = new LinkedHashMap<>();
+        for (Reservation reservation : reservations) {
+            if (Integer.valueOf(2).equals(reservation.getCakeSize())
+                    && ("RESERVED".equals(reservation.getStatus()) || "PICKED_UP".equals(reservation.getStatus()))) {
+                demandTwo.merge(reservation.getCakeId(), 1, Integer::sum);
+            }
+        }
+        Map<Long, Integer> pickupReadyTwo = new LinkedHashMap<>();
+        Map<Long, Integer> toMakeTwo = new LinkedHashMap<>();
+        Map<Long, Integer> extraTwo = new LinkedHashMap<>();
+        List<CakeProductionNeedDto> needs = cakeProductionService.findTodayProductionNeeds();
+        addProductionReadyIds(model, reservations, needs);
+        for (CakeProductionNeedDto need : needs) {
+            if (!Integer.valueOf(2).equals(need.getCakeSize())) continue;
+            pickupReadyTwo.put(need.getCakeId(), Math.min(need.getReservationQuantity(), need.getStockQuantity()));
+            toMakeTwo.put(need.getCakeId(), need.getRequiredQuantity());
+            extraTwo.put(need.getCakeId(), Math.max(need.getStockQuantity() - need.getReservationQuantity(), 0));
+        }
+        Map<Integer, Map<Long, Integer>> demand = new LinkedHashMap<>(legacy.getDemand());
+        Map<Integer, Map<Long, Integer>> pickupReady = new LinkedHashMap<>(legacy.getPickupReady());
+        Map<Integer, Map<Long, Integer>> toMake = new LinkedHashMap<>(legacy.getToMake());
+        Map<Integer, Map<Long, Integer>> extra = new LinkedHashMap<>(legacy.getExtraStock());
+        demand.put(2, demandTwo);
+        pickupReady.put(2, pickupReadyTwo);
+        toMake.put(2, toMakeTwo);
+        extra.put(2, extraTwo);
+        return new ProductionStatus(demand, legacy.getProduced(), pickupReady, toMake, extra);
+    }
+
+    private void addTodayProductionReadyIds(Model model) {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        addProductionReadyIds(model, reservationService.findTodayOrderByPickUpTime(today),
+                cakeProductionService.findTodayProductionNeeds());
+    }
+
+    private void addProductionReadyIds(Model model, List<Reservation> todayReservations,
+                                       List<CakeProductionNeedDto> needs) {
+        Map<Long, Integer> remaining = new LinkedHashMap<>();
+        for (CakeProductionNeedDto need : needs) {
+            if (Integer.valueOf(2).equals(need.getCakeSize())) remaining.put(need.getCakeId(), need.getStockQuantity());
+        }
+        List<Long> readyIds = new ArrayList<>();
+        todayReservations.stream()
+                .filter(r -> Integer.valueOf(2).equals(r.getCakeSize()) && "RESERVED".equals(r.getStatus()))
+                .sorted(java.util.Comparator.comparing(Reservation::getResTime).thenComparing(Reservation::getId))
+                .forEach(r -> {
+                    int quantity = remaining.getOrDefault(r.getCakeId(), 0);
+                    if (quantity > 0) {
+                        readyIds.add(r.getId());
+                        remaining.put(r.getCakeId(), quantity - 1);
+                    }
+                });
+        model.addAttribute("productionReadyIds", readyIds);
     }
 
 }

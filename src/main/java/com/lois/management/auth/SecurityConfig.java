@@ -94,7 +94,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/auth/pending").authenticated()
                         .requestMatchers("/api/**").denyAll()
-                        .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**", "/items/**", "/cake-stocks/**")
+                        .requestMatchers("/reservations/**", "/cake-movement/**", "/stock-requests/**", "/items/**", "/cake-stocks/**", "/cake-production/**")
                         .hasAnyRole("ADMIN")
                         .anyRequest().hasAnyRole("ADMIN")
                 )

@@ -4,7 +4,9 @@
     <meta charset="UTF-8"/>
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>on-site</title>
+    <title>현장 판매</title>
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
 
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/index.css}">
@@ -12,7 +14,9 @@
     <link rel="stylesheet" th:href="@{/css/reservation-dashboard.css}">
     <link rel="stylesheet" th:href="@{/css/on-site.css}">
 
-    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+    <script th:src="@{/js/common.js}" defer></script>
+    <script th:src="@{/js/auth-common.js}" defer></script>
+    <script th:src="@{/js/on-site-sale.js}" defer></script>
 </head>
 <body>
 
@@ -22,7 +26,7 @@
 
     <!-- 이 페이지 내용 -->
     <main>
-        <form th:action="@{/cake-movements/on-site}" method="post" class="step-form">
+        <form th:action="@{/cake-stocks/on-site-sales}" method="post" class="step-form" data-on-site-sale>
 
             <!-- =========================
                  1) 케이크 선택
@@ -33,7 +37,7 @@
 
             <div class="grid cake-grid">
                 <label class="option" th:each="c : ${cakes}">
-                    <input type="radio" name="cakeId" th:value="${c.id}" required />
+                    <input type="radio" name="cake_id" th:value="${c.id}" required />
                     <div class="card">
                         <div class="card__title" th:text="${c.flavor}">딸기 생크림</div>
                     </div>
@@ -50,28 +54,14 @@
 
             <div class="grid size-grid">
                 <label class="option">
-                    <input type="radio" name="cakeSize" value="1" required />
+                    <input type="radio" name="cake_size" value="1" required />
                     <div class="card"><div class="card__title">1호</div></div>
                 </label>
                 <label class="option">
-                    <input type="radio" name="cakeSize" value="2" />
+                    <input type="radio" name="cake_size" value="2" />
                     <div class="card"><div class="card__title">2호</div></div>
                 </label>
                 <!-- 필요하면 4호/미니 등 추가 -->
-            </div>
-
-
-            <!-- =========================
-                 3) 메모
-            ========================== -->
-            <div class="section-head" style="margin-top: 18px;">
-                <h2 class="title">메모</h2>
-            </div>
-
-            <div class="note-box">
-                <textarea name="note" rows="4"
-                          placeholder="예) 초 5개, 문구: 생일축하해, 픽업 전 전화 부탁"
-                          class="note-input"></textarea>
             </div>
 
 
@@ -82,6 +72,7 @@
                 <button type="submit" class="btn primary">완료</button>
             </div>
 
+            <p data-sale-feedback role="status" aria-live="polite" hidden></p>
         </form>
 
     </main>

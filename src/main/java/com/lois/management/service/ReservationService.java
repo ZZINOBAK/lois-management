@@ -194,7 +194,7 @@ public class ReservationService {
         String requestId = UUID.randomUUID().toString();
         // 이력 저장: 픽업 완료
         if (cakeMovementMapper.insertPickupMovement(cakeId, cakeSize, "PICKED_UP",
-                stockChanged, reservationId, requestId) != 1) {
+                stockChanged, reservationId, requestId, null) != 1) {
             // 케이크 픽업 완료 이력 저장 중 예외 발생
             throw new IllegalStateException("Expected exactly one pickup movement");
         }
@@ -203,7 +203,7 @@ public class ReservationService {
 
     // 픽업 취소 (신규)
     @Transactional
-    public boolean cancelPickup(Long reservationId) {
+    public boolean cancelPickup(Long reservationId, String cancelReason) {
         // 예약 조회 with 행 락
         Reservation reservation = reservationMapper.findByIdForUpdate(reservationId);
         if (reservation == null) {
@@ -228,9 +228,9 @@ public class ReservationService {
 
         Long cakeId = pickup.getCakeId();
         Integer cakeSize = pickup.getCakeSize();
-        boolean stockChanged = pickup.getStockChanged();
+        boolean stockChanged = "RETURNED".equals(cancelReason) || Boolean.TRUE.equals(pickup.getStockChanged());
 
-        // 스톡 변경이 있는 픽업 완료 건만 스톡 증가
+        // 실물 반환 또는 원본 픽업에서 차감했던 처리 정정이면 스톡 증가
         if (stockChanged && cakeStockMapper.increaseStock(cakeId, cakeSize) != 1) {
             // 스톡 증가 중 예외 발생
             throw new IllegalStateException("Expected exactly one stock row");
@@ -245,7 +245,8 @@ public class ReservationService {
         String requestId = UUID.randomUUID().toString();
         // 이력 저장: 픽업 취소
         if (cakeMovementMapper.insertPickupMovement(cakeId, cakeSize, "UNDO_PICKED_UP",
-                stockChanged, reservationId, requestId) != 1) {
+                stockChanged, reservationId, requestId,
+                "RETURNED".equals(cancelReason) ? "케이크를 돌려받았어요" : "아직 픽업 전이에요") != 1) {
             // 픽업 취소 이력 수정 중 예외 발생
             throw new IllegalStateException("Expected exactly one pickup cancellation movement");
         }

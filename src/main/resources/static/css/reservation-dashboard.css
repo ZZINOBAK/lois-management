@@ -461,3 +461,82 @@
     background: #333;
     color: #fff;
 }
+
+.reservation-list .summary-row .reservation-flavor { font-weight: 600; text-align: center; }
+
+/* 픽업 요청 결과 토스트 */
+.reservation-dashboard .reservation-pickup-toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1100;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    box-sizing: border-box;
+    margin: 0;
+    padding: 14px 22px;
+    border-radius: 12px;
+    background: #26382f;
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .2);
+    text-align: center;
+    pointer-events: none;
+}
+.reservation-dashboard .reservation-pickup-toast[data-kind="error"] { background: #8b3237; }
+.reservation-dashboard .reservation-pickup-toast[hidden] { display: none; }
+
+.pickup-cancel-dialog {
+    width: min(720px, calc(100vw - 40px));
+    box-sizing: border-box;
+    padding: 28px;
+    border: 0;
+    border-radius: 20px;
+    color: #26382f;
+}
+.pickup-cancel-dialog::backdrop { background: rgba(0, 0, 0, .45); }
+.pickup-cancel-dialog h2 { margin: 0 0 24px; font-size: 22px; }
+.pickup-cancel-options { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 24px; }
+.pickup-cancel-option {
+    flex: 1 1 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 24px 12px;
+    border: 2px solid #d5dfd9;
+    border-radius: 16px;
+    background: #f3f7f4;
+    color: inherit;
+    cursor: pointer;
+}
+.pickup-cancel-option:hover { background: #e4eee7; }
+.pickup-cancel-option:focus-visible { outline: 3px solid #51765e; outline-offset: 3px; }
+.pickup-cancel-option:disabled { opacity: .55; cursor: wait; }
+.pickup-cancel-option strong { font-size: 21px; }
+.pickup-cancel-option span { font-size: 14px; }
+.pickup-cancel-option svg { width: 120px; height: 100px; fill: none; stroke: #51765e; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+
+.reservation-dashboard .reservation-list .summary-row .pickup-btn.production-ready-btn {
+    background-color: #e2f1cc;
+    border-color: #c7dfa5;
+    color: #36502b;
+}
+
+.reservation-dashboard .reservation-stock-panel { margin: 0 0 20px; padding: 18px; border: 1px solid #dcded4; border-radius: 14px; background: #f8f9f3; }
+.reservation-dashboard .reservation-stock-panel[hidden] { display: none; }
+.reservation-dashboard .reservation-stock-panel h3 { margin: 0 0 14px; font-size: 18px; }
+.reservation-dashboard .reservation-stock-panel h3 span { margin-left: 6px; font-size: 13px; font-weight: 400; }
+.reservation-dashboard .reservation-stock-panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; }
+.reservation-dashboard .reservation-stock-item { padding: 12px; border-radius: 10px; background: #e9e7df; color: #292823; }
+.reservation-dashboard .reservation-stock-item[data-flavor="가나슈"] { background: #f0dce4; }
+.reservation-dashboard .reservation-stock-item[data-flavor="모카"] { background: #eadcc7; }
+.reservation-dashboard .reservation-stock-item[data-flavor="무화과"] { background: #f2dfeb; }
+.reservation-dashboard .reservation-stock-item[data-flavor="레몬"] { background: #faf1b4; }
+.reservation-dashboard .reservation-stock-item[data-flavor="바닐라"] { background: #f0e4c2; }
+.reservation-dashboard .reservation-stock-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.reservation-dashboard .reservation-stock-controls button { width: 40px; height: 40px; border: 0; border-radius: 50%; background: #fff9; color: inherit; font-size: 24px; cursor: pointer; touch-action: manipulation; }
+.reservation-dashboard .reservation-stock-controls button:disabled { opacity: .45; cursor: wait; }
+.reservation-dashboard .reservation-stock-controls button:focus-visible { outline: 2px solid #51765e; outline-offset: 2px; }
+.reservation-dashboard .reservation-stock-controls strong { font-size: 28px; }
+.reservation-dashboard [data-stock-panel-toggle][aria-expanded="true"] { background: #e2f1cc; color: #36502b; }

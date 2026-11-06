@@ -9,6 +9,8 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
     const calls = [];
     const readCalls = [];
     const needsList = { children: ['initial'], replaceChildren(fragment) { this.children = fragment.children; } };
+    const needsOneList = { children: [], replaceChildren(fragment) { this.children = fragment.children; } };
+    const needsOneGroup = { hidden: !(state.needs || []).some(need => need.cakeSize === 1) };
     const needsWarning = { hidden: true };
     const timers = new Map();
     let timerId = 0;
@@ -19,6 +21,10 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
         disabled: false,
         closest() { return this; }
     }));
+    const cardStocks = flavors.map((flavor, i) => ({
+        dataset: { cakeId: String(11 + i), cakeSize: '2' }, textContent: '0',
+        closest: () => buttons[i]
+    }));
     const cancelButtons = flavors.map((flavor, i) => ({
         dataset: { cakeId: String(11 + i), flavor, productionAction: 'cancel' },
         disabled: false, closest() { return this; }
@@ -27,10 +33,13 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
     let click;
     const attrs = {};
     const root = {
-        dataset: { produceUrl: '/cake-stocks/produce', cancelUrl: '/cake-stocks/produce-cancel', needsUrl: '/cake-movements/production-needs' },
+        dataset: { produceUrl: '/cake-stocks/produce', cancelUrl: '/cake-stocks/produce-cancel', needsUrl: '/cake-production/production-needs' },
         querySelector: selector => selector === '[data-production-needs]' ? needsList
+            : selector === '[data-production-needs-one]' ? needsOneList
+            : selector === '[data-production-needs-one-group]' ? needsOneGroup
             : selector === '[data-production-needs-warning]' ? needsWarning : toast,
         querySelectorAll: selector => {
+            if (selector === '[data-card-stock]') return cardStocks;
             if (selector === '[data-production-reservation]') return state.rows || [];
             if (selector === '[data-production-need]') return (state.needs || []).map(need => ({
                 dataset: { cakeId: String(need.cakeId), cakeSize: String(need.cakeSize), stockQuantity: String(need.stockQuantity) }
@@ -65,7 +74,7 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
     });
     vm.runInContext(load('auth-common.js'), context);
     vm.runInContext(load('cake-production.js'), context);
-    return { calls, readCalls, needsList, needsWarning, buttons, cancelButtons, other, toast, timers, attrs, click: button => click({ target: button }) };
+    return { calls, readCalls, needsOneList, needsOneGroup, needsList, needsWarning, cardStocks, buttons, cancelButtons, other, toast, timers, attrs, click: button => click({ target: button }) };
 }
 
 for (let i = 0; i < 5; i++) {
@@ -226,11 +235,11 @@ test('card and minus button retain rounded borderless styles', () => {
 for (const action of ['produce', 'cancel']) {
     test(action + ' success refreshes shortage with emphasis and safe text', async () => {
         const p = page(undefined, async () => ({ status: 200, json: async () => [
-            { cakeFlavor: '가나슈', requiredQuantity: 2 }, { cakeFlavor: '<img onerror=evil()>', requiredQuantity: 0 }
+            { cakeSize: 2, cakeFlavor: '가나슈', requiredQuantity: 2 }, { cakeSize: 2, cakeFlavor: '<img onerror=evil()>', requiredQuantity: 0 }
         ] }));
         await p.click(action === 'produce' ? p.buttons[0] : p.cancelButtons[0]);
         assert.equal(p.readCalls.length, 1);
-        assert.equal(p.readCalls[0].url, '/cake-movements/production-needs');
+        assert.equal(p.readCalls[0].url, '/cake-production/production-needs');
         assert.equal(p.readCalls[0].options.cache, 'no-store');
         assert.equal(p.needsList.children[0].className, 'cake-production-need is-needed');
         assert.equal(p.needsList.children[1].className, 'cake-production-need');
@@ -271,11 +280,11 @@ test('successful refresh removes stale warning after a previous refresh failure'
     assert.equal(p.calls.length, 2);
 });
 
-function reservationRow(id, time, { cakeId = 11, size = 2, make = 'RESERVED', pickup = 'WAITING' } = {}) {
+function reservationRow(id, time, { cakeId = 11, size = 2, state = 'RESERVED', make = 'RESERVED', pickup = 'WAITING' } = {}) {
     const status = { textContent: '' };
     const row = {
         dataset: { reservationId: String(id), pickupTime: time, cakeId: String(cakeId),
-            cakeSize: String(size), makeStatus: make, pickupStatus: pickup },
+            cakeSize: String(size), status: state, makeStatus: make, pickupStatus: pickup },
         classList: { toggle(name, value) {
             if (name === 'is-production-ready') row.ready = value;
             if (name === 'is-production-needed') row.needsProduction = value;
@@ -286,7 +295,7 @@ function reservationRow(id, time, { cakeId = 11, size = 2, make = 'RESERVED', pi
 }
 test('initial stock covers earliest unpicked reservation and skips picked rows', () => {
     const late = reservationRow(3, '14:00');
-    const picked = reservationRow(1, '12:00', { pickup: 'PICKED' });
+    const picked = reservationRow(1, '12:00', { state: 'PICKED_UP' });
     const early = reservationRow(2, '13:00');
     page(undefined, undefined, { rows: [late, picked, early], needs: [{ cakeId: 11, cakeSize: 2, stockQuantity: 1 }] });
     assert.equal(early.ready, true);
@@ -305,7 +314,7 @@ test('same pickup time uses reservation ID tie-breaker', () => {
 });
 test('allocation separates flavors and size and excludes nonreserved rows', () => {
     const wrongSize = reservationRow(1, '09:00', { size: 1 });
-    const wrongState = reservationRow(2, '10:00', { make: 'READY' });
+    const wrongState = reservationRow(2, '10:00', { state: 'CANCELLED' });
     const anotherFlavor = reservationRow(3, '11:00', { cakeId: 12 });
     const eligible = reservationRow(4, '12:00');
     page(undefined, undefined, { rows: [wrongSize, wrongState, anotherFlavor, eligible],
@@ -381,8 +390,77 @@ test('readiness removes production-needed emphasis and cancellation restores it'
     assert.equal(row.needsProduction, true);
 });
 test('picked-up reservation does not receive production-needed emphasis', () => {
-    const row = reservationRow(1, '12:00', { pickup: 'PICKED' });
+    const row = reservationRow(1, '12:00', { state: 'PICKED_UP' });
     page(undefined, undefined, { rows: [row] });
     assert.equal(row.status.textContent, '픽업 완료');
     assert.equal(row.needsProduction, false);
+});
+
+test('card shows current quantity matched by ID and size, not shortage or position', () => {
+    const p = page(undefined, undefined, { needs: [
+        { cakeId: 12, cakeSize: 2, stockQuantity: 3, requiredQuantity: 9 },
+        { cakeId: 11, cakeSize: 1, stockQuantity: 8 },
+        { cakeId: 11, cakeSize: 2, stockQuantity: 0 }
+    ] });
+    assert.equal(p.cardStocks[0].textContent, '0');
+    assert.equal(p.cardStocks[1].textContent, '3');
+    assert.equal(p.cardStocks[2].textContent, '0');
+});
+test('card current quantity refreshes after production and cancellation', async () => {
+    let stock = 4;
+    const p = page(undefined, async () => ({ status: 200, json: async () => [
+        { cakeId: 11, cakeSize: 2, stockQuantity: stock, requiredQuantity: 0, cakeFlavor: '가나슈' }
+    ] }));
+    await p.click(p.buttons[0]);
+    assert.equal(p.cardStocks[0].textContent, '4');
+    stock = 3;
+    await p.click(p.cancelButtons[0]);
+    assert.equal(p.cardStocks[0].textContent, '3');
+});
+test('clicking card quantity sends exactly one production request', async () => {
+    const p = page();
+    await p.click(p.cardStocks[0]);
+    assert.equal(p.calls.length, 1);
+    assert.equal(p.calls[0].url, '/cake-stocks/produce');
+    assert.equal(p.calls[0].options.body.get('cake_id'), '11');
+});
+test('refresh failure preserves displayed current quantity', async () => {
+    const p = page(undefined, async () => ({ status: 500 }), {
+        needs: [{ cakeId: 11, cakeSize: 2, stockQuantity: 5 }]
+    });
+    await p.click(p.buttons[0]);
+    assert.equal(p.cardStocks[0].textContent, '5');
+    assert.equal(p.needsWarning.hidden, false);
+});
+
+test('completed pickups at 11:29 and 14:03 do not consume stock for 14:53', () => {
+    const first = reservationRow(1, '11:29', { state: 'PICKED_UP', pickup: 'WAITING' });
+    const second = reservationRow(2, '14:03', { state: 'PICKED_UP', pickup: 'WAITING' });
+    const third = reservationRow(3, '14:53', { state: 'RESERVED', make: 'READY', pickup: 'PICKED' });
+    page(undefined, undefined, { rows: [first, second, third], needs: [{ cakeId: 11, cakeSize: 2, stockQuantity: 1 }] });
+    for (const row of [first, second]) {
+        assert.equal(row.status.textContent, '픽업 완료');
+        assert.equal(row.ready, false);
+        assert.equal(row.needsProduction, false);
+    }
+    assert.equal(third.ready, true);
+    assert.equal(third.status.textContent, '제작 완료');
+});
+
+test('size one reservations use only size one stock', () => {
+    const one = reservationRow(1, '12:00', { size: 1 });
+    const two = reservationRow(2, '13:00');
+    page(undefined, undefined, { rows: [one, two], needs: [{ cakeId: 11, cakeSize: 1, stockQuantity: 1 }, { cakeId: 11, cakeSize: 2, stockQuantity: 0 }] });
+    assert.equal(one.ready, true); assert.equal(two.ready, false);
+});
+test('refresh separates size one and two and hides size one when absent', async () => {
+    let needs = [{ cakeId: 11, cakeSize: 2, stockQuantity: 2, requiredQuantity: 0, cakeFlavor: '가나슈' },
+        { cakeId: 12, cakeSize: 1, stockQuantity: 0, requiredQuantity: 1, cakeFlavor: '무화과' }];
+    const p = page(undefined, async () => ({ status: 200, json: async () => needs }));
+    await p.click(p.buttons[0]);
+    assert.equal(p.needsList.children.length, 1); assert.equal(p.needsOneList.children.length, 1);
+    assert.equal(p.needsOneList.children[0].children[0].textContent, '무화과');
+    assert.equal(p.needsOneGroup.hidden, false);
+    needs = [needs[0]]; await p.click(p.buttons[0]);
+    assert.equal(p.needsOneGroup.hidden, true); assert.equal(p.needsOneList.children.length, 0);
 });

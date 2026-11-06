@@ -2,17 +2,21 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 
 <head th:replace="~{fragments/head :: commonHead('Lois – Cake Reservations', ~{::extraHead})}">
-</head>
-
-<body>
     <!-- 페이지별 head 추가 요소 -->
     <th:block th:fragment="extraHead">
         <link rel="stylesheet" th:href="@{/css/index.css}">
         <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
         <link rel="stylesheet" th:href="@{/css/reservation-dashboard.css}">
 
+        <script th:src="@{/js/auth-common.js}" defer></script>
         <script th:src="@{/js/reservation.js}" defer></script>
+        <script th:src="@{/js/reservation-stock-panel.js}" defer></script>
+        <script th:src="@{/js/reservation-pickup.js}" defer></script>
     </th:block>
+</head>
+
+<body>
+
 
     <div class="wrap reservation-dashboard">
         <!-- ✨ 공통 헤더 -->
@@ -20,6 +24,7 @@
 
         <!-- 메인 -->
         <main>
+            <p class="reservation-pickup-toast" data-pickup-feedback role="status" aria-live="polite" hidden></p>
             <section class="content">
                 <!-- 🔹 레전드(왼쪽) + 검색폼(오른쪽) 한 줄 -->
                 <div class="list-header grid-2x2">
@@ -29,8 +34,8 @@
                     </div>
                     <!-- 오른쪽 위 -->
                     <div class="slot tr">
-                        <a class="cta" th:href="@{/cake-movements/produce}" role="button">
-                            <div class="title">제작완료</div>
+                        <a class="cta" th:href="@{/cake-production}" role="button">
+                            <div class="title">제작 관리</div>
                         </a>
                         <a class="cta" th:href="@{/reservations/on-site}" role="button">
                             <div class="title">현장판매</div>
@@ -63,6 +68,8 @@
                                     hx-vals='{"range":"all"}'>
                                 전체
                             </button>
+                            <button class="chip" type="button" data-stock-panel-toggle
+                                    aria-expanded="false" aria-controls="reservation-stock-panel">제작현황</button>
                             <div id="date-popover" class="date-popover hidden">
                                 <input type="date" id="pickDate" name="date"
                                        hx-get="/reservations/list"
@@ -98,6 +105,14 @@
                         </form>
                     </div>
                 </div>
+
+                <section id="reservation-stock-panel" class="reservation-stock-panel" data-stock-panel hidden
+                         aria-labelledby="reservation-stock-panel-title"
+                         th:attr="data-needs-url=@{/cake-production/production-needs},data-produce-url=@{/cake-stocks/produce},data-cancel-url=@{/cake-stocks/produce-cancel}">
+                    <h3 id="reservation-stock-panel-title">제작현황 <span>2호</span></h3>
+                    <p data-stock-panel-status role="status" aria-live="polite"></p>
+                    <div class="reservation-stock-panel-grid" data-stock-panel-items></div>
+                </section>
 
                 <div class="reservation-dashboard-layout">
                     <div class="reservation-dashboard-production">
@@ -193,6 +208,31 @@
             </div>
         </div>
     </div>
+
+    <dialog class="pickup-cancel-dialog" data-pickup-cancel-dialog aria-labelledby="pickup-cancel-title">
+        <h2 id="pickup-cancel-title">픽업을 취소하는 이유를 선택해 주세요</h2>
+        <div class="pickup-cancel-options">
+            <button type="button" class="pickup-cancel-option" data-cancel-reason="MISTAKE">
+                <svg viewBox="0 0 120 100" aria-hidden="true" focusable="false">
+                    <path d="M18 85h84M26 82V53h68v29M26 60q8-12 17 0t17 0t17 0t17 0" />
+                    <path d="M60 51V32m0-8c-10-7 0-17 0-17s10 10 0 17" />
+                    <path d="M88 18h22m-6-6 6 6-6 6" />
+                </svg>
+                <strong>아직 픽업 전이에요</strong>
+                <span>픽업 완료 처리를 되돌려요.</span>
+            </button>
+            <button type="button" class="pickup-cancel-option" data-cancel-reason="RETURNED">
+                <svg viewBox="0 0 120 100" aria-hidden="true" focusable="false">
+                    <path d="M35 64V41h50v23M35 48q6-9 13 0t13 0t13 0t11 0M60 39V26" />
+                    <path d="M15 88l17-15h36q12 0 12 8H49m30 0 20-16q10-5 13 2L86 92H36" />
+                    <path d="M88 12H49m9-8-9 8 9 8" />
+                </svg>
+                <strong>케이크를 돌려받았어요</strong>
+                <span>돌려받은 케이크를 재고에 추가해요.</span>
+            </button>
+        </div>
+        <button type="button" class="btn" data-cancel-dismiss>닫기</button>
+    </dialog>
 
     <script th:src="@{/js/reservation-footer.js}" defer></script>
 
