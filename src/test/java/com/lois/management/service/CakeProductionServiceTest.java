@@ -69,11 +69,35 @@ class CakeProductionServiceTest {
         String sql = bound.getSql();
         assertThat(statement.getResultMaps().getFirst().getType()).isEqualTo(CakeProductionNeedDto.class);
         assertThat(sql).contains("LEFT JOIN", "COUNT(*)", "res_date = ?", "cake_size = ?",
-                "make_status = 'RESERVED'", "ORDER BY c.id ASC", "COALESCE")
-                .doesNotContain("pickup_status", "cake_movements");
+                "status = 'RESERVED'", "ORDER BY c.id ASC", "COALESCE")
+                .doesNotContain("make_status", "pickup_status", "cake_movements");
         String stockQuery = sql.substring(sql.indexOf("SELECT s.quantity"), sql.indexOf("AS stockQuantity"));
         assertThat(stockQuery).contains("s.cake_id = c.id", "s.cake_size = ?").doesNotContain("date");
         assertThat(bound.getParameterMappings()).extracting("property")
                 .containsExactly("cakeSize", "cakeSize", "today", "cakeSize");
+    }
+    @Test
+    void calculatesSizeOneAndTwoSeparately() {
+        var two = new CakeProductionNeedDto(); two.setCakeId(7L); two.setCakeSize(2);
+        two.setReservationQuantity(3); two.setStockQuantity(1);
+        var one = new CakeProductionNeedDto(); one.setCakeId(7L); one.setCakeSize(1);
+        one.setReservationQuantity(1); one.setStockQuantity(0);
+        when(mapper.findProductionNeeds(any(), eq(2))).thenReturn(List.of(two));
+        when(mapper.findProductionNeeds(any(), eq(1))).thenReturn(List.of(one));
+        assertThat(service.findTodayProductionNeeds()).extracting(CakeProductionNeedDto::getRequiredQuantity).containsExactly(2, 1);
+    }
+
+    @Test
+    void sizeOneQueryRequiresTodayReservationWithoutExcludingPickedUp() throws Exception {
+        Configuration config = new Configuration();
+        try (var input = getClass().getResourceAsStream("/mapper/CakeProductionMapper.xml")) {
+            new XMLMapperBuilder(input, config, "CakeProductionMapper.xml", config.getSqlFragments()).parse();
+        }
+        var statement = config.getMappedStatement(CakeProductionMapper.class.getName() + ".findProductionNeeds");
+        String oneSql = statement.getBoundSql(Map.of("today", LocalDate.now(), "cakeSize", 1)).getSql();
+        String presence = oneSql.substring(oneSql.indexOf("WHERE EXISTS"));
+        assertThat(presence).contains("today_reservation.cake_id = c.id", "today_reservation.res_date = ?", "today_reservation.cake_size = ?")
+                .doesNotContain("status =");
+        assertThat(statement.getBoundSql(Map.of("today", LocalDate.now(), "cakeSize", 2)).getSql()).doesNotContain("WHERE EXISTS");
     }
 }

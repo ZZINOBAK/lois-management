@@ -163,15 +163,15 @@ class CakeProductionControllerTest {
                 "&lt;script&gt;alert(1)&lt;/script&gt;");
         assertThat(table.indexOf("가나슈")).isLessThan(table.indexOf("무화과"));
         assertThat(table).doesNotContain("00분", ">09:00</td>", ">13:30</td>", ">51</td>", ">52</td>",
-                "010-1234-9876", "호수", "결제", "PICKED_UP", "<button", "<script>");
-        assertThat(table).contains("data-reservation-id=\"501\"", "data-make-status=\"RESERVED\"",
-                "data-pickup-status=\"WAITING\"", "data-cake-size=\"1\"", "data-pickup-time=\"09:00\"");
+                "010-1234-9876", "결제", "<button", "<script>");
+        assertThat(table).contains("data-reservation-id=\"501\"", "data-status=\"PICKED_UP\"", "data-cake-size=\"1\"", "data-pickup-time=\"09:00\"");
+        assertThat(table).doesNotContain("data-make-status", "data-pickup-status");
     }
 
     @Test
     void productionPageShowsEmptyReservationMessage() throws Exception {
         when(reservations.findTodayOrderByPickUpTime(any())).thenReturn(List.of());
-        assertThat(render()).contains("오늘 예약이 없습니다.", "colspan=\"4\"");
+        assertThat(render()).contains("오늘 예약이 없습니다.", "colspan=\"5\"");
     }
 
     @Test
@@ -246,6 +246,28 @@ class CakeProductionControllerTest {
         return need;
     }
 
+    @Test
+    void sizeOneNeedsRenderSeparatelyAndBadgeAppearsOnlyForSizeOne() throws Exception {
+        var one = need("무화과", 1);
+        one.setCakeSize(1);
+        when(production.findTodayProductionNeeds()).thenReturn(List.of(need("가나슈", 0), one));
+        var reservation = reservation(1L, LocalTime.NOON, "무화과");
+        reservation.setCakeSize(1);
+        when(reservations.findTodayOrderByPickUpTime(any())).thenReturn(List.of(reservation));
+        String html = render();
+        String group = html.substring(html.indexOf("<div class=\"cake-production-needs-one\""), html.indexOf("</section>"));
+        assertThat(group).contains("무화과", "data-cake-size=\"1\"").doesNotContain("가나슈", "hidden");
+        assertThat(html).contains("class=\"cake-production-size-badge\">1호</span>");
+    }
+
+    @Test
+    void sizeOneGroupIsHiddenWithoutSizeOneReservations() throws Exception {
+        when(production.findTodayProductionNeeds()).thenReturn(List.of(need("가나슈", 0)));
+        String html = render();
+        String group = html.substring(html.indexOf("<div class=\"cake-production-needs-one\""), html.indexOf("</section>"));
+        assertThat(group).contains("hidden");
+    }
+
     private Reservation reservation(Long id, LocalTime time, String flavor) {
         Reservation reservation = new Reservation();
         reservation.setId(id);
@@ -253,6 +275,7 @@ class CakeProductionControllerTest {
         reservation.setCakeFlavor(flavor);
         reservation.setCakeId("가나슈".equals(flavor) ? 1L : 2L);
         reservation.setCakeSize(2);
+        reservation.setStatus("RESERVED");
         reservation.setMakeStatus("RESERVED");
         reservation.setPickupStatus("WAITING");
         return reservation;

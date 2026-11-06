@@ -51,35 +51,11 @@
             </button>
         </div>
         <aside class="cake-production-reservations" aria-labelledby="production-reservations-title">
-            <div class="cake-production-reservations-heading">
-                <h2 id="production-reservations-title">오늘 예약</h2>
-                <a class="cake-production-reservations-link" th:href="@{/reservations}">예약 리스트 이동</a>
-            </div>
-            <table class="cake-production-reservation-table">
-                <thead>
-                <tr><th scope="col">연번</th><th scope="col">시간</th><th scope="col">맛</th><th scope="col">상태</th></tr>
-                </thead>
-                <tbody>
-                <tr th:each="r, stat : ${reservations}" data-production-reservation
-                    th:classappend="${r.pickupStatus == 'WAITING'} ? 'is-production-needed'"
-                    th:attr="data-reservation-id=${r.id},data-cake-id=${r.cakeId},data-cake-size=${r.cakeSize},
-                             data-make-status=${r.makeStatus},data-pickup-status=${r.pickupStatus},data-pickup-time=${r.resTime}">
-                    <td th:text="${stat.count}">1</td>
-                    <td th:text="${r.resTime.minute == 0 ? #temporals.format(r.resTime, 'HH시') : #temporals.format(r.resTime, 'HH시 mm분')}">13시</td>
-                    <td th:text="${r.cakeFlavor}">가나슈</td>
-                    <td class="cake-production-reservation-status"
-                        th:text="${r.pickupStatus == 'PICKED' ? '픽업 완료' : (r.pickupStatus == 'WAITING' ? '제작 필요' : '-')}">제작 필요</td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(reservations)}">
-                    <td colspan="4" class="cake-production-empty">오늘 예약이 없습니다.</td>
-                </tr>
-                </tbody>
-            </table>
             <section class="cake-production-needs" aria-labelledby="production-needs-title">
                 <h2 id="production-needs-title">제작 필요 수량 <span>2호</span></h2>
                 <p class="cake-production-needs-warning" data-production-needs-warning hidden>수량을 갱신하지 못했습니다. 현재 표시가 최신이 아닐 수 있습니다.</p>
                 <ul class="cake-production-needs-list" data-production-needs aria-live="polite">
-                    <li class="cake-production-need" th:each="need : ${productionNeeds}"
+                    <li class="cake-production-need" th:each="need : ${productionNeeds.?[cakeSize == 2]}"
                         th:classappend="${need.requiredQuantity > 0} ? 'is-needed'"
                         data-production-need
                         th:attr="data-cake-id=${need.cakeId},data-cake-size=${need.cakeSize},data-stock-quantity=${need.stockQuantity}">
@@ -87,7 +63,50 @@
                         <span class="cake-production-need-quantity" th:text="${need.requiredQuantity}">0</span>
                     </li>
                 </ul>
+                <div class="cake-production-needs-one" data-production-needs-one-group
+                     th:hidden="${#lists.isEmpty(productionNeeds.?[cakeSize == 1])}">
+                    <h3>1호</h3>
+                <ul class="cake-production-needs-list" data-production-needs-one aria-live="polite">
+                    <li class="cake-production-need" th:each="need : ${productionNeeds.?[cakeSize == 1]}"
+                        th:classappend="${need.requiredQuantity > 0} ? 'is-needed'"
+                        data-production-need
+                        th:attr="data-cake-id=${need.cakeId},data-cake-size=${need.cakeSize},data-stock-quantity=${need.stockQuantity}">
+                        <span th:text="${need.cakeFlavor}">가나슈</span>
+                        <span class="cake-production-need-quantity" th:text="${need.requiredQuantity}">0</span>
+                    </li>
+                </ul>
+                </div>
             </section>
+            <section class="cake-production-reservation-panel" aria-labelledby="production-reservations-title">
+            <div class="cake-production-reservations-heading">
+                <h2 id="production-reservations-title">오늘 예약</h2>
+                <a class="cake-production-reservations-link" th:href="@{/reservations}">예약 리스트 이동</a>
+            </div>
+            <div class="cake-production-reservation-scroll" tabindex="0" role="region" aria-label="오늘 예약 목록">
+            <table class="cake-production-reservation-table">
+                <thead>
+                <tr><th scope="col">연번</th><th scope="col">시간</th><th scope="col">맛</th><th scope="col" class="cake-production-size-column"><span class="cake-production-sr-only">호수</span></th><th scope="col">상태</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="r, stat : ${reservations}" data-production-reservation
+                    th:classappend="${r.status == 'PICKED_UP' ? 'is-picked-up' : (r.status == 'RESERVED' ? 'is-production-needed' : '')}"
+                    th:attr="data-reservation-id=${r.id},data-cake-id=${r.cakeId},data-cake-size=${r.cakeSize},
+                             data-status=${r.status},data-pickup-time=${r.resTime}">
+                    <td th:text="${stat.count}">1</td>
+                    <td th:text="${r.resTime.minute == 0 ? #temporals.format(r.resTime, 'HH시') : #temporals.format(r.resTime, 'HH시 mm분')}">13시</td>
+                    <td th:text="${r.cakeFlavor}">가나슈</td>
+                    <td class="cake-production-size-column"><span class="cake-production-size-badge" th:if="${r.cakeSize == 1}">1호</span></td>
+                    <td class="cake-production-reservation-status"
+                        th:text="${r.status == 'PICKED_UP' ? '픽업 완료' : (r.status == 'RESERVED' ? '제작 필요' : '-')}">제작 필요</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(reservations)}">
+                    <td colspan="5" class="cake-production-empty">오늘 예약이 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+            </div>
+            </section>
+
         </aside>
         </div>
         <div class="cake-production-toast" data-production-toast role="status" aria-live="polite" aria-atomic="true" hidden></div>

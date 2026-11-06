@@ -4,6 +4,8 @@
     const toast = root.querySelector('[data-production-toast]');
     const buttons = [...root.querySelectorAll('[data-production-action="produce"], [data-production-action="cancel"]')];
     const needsList = root.querySelector('[data-production-needs]');
+    const needsOneList = root.querySelector('[data-production-needs-one]');
+    const needsOneGroup = root.querySelector('[data-production-needs-one-group]');
     const needsWarning = root.querySelector('[data-production-needs-warning]');
     let pending = false;
     let toastTimer;
@@ -31,8 +33,8 @@
     function updateReservationReadiness(needs) {
         const remaining = new Map();
         for (const need of needs) {
-            if (Number(need.cakeSize) === 2) {
-                remaining.set(String(need.cakeId) + ':2', Math.max(Number(need.stockQuantity) || 0, 0));
+            if ([1, 2].includes(Number(need.cakeSize))) {
+                remaining.set(String(need.cakeId) + ':' + String(need.cakeSize), Math.max(Number(need.stockQuantity) || 0, 0));
             }
         }
         const rows = [...root.querySelectorAll('[data-production-reservation]')];
@@ -44,14 +46,14 @@
             const data = row.dataset;
             const key = data.cakeId + ':' + data.cakeSize;
             const available = remaining.get(key) || 0;
-            const ready = Number(data.cakeSize) === 2 && data.makeStatus === 'RESERVED'
-                && data.pickupStatus !== 'PICKED' && available > 0;
+            const ready = [1, 2].includes(Number(data.cakeSize)) && data.status === 'RESERVED' && available > 0;
             if (ready) remaining.set(key, available - 1);
+            row.classList.toggle('is-picked-up', data.status === 'PICKED_UP');
             row.classList.toggle('is-production-ready', ready);
-            row.classList.toggle('is-production-needed', !ready && data.pickupStatus === 'WAITING');
+            row.classList.toggle('is-production-needed', !ready && data.status === 'RESERVED');
             const status = row.querySelector('.cake-production-reservation-status');
             status.textContent = ready ? '제작 완료' :
-                (data.pickupStatus === 'PICKED' ? '픽업 완료' : (data.pickupStatus === 'WAITING' ? '제작 필요' : '-'));
+                (data.status === 'PICKED_UP' ? '픽업 완료' : (data.status === 'RESERVED' ? '제작 필요' : '-'));
         }
     }
 
@@ -69,6 +71,7 @@
         const needs = await response.json();
         if (!Array.isArray(needs)) throw new Error('Invalid quantity response');
         const fragment = document.createDocumentFragment();
+        const oneFragment = document.createDocumentFragment();
         for (const need of needs) {
             const item = document.createElement('li');
             item.className = 'cake-production-need' + (need.requiredQuantity > 0 ? ' is-needed' : '');
@@ -78,11 +81,14 @@
             quantity.className = 'cake-production-need-quantity';
             quantity.textContent = need.requiredQuantity;
             item.append(name, quantity);
-            fragment.append(item);
+            if (Number(need.cakeSize) === 1) oneFragment.append(item);
+            else if (Number(need.cakeSize) === 2) fragment.append(item);
         }
         updateCardStocks(needs);
         updateReservationReadiness(needs);
         needsList.replaceChildren(fragment);
+        needsOneList.replaceChildren(oneFragment);
+        needsOneGroup.hidden = !needs.some(need => Number(need.cakeSize) === 1);
         needsWarning.hidden = true;
     }
 

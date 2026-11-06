@@ -23,14 +23,44 @@
     align-items: start;
     gap: 32px;
 }
-.cake-production .cake-production-reservations { min-width: 0; }
+.cake-production .cake-production-reservations {
+    min-width: 0;
+    display: grid;
+    grid-template-rows: minmax(160px, auto) auto;
+    gap: 22px;
+    --reservation-row-height: 62px;
+    --reservation-header-height: 44px;
+}
+.cake-production .cake-production-reservation-panel {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.cake-production .cake-production-reservation-scroll {
+    min-height: 0;
+    height: calc(var(--reservation-header-height) + 8 * var(--reservation-row-height));
+    flex: none;
+    overflow: auto;
+    border-bottom: 2px solid #aaa797;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+.cake-production .cake-production-reservation-scroll:focus-visible { outline: 2px solid #356346; outline-offset: 2px; }
+.cake-production .cake-production-reservation-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #faf9f7;
+}
 .cake-production .cake-production-reservations h2 { margin: 0 0 18px; font-size: 20px; letter-spacing: -.03em; }
 .cake-production .cake-production-reservation-table { width: 100%; border-collapse: collapse; font-size: 15px; }
 .cake-production .cake-production-reservation-table th {
+    height: var(--reservation-header-height);
     padding: 12px 8px; border-bottom: 1px solid #dcdad0; color: #747467;
     font-size: 12px; font-weight: 600; text-align: left;
 }
 .cake-production .cake-production-reservation-table td {
+    height: var(--reservation-row-height);
     padding: 17px 8px; border-bottom: 1px solid #e9e7df; line-height: 1.5;
 }
 .cake-production .cake-production-reservation-table th:first-child,
@@ -116,7 +146,7 @@
 .cake-production .cake-production-cancel:disabled { opacity: .55; cursor: wait; }
 .cake-production .cake-production-cancel:focus-visible { outline: 3px solid #243e55; outline-offset: 3px; }
 
-.cake-production .cake-production-needs { margin-top: 30px; padding-top: 24px; border-top: 2px solid #dcdad0; }
+.cake-production .cake-production-needs { min-height: 0; overflow: auto; margin: 0; padding: 0 0 12px; border-bottom: 2px solid #dcdad0; }
 .cake-production .cake-production-needs h2 span { margin-left: 6px; color: #747467; font-size: 13px; font-weight: 400; }
 .cake-production .cake-production-needs-list { display: flex; flex-wrap: wrap; align-items: baseline; gap: 18px 24px; padding: 0; margin: 0; list-style: none; }
 .cake-production .cake-production-need { display: flex; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 400; color: #747467; }
@@ -125,7 +155,9 @@
 .cake-production .cake-production-needs-warning { font-size: 13px; color: #8b3237; line-height: 1.6; }
 .cake-production .cake-production-needs-warning[hidden] { display: none; }
 
-.cake-production .cake-production-reservation-table .is-production-ready td:not(.cake-production-reservation-status) {
+.cake-production .cake-production-reservation-table .is-production-ready td:nth-child(2),
+.cake-production .cake-production-reservation-table .is-production-ready td:nth-child(3),
+.cake-production .cake-production-reservation-table .is-picked-up td {
     text-decoration: line-through; text-decoration-thickness: 1.5px; color: #747467;
 }
 .cake-production .is-production-ready .cake-production-reservation-status { color: #356346; font-weight: 700; }
@@ -160,3 +192,15 @@
 }
 .cake-production .cake-production-reservations-link:hover { background: #294e37; }
 .cake-production .cake-production-reservations-link:focus-visible { outline: 3px solid #88a891; outline-offset: 3px; }
+
+.cake-production .cake-production-needs-one { display: flex; align-items: baseline; gap: 14px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #dcdad0; }
+.cake-production .cake-production-needs-one[hidden] { display: none; }
+.cake-production .cake-production-needs-one h3 { flex: none; margin: 0; color: #747467; font-size: 13px; }
+.cake-production .cake-production-size-column { width: 40px; padding-left: 3px; padding-right: 3px; }
+.cake-production .cake-production-size-badge { font-size: 13px; font-weight: 700; color: #702440; white-space: nowrap; }
+.cake-production .cake-production-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.cake-production .cake-production-needs-one .cake-production-needs-list { gap: 8px 16px; }
+.cake-production .cake-production-needs-one .cake-production-need { gap: 5px; font-size: 13px; }
+.cake-production .cake-production-needs-one .cake-production-need.is-needed { font-size: 14px; }
+.cake-production .cake-production-needs-one .cake-production-need-quantity { font-size: 14px; }
