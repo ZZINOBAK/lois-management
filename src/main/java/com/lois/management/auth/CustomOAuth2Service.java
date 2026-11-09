@@ -1,7 +1,7 @@
 package com.lois.management.auth;
 
-import com.lois.management.domain.Employee;
-import com.lois.management.service.EmployeeService;
+import com.lois.management.domain.employee.Employee;
+import com.lois.management.domain.employee.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;

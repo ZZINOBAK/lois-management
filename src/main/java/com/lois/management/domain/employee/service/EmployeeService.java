@@ -1,8 +1,8 @@
-package com.lois.management.service;
+package com.lois.management.domain.employee.service;
 
-import com.lois.management.domain.Employee;
-import com.lois.management.mapper.EmployeeMapper;
-import com.lois.management.mapper.EmployeeSocialAccountsMapper;
+import com.lois.management.domain.employee.Employee;
+import com.lois.management.domain.employee.mapper.EmployeeMapper;
+import com.lois.management.domain.employee.mapper.EmployeeSocialAccountsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

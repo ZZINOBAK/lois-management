@@ -1,7 +1,6 @@
 package com.lois.management.mapper;
 
 import com.lois.management.domain.Category;
-import com.lois.management.domain.Employee;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

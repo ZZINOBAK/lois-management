@@ -1,4 +1,4 @@
-package com.lois.management.dto.employee;
+package com.lois.management.domain.employee.dto;
 
 import lombok.Data;
 

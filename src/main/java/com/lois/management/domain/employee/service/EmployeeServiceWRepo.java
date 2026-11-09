@@ -1,7 +1,7 @@
-package com.lois.management.service;
+package com.lois.management.domain.employee.service;
 
-import com.lois.management.domain.Employee;
-import com.lois.management.repository.EmployeeRepository;
+import com.lois.management.domain.employee.Employee;
+import com.lois.management.domain.employee.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

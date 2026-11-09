@@ -1,6 +1,6 @@
 package com.lois.management.auth;
 
-import com.lois.management.domain.Employee;
+import com.lois.management.domain.employee.Employee;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

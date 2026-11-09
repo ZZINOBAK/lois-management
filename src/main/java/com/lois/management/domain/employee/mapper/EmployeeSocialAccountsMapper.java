@@ -1,4 +1,4 @@
-package com.lois.management.mapper;
+package com.lois.management.domain.employee.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

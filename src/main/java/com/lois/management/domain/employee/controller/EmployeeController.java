@@ -1,10 +1,9 @@
-package com.lois.management.controller;
+package com.lois.management.domain.employee.controller;
 
-import com.lois.management.domain.Employee;
-import com.lois.management.service.EmployeeService;
+import com.lois.management.domain.employee.Employee;
+import com.lois.management.domain.employee.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

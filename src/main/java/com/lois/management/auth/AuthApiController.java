@@ -1,8 +1,8 @@
 package com.lois.management.auth;
 
-import com.lois.management.domain.Employee;
-import com.lois.management.dto.employee.EmployeeRequest;
-import com.lois.management.service.EmployeeService;
+import com.lois.management.domain.employee.Employee;
+import com.lois.management.domain.employee.dto.EmployeeRequest;
+import com.lois.management.domain.employee.service.EmployeeService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

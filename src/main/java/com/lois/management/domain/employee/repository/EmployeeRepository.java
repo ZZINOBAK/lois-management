@@ -1,7 +1,7 @@
-package com.lois.management.repository;
+package com.lois.management.domain.employee.repository;
 
-import com.lois.management.domain.Employee;
-import com.lois.management.mapper.EmployeeMapper;
+import com.lois.management.domain.employee.Employee;
+import com.lois.management.domain.employee.mapper.EmployeeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
