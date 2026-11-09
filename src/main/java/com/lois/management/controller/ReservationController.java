@@ -265,7 +265,7 @@ public class ReservationController {
         }
 
         model.addAttribute("stepNo", no);
-        return "cake/reservation/steps :: step" + no;
+        return "cake/reservation/fragments/steps :: step" + no;
     }
 
     public List<Cake> findAllCakeFlavor() {
@@ -278,7 +278,7 @@ public class ReservationController {
                               Model model) {
         reserve.setCakeId(cakeId);
         model.addAttribute("stepNo", 2);
-        return "cake/reservation/steps :: step2";
+        return "cake/reservation/fragments/steps :: step2";
     }
 
 //    @PostMapping("/step/2") //케이크 예약 - 날짜 선택
@@ -310,7 +310,7 @@ public class ReservationController {
             model.addAttribute("errorMessage", "예약이 불가능한 날짜입니다. 다시 선택해주세요.");
 
             // 날짜 선택 화면(스텝2) 조각 다시 렌더링
-            return "cake/reservation/steps :: step2";
+            return "cake/reservation/fragments/steps :: step2";
         }
 
         // 통과하면 예약 객체에 날짜 세팅
@@ -320,7 +320,7 @@ public class ReservationController {
         model.addAttribute("stepNo", 3);
 
         // 스텝3 조각 반환
-        return "cake/reservation/steps :: step3";
+        return "cake/reservation/fragments/steps :: step3";
     }
 
     @PostMapping("/step/3") //케이크 예약 - 시간 선택
@@ -329,7 +329,7 @@ public class ReservationController {
                               Model model) {
         reserve.setResTime(time);
         model.addAttribute("stepNo", 4);
-        return "cake/reservation/steps :: step4";
+        return "cake/reservation/fragments/steps :: step4";
     }
 
     @PostMapping("/step/4") //케이크 예약 - 연락처 입력
@@ -355,7 +355,7 @@ public class ReservationController {
         }
 
         model.addAttribute("stepNo", 5);
-        return "cake/reservation/steps :: step5";
+        return "cake/reservation/fragments/steps :: step5";
     }
 
     @PostMapping("/step/5") //케이크 예약 - 예약정보 확인 후 확정
@@ -363,7 +363,7 @@ public class ReservationController {
                               Model model) {
 
         model.addAttribute("stepNo", 6);
-        return "cake/reservation/steps :: step6";
+        return "cake/reservation/fragments/steps :: step6";
     }
 
 //    @PostMapping("/finish")

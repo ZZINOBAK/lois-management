@@ -85,7 +85,7 @@
 
                     <!-- 아이템 grid -->
                     <div class="item-grid"
-                        th:replace="~{supplies/fragments/item-grid :: itemGridAll(${top8Items}, ${itemsExceptTop8})}">
+                        th:replace="~{supply/requests/fragments/item-grid :: itemGridAll(${top8Items}, ${itemsExceptTop8})}">
 
                         <!-- 🔥 1) 인기 TOP 8 -->
                         <form th:each="item : ${top8Items}" hx-post="/api/stock-requests" hx-swap="none">
