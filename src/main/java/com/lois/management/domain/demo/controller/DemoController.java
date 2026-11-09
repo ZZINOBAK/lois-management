@@ -1,6 +1,6 @@
-package com.lois.management.controller.demo;
+package com.lois.management.domain.demo.controller;
 
-import com.lois.management.service.demo.DemoDataService;
+import com.lois.management.domain.demo.service.DemoDataService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

@@ -1,12 +1,12 @@
 package com.lois.management.auth;
 
 import com.lois.management.config.filter.IpWhitelistFilter;
-import com.lois.management.controller.demo.DemoController;
-import com.lois.management.controller.demo.DemoItemController;
-import com.lois.management.controller.demo.DemoReservationController;
-import com.lois.management.controller.demo.DemoStockRequestController;
+import com.lois.management.domain.demo.controller.DemoController;
+import com.lois.management.domain.demo.controller.DemoItemController;
+import com.lois.management.domain.demo.controller.DemoReservationController;
+import com.lois.management.domain.demo.controller.DemoStockRequestController;
 import com.lois.management.domain.Reservation;
-import com.lois.management.service.demo.DemoDataService;
+import com.lois.management.domain.demo.service.DemoDataService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

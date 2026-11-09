@@ -1,4 +1,4 @@
-package com.lois.management.service.demo;
+package com.lois.management.domain.demo.service;
 
 import com.lois.management.domain.cake.Cake;
 import com.lois.management.domain.cake.CakeMovement;
