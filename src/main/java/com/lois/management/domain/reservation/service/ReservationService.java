@@ -2,7 +2,7 @@ package com.lois.management.domain.reservation.service;
 
 import com.lois.management.domain.cake.Cake;
 import com.lois.management.domain.cake.CakeMovement;
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.dto.*;
 import com.lois.management.domain.reservation.mapper.ReservationMapper;
 import com.lois.management.domain.cake.mapper.CakeStockMapper;

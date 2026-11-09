@@ -2,7 +2,7 @@ package com.lois.management.domain.reservation.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lois.management.domain.cake.Cake;
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.dto.ProductionStatus;
 import com.lois.management.domain.reservation.dto.ReservationPageReq;
 import com.lois.management.domain.cake.service.CakeMovementService;

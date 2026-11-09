@@ -1,6 +1,6 @@
 package com.lois.management.domain.demo.controller;
 
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.demo.service.DemoDataService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;

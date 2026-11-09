@@ -1,6 +1,6 @@
 package com.lois.management.domain.reservation.service.limiter;
 
-import com.lois.management.domain.ReservationPolicy;
+import com.lois.management.domain.reservation.ReservationPolicy;
 import com.lois.management.domain.reservation.mapper.ReservationMapper;
 import com.lois.management.domain.reservation.mapper.ReservationPolicyMapper;
 import lombok.Getter;

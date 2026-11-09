@@ -1,4 +1,4 @@
-package com.lois.management.domain;
+package com.lois.management.domain.reservation;
 
 import lombok.Data;
 import lombok.Getter;

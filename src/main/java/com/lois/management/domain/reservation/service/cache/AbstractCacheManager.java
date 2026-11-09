@@ -1,6 +1,6 @@
 package com.lois.management.domain.reservation.service.cache;
 
-import com.lois.management.domain.ReservationPolicy;
+import com.lois.management.domain.reservation.ReservationPolicy;
 import com.lois.management.domain.reservation.service.limiter.ReservationCacheLimiter;
 import com.lois.management.domain.reservation.dto.ReservationCountDto;
 import com.lois.management.domain.reservation.mapper.ReservationMapper;

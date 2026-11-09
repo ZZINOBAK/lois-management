@@ -1,4 +1,4 @@
-package com.lois.management.config.filter;
+package com.lois.management.domain.ipaccess.filter;
 
 import com.lois.management.domain.ipaccess.IpWhitelistProperties;
 import com.lois.management.domain.ipaccess.IpAccessService;

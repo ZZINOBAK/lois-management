@@ -1,7 +1,7 @@
 package com.lois.management.domain.reservation.mapper;
 
 import com.lois.management.domain.cake.Cake;
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.dto.ReservationCountDto;
 import com.lois.management.domain.reservation.dto.ReservationPageReq;
 import org.apache.ibatis.annotations.Mapper;

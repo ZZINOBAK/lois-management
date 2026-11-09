@@ -1,11 +1,7 @@
 package com.lois.management.domain.reservation.mapper;
 
-import com.lois.management.domain.Reservation;
-import com.lois.management.domain.ReservationPolicy;
+import com.lois.management.domain.reservation.ReservationPolicy;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 @Mapper
 public interface ReservationPolicyMapper {
