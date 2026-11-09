@@ -1,7 +1,7 @@
 package com.lois.management.service.demo;
 
-import com.lois.management.domain.Cake;
-import com.lois.management.domain.CakeMovement;
+import com.lois.management.domain.cake.Cake;
+import com.lois.management.domain.cake.CakeMovement;
 import com.lois.management.domain.supply.item.Category;
 import com.lois.management.domain.supply.item.Item;
 import com.lois.management.domain.Reservation;

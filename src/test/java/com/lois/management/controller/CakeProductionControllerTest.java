@@ -1,5 +1,6 @@
 package com.lois.management.controller;
 
+import com.lois.management.domain.cake.controller.CakeProductionController;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,14 +17,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
-import com.lois.management.domain.Cake;
+import com.lois.management.domain.cake.Cake;
 import com.lois.management.domain.Reservation;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import com.lois.management.mapper.ReservationMapper;
-import com.lois.management.service.CakeProductionService;
-import com.lois.management.dto.production.CakeProductionNeedDto;
+import com.lois.management.domain.cake.service.CakeProductionService;
+import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
 import com.lois.management.service.ReservationService;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.session.Configuration;
@@ -35,7 +36,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;

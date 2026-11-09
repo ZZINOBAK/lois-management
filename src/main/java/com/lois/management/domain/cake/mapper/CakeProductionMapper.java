@@ -1,6 +1,6 @@
-package com.lois.management.mapper;
+package com.lois.management.domain.cake.mapper;
 
-import com.lois.management.dto.production.CakeProductionNeedDto;
+import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

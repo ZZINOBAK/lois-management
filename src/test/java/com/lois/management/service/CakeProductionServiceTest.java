@@ -1,7 +1,8 @@
 package com.lois.management.service;
 
-import com.lois.management.dto.production.CakeProductionNeedDto;
-import com.lois.management.mapper.CakeProductionMapper;
+import com.lois.management.domain.cake.service.CakeProductionService;
+import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
+import com.lois.management.domain.cake.mapper.CakeProductionMapper;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Test;

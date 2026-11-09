@@ -1,4 +1,4 @@
-package com.lois.management.mapper;
+package com.lois.management.domain.cake.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

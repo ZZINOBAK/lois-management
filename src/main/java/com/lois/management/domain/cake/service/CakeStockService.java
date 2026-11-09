@@ -1,7 +1,7 @@
-package com.lois.management.service;
+package com.lois.management.domain.cake.service;
 
-import com.lois.management.mapper.CakeMovementMapper;
-import com.lois.management.mapper.CakeStockMapper;
+import com.lois.management.domain.cake.mapper.CakeMovementMapper;
+import com.lois.management.domain.cake.mapper.CakeStockMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

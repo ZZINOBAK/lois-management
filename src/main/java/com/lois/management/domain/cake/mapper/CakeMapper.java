@@ -1,6 +1,6 @@
-package com.lois.management.mapper;
+package com.lois.management.domain.cake.mapper;
 
-import com.lois.management.domain.Cake;
+import com.lois.management.domain.cake.Cake;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

@@ -2,17 +2,14 @@ package com.lois.management.controller.api;
 
 import com.lois.management.auth.*;
 import com.lois.management.config.filter.IpWhitelistFilter;
-import com.lois.management.domain.Reservation;
-import com.lois.management.dto.reservation.ReservationPageReq;
-import com.lois.management.service.CakeMovementService;
-import com.lois.management.service.CakeService;
+import com.lois.management.domain.cake.service.CakeMovementService;
+import com.lois.management.domain.cake.service.CakeService;
 import com.lois.management.service.ReservationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +23,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;

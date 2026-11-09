@@ -1,7 +1,6 @@
 package com.lois.management.mapper;
 
-import com.lois.management.domain.Cake;
-import com.lois.management.domain.CakeMovement;
+import com.lois.management.domain.cake.Cake;
 import com.lois.management.domain.Reservation;
 import com.lois.management.dto.reservation.ReservationCountDto;
 import com.lois.management.dto.reservation.ReservationPageReq;
@@ -9,7 +8,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;

@@ -1,13 +1,13 @@
 package com.lois.management.controller;
 
 import com.lois.management.domain.Reservation;
-import com.lois.management.service.CakeMovementService;
+import com.lois.management.domain.cake.controller.CakeMovementController;
+import com.lois.management.domain.cake.service.CakeMovementService;
 import com.lois.management.service.ReservationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 

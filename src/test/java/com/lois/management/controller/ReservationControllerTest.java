@@ -3,9 +3,12 @@ package com.lois.management.controller;
 import com.lois.management.auth.*;
 import com.lois.management.config.filter.IpWhitelistFilter;
 import com.lois.management.domain.Reservation;
+import com.lois.management.domain.cake.Cake;
+import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
+import com.lois.management.domain.cake.service.CakeProductionService;
 import com.lois.management.dto.reservation.ReservationPageReq;
-import com.lois.management.service.CakeMovementService;
-import com.lois.management.service.CakeService;
+import com.lois.management.domain.cake.service.CakeMovementService;
+import com.lois.management.domain.cake.service.CakeService;
 import com.lois.management.service.ReservationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
@@ -18,10 +21,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -39,7 +40,8 @@ class ReservationControllerTest {
     @MockitoBean ReservationService reservationService;
     @MockitoBean CakeMovementService cakeMovementService;
     @MockitoBean CakeService cakeService;
-    @MockitoBean com.lois.management.service.CakeProductionService cakeProductionService;
+    @MockitoBean
+    CakeProductionService cakeProductionService;
     @MockitoBean EmployeeUserDetailsService employeeUserDetailsService;
     @MockitoBean LoginSuccessHandler loginSuccessHandler;
     @MockitoBean JwtAuthenticationFilter jwtFilter;
@@ -88,7 +90,7 @@ class ReservationControllerTest {
 
     @Test
     void onSitePageTargetsNewSaleApiWithCsrf() throws Exception {
-        com.lois.management.domain.Cake cake = new com.lois.management.domain.Cake();
+        Cake cake = new Cake();
         cake.setId(1L);
         cake.setFlavor("가나슈");
         when(reservationService.findAllCakeFlavor()).thenReturn(List.of(cake));
@@ -151,7 +153,7 @@ class ReservationControllerTest {
         Reservation cancelled = new Reservation(); cancelled.setCakeId(3L); cancelled.setCakeSize(2); cancelled.setStatus("CANCELLED");
         cancelled.setId(3L); cancelled.setResDate(java.time.LocalDate.now()); cancelled.setResTime(java.time.LocalTime.NOON);
         when(reservationService.findTodayOrderByPickUpTime(any())).thenReturn(List.of(reserved, picked, cancelled));
-        var need = new com.lois.management.dto.production.CakeProductionNeedDto();
+        var need = new CakeProductionNeedDto();
         need.setCakeId(3L); need.setCakeSize(2); need.setReservationQuantity(1); need.setStockQuantity(stock); need.setRequiredQuantity(required);
         when(cakeProductionService.findTodayProductionNeeds()).thenReturn(List.of(need));
         var result = mockMvc.perform(get(uri).with(user("staff").roles("STAFF"))).andExpect(status().isOk()).andReturn();
@@ -175,7 +177,7 @@ class ReservationControllerTest {
         late.setStatus("RESERVED"); late.setResTime(java.time.LocalTime.of(14, 53)); late.setResDate(java.time.LocalDate.now());
         when(reservationService.findTodayOrderByPickUpTime(any())).thenReturn(List.of(late, early));
         when(reservationService.findByContactSuffix("0056")).thenReturn(List.of(late));
-        var need = new com.lois.management.dto.production.CakeProductionNeedDto();
+        var need = new CakeProductionNeedDto();
         need.setCakeId(3L); need.setCakeSize(2); need.setStockQuantity(1);
         when(cakeProductionService.findTodayProductionNeeds()).thenReturn(List.of(need));
         var result = mockMvc.perform(get("/reservations/search").param("contactSuffix", "0056").with(user("staff").roles("STAFF")))
@@ -191,7 +193,7 @@ class ReservationControllerTest {
         row.setResTime(java.time.LocalTime.NOON); row.setResDate(java.time.LocalDate.now());
         when(reservationService.findTodayOrderByPickUpTime(any())).thenReturn(List.of(row));
         when(reservationService.findByContactSuffix("0056")).thenReturn(List.of(row));
-        var need = new com.lois.management.dto.production.CakeProductionNeedDto();
+        var need = new CakeProductionNeedDto();
         need.setCakeId(3L); need.setCakeSize(2); need.setStockQuantity(1);
         when(cakeProductionService.findTodayProductionNeeds()).thenReturn(List.of(need));
         mockMvc.perform(get("/reservations/search").param("contactSuffix", "0056").with(user("staff").roles("STAFF")))

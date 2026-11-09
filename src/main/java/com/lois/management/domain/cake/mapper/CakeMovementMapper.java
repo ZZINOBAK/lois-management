@@ -1,9 +1,8 @@
-package com.lois.management.mapper;
+package com.lois.management.domain.cake.mapper;
 
-import com.lois.management.domain.CakeMovement;
+import com.lois.management.domain.cake.CakeMovement;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDate;
 import java.util.List;

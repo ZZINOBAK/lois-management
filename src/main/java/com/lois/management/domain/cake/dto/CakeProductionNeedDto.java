@@ -1,4 +1,4 @@
-package com.lois.management.dto.production;
+package com.lois.management.domain.cake.dto;
 
 import lombok.Data;
 

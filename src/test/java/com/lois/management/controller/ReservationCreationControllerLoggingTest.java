@@ -5,6 +5,8 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.lois.management.controller.api.ReservationApiController;
 import com.lois.management.domain.Reservation;
+import com.lois.management.domain.cake.service.CakeMovementService;
+import com.lois.management.domain.cake.service.CakeService;
 import com.lois.management.dto.reservation.ReservationCreateReq;
 import com.lois.management.service.*;
 import org.junit.jupiter.api.*;

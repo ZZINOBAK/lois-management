@@ -1,7 +1,7 @@
-package com.lois.management.service;
+package com.lois.management.domain.cake.service;
 
-import com.lois.management.dto.production.CakeProductionNeedDto;
-import com.lois.management.mapper.CakeProductionMapper;
+import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
+import com.lois.management.domain.cake.mapper.CakeProductionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

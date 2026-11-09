@@ -1,6 +1,6 @@
-package com.lois.management.controller;
+package com.lois.management.domain.cake.controller;
 
-import com.lois.management.service.CakeStockService;
+import com.lois.management.domain.cake.service.CakeStockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,11 +1,11 @@
-package com.lois.management.service;
+package com.lois.management.domain.cake.service;
 
-import com.lois.management.domain.Cake;
-import com.lois.management.domain.CakeMovement;
+import com.lois.management.domain.cake.CakeMovement;
 import com.lois.management.domain.Reservation;
 import com.lois.management.dto.reservation.ProductionStatus;
-import com.lois.management.mapper.CakeMovementMapper;
+import com.lois.management.domain.cake.mapper.CakeMovementMapper;
 import com.lois.management.mapper.ReservationMapper;
+import com.lois.management.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

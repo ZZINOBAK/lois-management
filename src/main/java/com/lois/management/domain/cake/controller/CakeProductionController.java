@@ -1,7 +1,7 @@
-package com.lois.management.controller;
+package com.lois.management.domain.cake.controller;
 
-import com.lois.management.dto.production.CakeProductionNeedDto;
-import com.lois.management.service.CakeProductionService;
+import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
+import com.lois.management.domain.cake.service.CakeProductionService;
 import com.lois.management.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;

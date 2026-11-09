@@ -2,7 +2,7 @@ package com.lois.management.controller.api;
 
 import com.lois.management.domain.Reservation;
 import com.lois.management.dto.reservation.*;
-import com.lois.management.service.CakeMovementService;
+import com.lois.management.domain.cake.service.CakeMovementService;
 import com.lois.management.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

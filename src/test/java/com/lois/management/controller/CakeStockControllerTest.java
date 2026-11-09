@@ -2,7 +2,8 @@ package com.lois.management.controller;
 
 import com.lois.management.auth.*;
 import com.lois.management.config.filter.IpWhitelistFilter;
-import com.lois.management.service.CakeStockService;
+import com.lois.management.domain.cake.controller.CakeStockController;
+import com.lois.management.domain.cake.service.CakeStockService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;

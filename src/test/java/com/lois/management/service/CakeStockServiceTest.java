@@ -1,7 +1,8 @@
 package com.lois.management.service;
 
-import com.lois.management.mapper.CakeMovementMapper;
-import com.lois.management.mapper.CakeStockMapper;
+import com.lois.management.domain.cake.service.CakeStockService;
+import com.lois.management.domain.cake.mapper.CakeMovementMapper;
+import com.lois.management.domain.cake.mapper.CakeStockMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -21,7 +22,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.*;
 
 class CakeStockServiceTest {
     private final CakeStockMapper stocks = mock(CakeStockMapper.class);

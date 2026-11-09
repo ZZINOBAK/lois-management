@@ -1,14 +1,11 @@
-package com.lois.management.service;
+package com.lois.management.domain.cake.service;
 
-import com.lois.management.domain.Cake;
-import com.lois.management.mapper.CakeMapper;
-import com.lois.management.mapper.ReservationMapper;
+import com.lois.management.domain.cake.Cake;
+import com.lois.management.domain.cake.mapper.CakeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor

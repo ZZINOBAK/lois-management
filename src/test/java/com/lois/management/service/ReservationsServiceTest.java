@@ -1,12 +1,11 @@
 package com.lois.management.service;
 
 import com.lois.management.domain.Reservation;
-import com.lois.management.domain.CakeMovement;
+import com.lois.management.domain.cake.CakeMovement;
 import com.lois.management.dto.reservation.ReservationCreateReq;
-import com.lois.management.dto.reservation.ReservationPageReq;
 import com.lois.management.mapper.ReservationMapper;
-import com.lois.management.mapper.CakeStockMapper;
-import com.lois.management.mapper.CakeMovementMapper;
+import com.lois.management.domain.cake.mapper.CakeStockMapper;
+import com.lois.management.domain.cake.mapper.CakeMovementMapper;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.session.Configuration;
 import org.springframework.web.server.ResponseStatusException;
@@ -38,7 +37,6 @@ import java.time.LocalTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
