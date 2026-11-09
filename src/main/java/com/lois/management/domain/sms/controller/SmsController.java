@@ -1,6 +1,6 @@
-package com.lois.management.controller;
+package com.lois.management.domain.sms.controller;
 
-import com.lois.management.service.SmsService;
+import com.lois.management.domain.sms.service.SmsService;
 import lombok.RequiredArgsConstructor;
 import net.nurigo.sdk.message.response.SingleMessageSentResponse;
 import org.springframework.web.bind.annotation.PostMapping;

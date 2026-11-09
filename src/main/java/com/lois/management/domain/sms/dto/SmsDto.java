@@ -1,4 +1,4 @@
-package com.lois.management.dto;
+package com.lois.management.domain.sms.dto;
 
 import lombok.Data;
 

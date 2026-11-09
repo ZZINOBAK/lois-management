@@ -1,9 +1,9 @@
-package com.lois.management.service;
+package com.lois.management.domain.sms.service;
 
-import com.lois.management.api.sms.SmsApiClient;
+import com.lois.management.domain.sms.SmsApiClient;
+import com.lois.management.domain.sms.dto.SmsDto;
 import com.lois.management.domain.supply.request.StockRequest;
 import com.lois.management.domain.supply.request.service.StockRequestService;
-import com.lois.management.dto.SmsDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.message.model.Message;

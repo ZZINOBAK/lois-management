@@ -1,4 +1,4 @@
-package com.lois.management.api.sms;
+package com.lois.management.domain.sms;
 
 
 import jakarta.annotation.PostConstruct;
