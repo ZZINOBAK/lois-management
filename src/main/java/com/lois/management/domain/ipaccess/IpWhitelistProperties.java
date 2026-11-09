@@ -1,4 +1,4 @@
-package com.lois.management.config;
+package com.lois.management.domain.ipaccess;
 
 import lombok.Getter;
 import lombok.Setter;

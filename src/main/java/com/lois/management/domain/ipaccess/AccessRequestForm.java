@@ -1,4 +1,4 @@
-package com.lois.management.dto.ipaccess;
+package com.lois.management.domain.ipaccess;
 
 import lombok.Data;
 

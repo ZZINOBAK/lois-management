@@ -1,5 +1,6 @@
 package com.lois.management.controller.demo;
 
+import com.lois.management.domain.ipaccess.IpAccessService;
 import com.lois.management.service.demo.DemoDataService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ class DemoReservationControllerTest {
     com.lois.management.auth.LoginSuccessHandler loginSuccessHandler;
 
     @MockitoBean
-    com.lois.management.service.IpAccessService ipAccessService;
+    IpAccessService ipAccessService;
 
     @Test
     void demoReservationDashboardUsesDemoTemplate() throws Exception {

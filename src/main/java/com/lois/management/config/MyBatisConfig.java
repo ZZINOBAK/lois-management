@@ -4,6 +4,9 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@MapperScan("com.lois.management.mapper") // 경로에 있는 모든 Mapper Interface 빈 등록
+@MapperScan(
+        basePackages = "com.lois.management",
+        annotationClass = org.apache.ibatis.annotations.Mapper.class
+)
 public class MyBatisConfig {
 }

@@ -1,11 +1,9 @@
-package com.lois.management.config;
+package com.lois.management.domain.ipaccess;
 
 
 import com.lois.management.config.filter.IpWhitelistFilter;
-import com.lois.management.service.IpAccessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

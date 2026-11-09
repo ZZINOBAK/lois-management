@@ -1,7 +1,9 @@
 package com.lois.management.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+@Mapper
 public interface EmployeeSocialAccountsMapper {
     void insert(@Param("employeeId") Long employeeId,
                         @Param("provider") String provider,

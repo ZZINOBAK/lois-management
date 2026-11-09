@@ -3,7 +3,7 @@ package com.lois.management.controller.demo;
 import com.lois.management.auth.EmployeeUserDetailsService;
 import com.lois.management.auth.JwtTokenProvider;
 import com.lois.management.auth.LoginSuccessHandler;
-import com.lois.management.service.IpAccessService;
+import com.lois.management.domain.ipaccess.IpAccessService;
 import com.lois.management.service.demo.DemoDataService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,5 @@
-package com.lois.management.controller;
+package com.lois.management.domain.ipaccess;
 
-import com.lois.management.dto.ipaccess.AccessRequestForm;
-import com.lois.management.service.IpAccessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
