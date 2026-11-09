@@ -93,11 +93,11 @@ class ReservationControllerTest {
         cake.setFlavor("가나슈");
         when(reservationService.findAllCakeFlavor()).thenReturn(List.of(cake));
         String html = mockMvc.perform(get("/reservations/on-site").with(user("staff").roles("STAFF")).with(csrf()))
-                .andExpect(status().isOk()).andExpect(view().name("reservation/on-site"))
+                .andExpect(status().isOk()).andExpect(view().name("cake/reservation/on-site"))
                 .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
         org.assertj.core.api.Assertions.assertThat(html).contains("action=\"/cake-stocks/on-site-sales\"",
-                "name=\"cake_id\"", "name=\"cake_size\"", "/js/auth-common.js",
-                "/js/on-site-sale.js", "name=\"_csrf\"", "data-sale-feedback")
+                "name=\"cake_id\"", "name=\"cake_size\"", "/js/auth/auth-common.js",
+                "/js/cake/on-site-sale.js", "name=\"_csrf\"", "data-sale-feedback")
                 .doesNotContain("/cake-movements/on-site", "name=\"note\"");
         java.nio.file.Path preview = java.nio.file.Path.of("build/reports/on-site-sale-preview.html");
         java.nio.file.Files.createDirectories(preview.getParent());
@@ -204,11 +204,11 @@ class ReservationControllerTest {
                 .andExpect(status().isOk()).andReturn();
         String html = result.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
         org.assertj.core.api.Assertions.assertThat(html).contains(
-                "/js/auth-common.js", "/js/reservation-stock-panel.js", "data-stock-panel-toggle",
+                "/js/auth/auth-common.js", "/js/cake/reservation/reservation-stock-panel.js", "data-stock-panel-toggle",
                 "aria-expanded=\"false\"", "aria-controls=\"reservation-stock-panel\"",
                 "data-needs-url=\"/cake-production/production-needs\"",
                 "data-produce-url=\"/cake-stocks/produce\"", "data-cancel-url=\"/cake-stocks/produce-cancel\"");
-        org.assertj.core.api.Assertions.assertThat(html.split("/js/reservation-stock-panel.js", -1)).hasSize(2);
+        org.assertj.core.api.Assertions.assertThat(html.split("/js/cake/reservation/reservation-stock-panel.js", -1)).hasSize(2);
         int toggle = html.indexOf("data-stock-panel-toggle");
         org.assertj.core.api.Assertions.assertThat(toggle).isGreaterThan(html.indexOf("data-range=\"all\""));
         String section = html.substring(html.indexOf("<section id=\"reservation-stock-panel\""), html.indexOf("<div class=\"reservation-dashboard-layout\""));

@@ -46,8 +46,8 @@ function page({ get = async () => ({ status: 200, json: async () => sample }), p
         Headers, URLSearchParams,
         fetch: async (url, options) => { calls.push({ url, options }); return options.method === 'GET' ? get() : post(); }
     });
-    vm.runInContext(source('auth-common.js'), context);
-    vm.runInContext(source('reservation-stock-panel.js'), context);
+    vm.runInContext(source('/auth/auth-common.js'), context);
+    vm.runInContext(source('/cake/reservation/reservation-stock-panel.js'), context);
     return { panel, toggle, items, status, calls, feedback, triggers, buttons,
         open: () => toggleClick(), click: button => panelClick({ target: button }),
         request: id => beforeRequest({ detail: { target: { id } } }) };

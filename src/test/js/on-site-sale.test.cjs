@@ -35,8 +35,8 @@ function page(fetcher = async () => ({ status: 204 })) {
         },
         fetch: async (url, options) => { calls.push({ url, options }); return fetcher(); }
     });
-    vm.runInContext(source('auth-common.js'), context);
-    vm.runInContext(source('on-site-sale.js'), context);
+    vm.runInContext(source('/auth/auth-common.js'), context);
+    vm.runInContext(source('/cake/on-site-sale.js'), context);
     return { calls, button, feedback, values, setValid(value) { valid = value; },
         get reset() { return reset; }, submit: () => handler({ preventDefault() {} }) };
 }

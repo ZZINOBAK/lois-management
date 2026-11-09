@@ -7,14 +7,14 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>케이크 제작 관리 · Lois Management</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
-    <link rel="stylesheet" th:href="@{/css/cake-production.css}">
+    <link rel="stylesheet" th:href="@{/css/cake/cake-production.css}">
     <script th:src="@{/js/common.js}" defer></script>
-    <script th:src="@{/js/auth-common.js}" defer></script>
-    <script th:src="@{/js/cake-production.js}" defer></script>
+    <script th:src="@{/js/auth/auth-common.js}" defer></script>
+    <script th:src="@{/js/cake/cake-production.js}" defer></script>
 </head>
 <body class="cake-production">
 <div class="wrap">
-    <header th:replace="~{fragments/header :: site-header}"></header>
+    <header th:replace="~{fragments/header :: header}"></header>
     <main class="cake-production-main" data-production-root
           th:attr="data-produce-url=@{/cake-stocks/produce},data-cancel-url=@{/cake-stocks/produce-cancel},data-needs-url=@{/cake-production/production-needs}">
         <div class="cake-production-heading">

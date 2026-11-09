@@ -72,8 +72,8 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
         setTimeout(handler) { const id = ++timerId; timers.set(id, handler); return id; },
         clearTimeout(id) { timers.delete(id); }
     });
-    vm.runInContext(load('auth-common.js'), context);
-    vm.runInContext(load('cake-production.js'), context);
+    vm.runInContext(load('/auth/auth-common.js'), context);
+    vm.runInContext(load('/cake/cake-production.js'), context);
     return { calls, readCalls, needsOneList, needsOneGroup, needsList, needsWarning, cardStocks, buttons, cancelButtons, other, toast, timers, attrs, click: button => click({ target: button }) };
 }
 
@@ -213,12 +213,12 @@ test('cancellation network failure does not retry and restores buttons', async (
 });
 
 test('card layout preserves server ID order without CSS reordering', () => {
-    const css = fs.readFileSync(path.join(__dirname, '../../main/resources/static/css/cake-production.css'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, '../../main/resources/static/css/cake/cake-production.css'), 'utf8');
     assert.doesNotMatch(css, /(?:^|[;{])\s*order\s*:/m);
 });
 
 test('card and minus button retain rounded borderless styles', () => {
-    const css = fs.readFileSync(path.join(__dirname, '../../main/resources/static/css/cake-production.css'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, '../../main/resources/static/css/cake/cake-production.css'), 'utf8');
     assert.doesNotMatch(css, /\bb\s+border-radius\s*:/);
     for (const [selector, radius] of [
         ['.cake-production .cake-production-button', '20px'],
@@ -367,7 +367,7 @@ test('production-needed display is emphasized without changing reservation state
     assert.equal(row.status.textContent, '제작 필요');
     assert.equal(row.needsProduction, true);
     assert.deepEqual(row.dataset, original);
-    const css = fs.readFileSync(path.join(__dirname, '../../main/resources/static/css/cake-production.css'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, '../../main/resources/static/css/cake/cake-production.css'), 'utf8');
     const start = css.indexOf('.cake-production .is-production-needed .cake-production-reservation-status {');
     assert.notEqual(start, -1);
     const rule = css.slice(start, css.indexOf('}', start));

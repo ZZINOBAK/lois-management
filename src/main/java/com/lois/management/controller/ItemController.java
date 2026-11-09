@@ -66,7 +66,7 @@ public class ItemController {
             model.addAttribute("itemsExceptTop8", itemsExceptTop8);
 
             // 🔥 전체용 fragment (TOP8 + 나머지)
-            return "stock/fragments-item-grid :: itemGridAll";
+            return "supplies/fragments/item-grid :: itemGridAll";
         }
 
         // ✅ 2) 카테고리별일 때 → 해당 카테고리만 가나다로
@@ -74,7 +74,7 @@ public class ItemController {
         model.addAttribute("items", items);
 
         // 🔥 카테고리용 fragment (단일 리스트)
-        return "stock/fragments-item-grid :: itemGridCategory";
+        return "supplies/fragments/item-grid :: itemGridCategory";
     }
 
 

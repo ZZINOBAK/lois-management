@@ -1,26 +1,25 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
-<!-- fragments/head.html -->
-<head th:fragment="commonHead(title, extra)">
-    <meta charset="UTF-8" />
+<head th:fragment="head(pageTitle, pageResources)">
+    <!-- 메타 데이터 -->
+    <meta charset="UTF-8">
     <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+          content="width=device-width, initial-scale=1.0">
     <!-- auth-jwt.js 용 -->
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="is-authenticated"
-          th:content="${#authorization.expression('isAuthenticated() and !isAnonymous()')}">
-
-    <title th:text="${title}">Lois Management</title>
-
+          th:content="${#authorization.expression('isAuthenticated()')}">
+    <!-- 페이지 제목 -->
+    <title th:text="${pageTitle}">Lois Management</title>
+    <!-- 공통 CSS -->
     <link rel="stylesheet" th:href="@{/css/common.css}">
-
+    <!-- 공통 js  -->
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-    <script th:src="@{/js/auth-jwt.js}" defer></script>
+    <script th:src="@{/js/auth/auth-jwt.js}" defer></script>
     <script th:src="@{/js/common.js}" defer></script>
-
     <!-- 페이지별 추가 영역 -->
-    <th:block th:replace="${extra}"/>
+    <th:block th:replace="${pageResources}"/>
 </head>
 
 </html>

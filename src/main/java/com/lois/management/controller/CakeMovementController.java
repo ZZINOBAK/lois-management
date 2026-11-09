@@ -52,7 +52,7 @@ public class CakeMovementController {
 
 
         // ✅ 맛/제작 버튼 fragment만 반환
-        return "reservation/reservation-dashboard :: makeButton(r=${r})";
+        return "/cake/reservation/reservation-dashboard :: makeButton(r=${r})";
     }
 
     @PatchMapping("/{id}/produce-toggle")
@@ -84,7 +84,7 @@ public class CakeMovementController {
         response.setHeader("HX-Trigger", "productionStatusChanged");
 
 //        return "reservation/reservation-dashboard :: rowFragment(r=${r})";
-        return "fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";
+        return "reservation/fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";
 
     }
 

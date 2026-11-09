@@ -1,59 +1,38 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
-
-<head th:replace="~{fragments/head :: commonHead('Lois Management',
-        ~{::pageHead})}">
+<head th:replace="~{fragments/head :: head('Lois Management', ~{::pageResources})}">
+    <!-- 페이지 별 리소스 추가 -->
+    <th:block th:fragment="pageResources">
+        <link rel="stylesheet" th:href="@{/css/index.css}">
+    </th:block>
 </head>
-<th:block th:fragment="pageHead">
-    <link rel="stylesheet" th:href="@{/css/index.css}">
-
-    <style>
-        /* page-only style */
-    </style>
-
-    <script>
-        /* page-only script */
-    </script>
-</th:block>
 <body>
+    <div class="wrap">
+        <!-- 공통 헤더 -->
+        <header th:replace="~{fragments/header :: header}"></header>
+        <main>
+            <section class="grid">
+                <a class="card" th:href="@{/reservations}">
+                    <div class="card__title">Reservation</div>
+                    <div class="card__sub">케이크 예약</div>
+                </a>
+                <div class="card" th:href="@{/stock-requests}">
+                    <div class="card__title">Stock Request</div>
+                    <div class="card__sub">비품 발주 요청</div>
+                </div>
+                <div class="card" onclick="showPreparing()">
+                    <div class="card__title">Check In</div>
+                    <div class="card__sub">출근 등록</div>
+                </div>
 
-<div class="wrap">
-
-
-<!-- ✨ 공통 헤더 -->
-<header th:replace="~{fragments/header :: site-header}"></header>
-
-<main>
-
-    <section class="grid">
-        <div class="card" th:onclick="|location.href='@{/reservations}'|">
-            <div class="card__title">Reservation</div>
-            <div class="card__sub">케이크 예약</div>
-        </div>
-
-        <!-- 나머지는 준비중 알림만 -->
-        <div class="card" th:onclick="|location.href='@{/stock-requests}'|">
-            <div class="card__title">Stock Request</div>
-            <div class="card__sub">비품 발주 요청</div>
-        </div>
-
-        <div class="card" onclick="showPreparing()">
-            <div class="card__title">Check In</div>
-            <div class="card__sub">출근 등록</div>
-        </div>
-
-        <div class="card" onclick="showPreparing()">
-            <div class="card__title">Check Out</div>
-            <div class="card__sub">퇴근 등록</div>
-        </div>
-    </section>
-
-</main>
-
-    <!-- ✨ 공통 푸터 -->
-    <footer th:replace="~{fragments/footer :: site-footer}"></footer>
-
-</div>
-
+                <div class="card" onclick="showPreparing()">
+                    <div class="card__title">Check Out</div>
+                    <div class="card__sub">퇴근 등록</div>
+                </div>
+            </section>
+        </main>
+        <!-- 공통 푸터 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
 </body>
 </html>

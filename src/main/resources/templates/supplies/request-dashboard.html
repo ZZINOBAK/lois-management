@@ -10,10 +10,10 @@
     <th:block th:fragment="extraHead">
         <link rel="stylesheet" th:href="@{/css/index.css}">
         <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
-        <link rel="stylesheet" th:href="@{/css/request-dashboard.css}">
+        <link rel="stylesheet" th:href="@{/css/supplies/request-dashboard.css}">
 
-        <script th:src="@{/js/request.js}" defer></script>
-        <script th:src="@{/js/auth-common.js}" defer></script>
+        <script th:src="@{/js/supplies/request.js}" defer></script>
+        <script th:src="@{/js/auth/auth-common.js}" defer></script>
     </th:block>
 </th:block>
 
@@ -112,7 +112,7 @@
 
             <!-- 아이템 grid -->
             <div class="item-grid"
-                 th:replace="~{stock/fragments-item-grid :: itemGridAll(${top8Items}, ${itemsExceptTop8})}">
+                 th:replace="~{supplies/fragments/item-grid :: itemGridAll(${top8Items}, ${itemsExceptTop8})}">
 
                 <!-- 🔥 1) 인기 TOP 8 -->
                 <form th:each="item : ${top8Items}"

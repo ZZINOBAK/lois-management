@@ -51,7 +51,7 @@ public class StockRequestController {
         model.addAttribute("stockRequests", stockRequests);
         model.addAttribute("top8Items", top8Items);
         model.addAttribute("itemsExceptTop8", itemsExceptTop8);
-        return "stock/request-dashboard";
+        return "supplies/request-dashboard";
     }
 
     public List<StockRequest> findAll() {
@@ -64,7 +64,7 @@ public class StockRequestController {
         log.debug("주문 요청 상세 정보={}", stockRequest.getCreatedAt());
 
         model.addAttribute("stockRequest", stockRequest);
-        return "stock/fragments-request-detail :: requestDetail";
+        return "supplies/fragments/request-detail :: requestDetail";
     }
 
 
@@ -106,6 +106,6 @@ public class StockRequestController {
         List<StockRequest> requests = stockRequestService.findAllForPrint(); // 또는 findAll()
         model.addAttribute("stockRequests", requests);
         model.addAttribute("printedAt", LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-        return "stock/stock-requests-print";
+        return "supplies/stock-requests-print";
     }
 }

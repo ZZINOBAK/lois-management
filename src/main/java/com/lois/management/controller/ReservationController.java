@@ -84,7 +84,7 @@ public class ReservationController {
         }
         // 오늘 날짜 추가
         model.addAttribute("today", LocalDate.now());
-        return "reservation/reservation-dashboard";
+        return "cake/reservation/reservation-dashboard";
     }
 
     @GetMapping("/list") // 필터 조회
@@ -169,7 +169,7 @@ public class ReservationController {
 
 
         // list fragment만 리턴 (대시보드 템플릿의 th:fragment="list")
-        return "reservation/reservation-dashboard :: list";
+        return "cake/reservation/reservation-dashboard :: list";
     }
 
     public List<Reservation> findAll(ReservationPageReq pageRequest) { //케이크 예약 전체 조회
@@ -194,7 +194,7 @@ public class ReservationController {
         model.addAttribute("today", LocalDate.now());
 
         // 🔥 list fragment만 리턴 (대시보드 템플릿의 th:fragment="list")
-        return "reservation/reservation-dashboard :: list";
+        return "cake/reservation/reservation-dashboard :: list";
     }
 
     @GetMapping("/filter")
@@ -204,7 +204,7 @@ public class ReservationController {
         addTodayProductionReadyIds(model);
         model.addAttribute("reservations", reservations);
         model.addAttribute("today", LocalDate.now());
-        return "reservation/reservation-dashboard :: list";
+        return "cake/reservation/reservation-dashboard :: list";
     }
 
 //    @GetMapping("/print")
@@ -247,7 +247,7 @@ public class ReservationController {
         model.addAttribute("range", range);
         model.addAttribute("date", targetDate);
 
-        return "reservation/print";
+        return "cake/reservation/print";
     }
 
 
@@ -255,7 +255,7 @@ public class ReservationController {
     public String startReserve(Model model) {
 
         model.addAttribute("reserve", new Reservation());
-        return "reservation/reserve";
+        return "cake/reservation/reserve";
     }
 
     @GetMapping("/step/{no}") //케이크 예약 - 예약하기 버튼 클릭 후 첫 페이지 로딩
@@ -265,7 +265,7 @@ public class ReservationController {
         }
 
         model.addAttribute("stepNo", no);
-        return "reservation/steps :: step" + no;
+        return "cake/reservation/steps :: step" + no;
     }
 
     public List<Cake> findAllCakeFlavor() {
@@ -278,7 +278,7 @@ public class ReservationController {
                               Model model) {
         reserve.setCakeId(cakeId);
         model.addAttribute("stepNo", 2);
-        return "reservation/steps :: step2";
+        return "cake/reservation/steps :: step2";
     }
 
 //    @PostMapping("/step/2") //케이크 예약 - 날짜 선택
@@ -310,7 +310,7 @@ public class ReservationController {
             model.addAttribute("errorMessage", "예약이 불가능한 날짜입니다. 다시 선택해주세요.");
 
             // 날짜 선택 화면(스텝2) 조각 다시 렌더링
-            return "reservation/steps :: step2";
+            return "cake/reservation/steps :: step2";
         }
 
         // 통과하면 예약 객체에 날짜 세팅
@@ -320,7 +320,7 @@ public class ReservationController {
         model.addAttribute("stepNo", 3);
 
         // 스텝3 조각 반환
-        return "reservation/steps :: step3";
+        return "cake/reservation/steps :: step3";
     }
 
     @PostMapping("/step/3") //케이크 예약 - 시간 선택
@@ -329,7 +329,7 @@ public class ReservationController {
                               Model model) {
         reserve.setResTime(time);
         model.addAttribute("stepNo", 4);
-        return "reservation/steps :: step4";
+        return "cake/reservation/steps :: step4";
     }
 
     @PostMapping("/step/4") //케이크 예약 - 연락처 입력
@@ -355,7 +355,7 @@ public class ReservationController {
         }
 
         model.addAttribute("stepNo", 5);
-        return "reservation/steps :: step5";
+        return "cake/reservation/steps :: step5";
     }
 
     @PostMapping("/step/5") //케이크 예약 - 예약정보 확인 후 확정
@@ -363,7 +363,7 @@ public class ReservationController {
                               Model model) {
 
         model.addAttribute("stepNo", 6);
-        return "reservation/steps :: step6";
+        return "cake/reservation/steps :: step6";
     }
 
 //    @PostMapping("/finish")
@@ -438,7 +438,7 @@ public class ReservationController {
         log.debug("수정 폼 날짜 resDate={}", reservation.getResDate());
 
         model.addAttribute("reservation", reservation);
-        return "reservation/edit-reservation";
+        return "cake/reservation/edit-reservation";
     }
 
     @PatchMapping("/{id}") //케이크 예약(id) 수정 DB 업데이트
@@ -460,7 +460,7 @@ public class ReservationController {
         model.addAttribute("r", updated);
 
         // ✅ 픽업 버튼 fragment만 반환
-        return "reservation/reservation-dashboard :: pickupButton(r=${r})";
+        return "cake/reservation/reservation-dashboard :: pickupButton(r=${r})";
     }
 
     @PatchMapping("/{id}/make-toggle") // 제작 상태 토글
@@ -470,14 +470,14 @@ public class ReservationController {
         model.addAttribute("r", updated);
 
         // ✅ 맛/제작 버튼 fragment만 반환
-        return "reservation/reservation-dashboard :: makeButton(r=${r})";
+        return "cake/reservation/reservation-dashboard :: makeButton(r=${r})";
     }
 
     @DeleteMapping("/{id}") //케이크 예약(id) 삭제 DB 업데이트
     public String delete(ReservationPageReq pageRequest, @PathVariable("id") Long id, Model model) {
         reservationService.delete(id);
         model.addAttribute("reservations", reservationService.findAll(pageRequest));
-        return "reservation/reservation-dashboard :: list"; // 리스트 fragment만 반환
+        return "cake/reservation/reservation-dashboard :: list"; // 리스트 fragment만 반환
     }
 
     @GetMapping("/on-site") // 현장 판매
@@ -485,7 +485,7 @@ public class ReservationController {
         List<Cake> cakes = findAllCakeFlavor();
         model.addAttribute("cakes", cakes);
         model.addAttribute("reserve", new Reservation());
-        return "reservation/on-site";
+        return "cake/reservation/on-site";
     }
 
     @GetMapping("/simple-reservation") // 간단예약
@@ -493,7 +493,7 @@ public class ReservationController {
         List<Cake> cakes = findAllCakeFlavor();
         model.addAttribute("cakes", cakes);
         model.addAttribute("reserve", new Reservation());
-        return "reservation/simple-reservation";
+        return "cake/reservation/simple-reservation";
     }
 
     @PostMapping("/simple-reservation") // 간단예약
@@ -544,7 +544,7 @@ public class ReservationController {
             log.error("모델에 데이터 추가 중 오류 발생(error)", e);
             throw e; // 오류 재발생
         }
-        return "fragments/production-status :: productionStatus";
+        return "cake/production/fragments/production-status :: productionStatus";
     }
 
     private ProductionStatus dashboardProductionStatus(LocalDate today, List<Reservation> reservations, Model model) {

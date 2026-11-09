@@ -6,12 +6,12 @@
     <th:block th:fragment="extraHead">
         <link rel="stylesheet" th:href="@{/css/index.css}">
         <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
-        <link rel="stylesheet" th:href="@{/css/reservation-dashboard.css}">
+        <link rel="stylesheet" th:href="@{/css/cake/reservation-dashboard.css}">
 
-        <script th:src="@{/js/auth-common.js}" defer></script>
-        <script th:src="@{/js/reservation.js}" defer></script>
-        <script th:src="@{/js/reservation-stock-panel.js}" defer></script>
-        <script th:src="@{/js/reservation-pickup.js}" defer></script>
+        <script th:src="@{/js/auth/auth-common.js}" defer></script>
+        <script th:src="@{/js/cake/reservation/reservation.js}" defer></script>
+        <script th:src="@{/js/cake/reservation/reservation-stock-panel.js}" defer></script>
+        <script th:src="@{/js/cake/reservation/reservation-pickup.js}" defer></script>
     </th:block>
 </head>
 
@@ -117,7 +117,7 @@
                 <div class="reservation-dashboard-layout">
                     <div class="reservation-dashboard-production">
                         <!-- ✅ 생산 계획 카드 조각: 여기부터 -->
-                        <div th:replace="~{fragments/production-status :: productionStatus}">
+                        <div th:replace="~{cake/production/fragments/production-status :: productionStatus}">
                         </div>
 
                     </div>
@@ -169,7 +169,7 @@
                                 <!--  조각 insert rowFragment(r) -->
                                 <div th:each="r, stat : ${reservations}"
                                      th:with="rowNo=${stat.count}"
-                                     th:insert="~{fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})}">
+                                     th:insert="~{reservation/fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})}">
 
                                 </div>
                                 <!-- ✅ 오늘(scope == 'today')일 때만 인쇄 버튼 보이기 -->
@@ -234,7 +234,7 @@
         <button type="button" class="btn" data-cancel-dismiss>닫기</button>
     </dialog>
 
-    <script th:src="@{/js/reservation-footer.js}" defer></script>
+    <script th:src="@{/js/cake/reservation/reservation-footer.js}" defer></script>
 
 
 

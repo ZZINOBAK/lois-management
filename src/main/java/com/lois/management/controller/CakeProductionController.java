@@ -31,7 +31,7 @@ public class CakeProductionController {
         model.addAttribute("reservations", reservationService.findTodayOrderByPickUpTime(today));
         // 제작 필요 수량 조회
         model.addAttribute("productionNeeds", cakeProductionService.findTodayProductionNeeds());
-        return "cake-production/production-management";
+        return "cake/production/production-management";
     }
 
     @GetMapping("/production-needs") // 스톡 증감 시 제작 필요 수량 재조회

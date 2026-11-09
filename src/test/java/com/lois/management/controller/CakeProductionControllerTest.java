@@ -96,11 +96,11 @@ class CakeProductionControllerTest {
         }
         assertThat(html).contains("data-flavor-code=\"FIG\"", "data-flavor-code=\"VANILLA\"",
                 "data-produce-url=\"/cake-stocks/produce\"", "data-production-action=\"other\"",
-                "/css/cake-production.css", "/js/cake-production.js", "/js/auth-common.js",
+                "/css/cake/cake-production.css", "/js/cake/cake-production.js", "/js/auth/auth-common.js",
                 "content=\"X-CSRF-TOKEN\"", "role=\"status\"");
         assertThat(html).containsPattern("name=\"_csrf\" content=\"[^\"]+\"");
         assertThat(html).doesNotContain("type=\"radio\"", "<textarea", "type=\"submit\" class=\"btn",
-                "/css/on-site.css", "/css/index.css", "/css/reservation-dashboard.css", "htmx", "auth-jwt.js",
+                "/css/cake/on-site.css", "/css/index.css", "/css/cake/reservation-dashboard.css", "htmx", "/auth/auth-jwt.js",
                 "action=\"/cake-movements/produce\"");
         assertThat(html).contains("data-cancel-url=\"/cake-stocks/produce-cancel\"",
                 "aria-label=\"가나슈 2호 1개 제작 취소\"");
@@ -283,7 +283,7 @@ class CakeProductionControllerTest {
 
     private String render() throws Exception {
         return mvc.perform(get("/cake-production").with(user("staff").roles("STAFF")))
-                .andExpect(status().isOk()).andExpect(view().name("cake-production/production-management"))
+                .andExpect(status().isOk()).andExpect(view().name("cake/production/production-management"))
                 .andReturn().getResponse().getContentAsString();
     }
 

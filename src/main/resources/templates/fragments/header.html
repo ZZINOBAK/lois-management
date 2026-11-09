@@ -1,45 +1,49 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-
 <body>
-<header th:fragment="site-header"
-        th:with="currentPath=${#ctx.getExchange().getRequest().getPathWithinApplication()},
-                 isDemo=${currentPath == '/demo' or #strings.startsWith(currentPath, '/demo/')}">
-
-    <a th:href="${isDemo} ? @{/demo} : @{/}">
-        <img th:src="@{/images/logo_lois.png}" src="/images/logo_lois.png" alt="Lois by Auntie Jin" class="logo">
-    </a>
-
-    <div class="header-right">
-        <div class="header-title">
-            Management
+    <header th:fragment="header"
+            th:with="currentPath=${#ctx.getExchange().getRequest().getPathWithinApplication()},
+            isDemo=${currentPath == '/demo' or #strings.startsWith(currentPath, '/demo/')}">
+        <!-- 왼쪽: 로고 -->
+        <a th:href="${isDemo} ? @{/demo} : @{/}">
+            <img th:src="@{/images/logo_lois.png}" alt="Lois by Auntie Jin" class="logo">
+        </a>
+        <!-- 오른쪽: 제목, 네비게이션 -->
+        <div class="header-right">
+            <div class="header-title">
+                Lois Management
+            </div>
+            <nav class="nav">
+                <button type="button" onclick="showPreparing()">
+                    직원 관리
+                </button>
+                <button type="button"
+                        th:href="${isDemo} ? @{/demo/items} : @{/items}">
+                    비품 관리
+                </button>
+                <button type="button" onclick="showPreparing()">
+                    케이크 관리
+                </button>
+                <!-- Demo에서는 숨김 -->
+                <button type="button"
+                        sec:authorize="isAnonymous()"
+                        th:unless="${isDemo}"
+                        th:href="@{/login}">
+                    로그인
+                </button>
+                <!-- POST 요청 -->
+                <form sec:authorize="isAuthenticated()"
+                      th:action="@{/logout}"
+                      method="post"
+                      style="display:inline;">
+                    <button type="submit">
+                        로그아웃
+                    </button>
+                </form>
+            </nav>
         </div>
-
-        <nav class="nav">
-            <button type="button" onclick="showPreparing()">직원 관리</button>
-            <button type="button"
-                    th:onclick="${isDemo} ? |location.href='@{/demo/items}'| : |location.href='@{/items}'|">
-                비품 관리
-            </button>
-            <button type="button" onclick="showPreparing()">케이크 관리</button>
-            <!-- 비로그인: 로그인 버튼 (Demo에서는 숨김) -->
-            <button type="button"
-                    sec:authorize="isAnonymous()"
-                    th:unless="${isDemo}"
-                    th:onclick="|location.href='@{/login}'|">
-                로그인
-            </button>
-
-            <!-- 로그인: 로그아웃 버튼 (POST 권장) -->
-            <form sec:authorize="isAuthenticated()"
-                  th:action="@{/logout}"
-                  method="post"
-                  style="display:inline;">
-                <button type="submit">로그아웃</button>
-            </form>
-        </nav>
-    </div>
-</header>
+    </header>
 </body>
+
 </html>
