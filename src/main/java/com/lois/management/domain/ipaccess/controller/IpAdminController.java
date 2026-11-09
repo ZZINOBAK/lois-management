@@ -1,5 +1,7 @@
-package com.lois.management.domain.ipaccess;
+package com.lois.management.domain.ipaccess.controller;
 
+import com.lois.management.domain.ipaccess.AllowedIp;
+import com.lois.management.domain.ipaccess.mapper.AllowedIpMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

@@ -1,4 +1,4 @@
-package com.lois.management.domain.reservation;
+package com.lois.management.domain.reservation.controller;
 
 import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.cake.Cake;

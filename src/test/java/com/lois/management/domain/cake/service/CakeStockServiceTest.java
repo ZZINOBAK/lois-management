@@ -1,6 +1,5 @@
-package com.lois.management.domain.cake;
+package com.lois.management.domain.cake.service;
 
-import com.lois.management.domain.cake.service.CakeStockService;
 import com.lois.management.domain.cake.mapper.CakeMovementMapper;
 import com.lois.management.domain.cake.mapper.CakeStockMapper;
 import org.junit.jupiter.api.Test;
@@ -196,7 +195,7 @@ class CakeStockServiceTest {
     @Test
     void cancellationReadSqlLocksMatchingStockAndBindsKeys() throws Exception {
         Configuration configuration = new Configuration();
-        try (InputStream input = getClass().getResourceAsStream("/mapper/CakeStockMapper.xml")) {
+        try (InputStream input = getClass().getResourceAsStream("/mapper/cake/CakeStockMapper.xml")) {
             new XMLMapperBuilder(input, configuration, "CakeStockMapper.xml", configuration.getSqlFragments()).parse();
         }
         var statement = configuration.getMappedStatement(CakeStockMapper.class.getName() + ".findQuantityForUpdate");
@@ -317,7 +316,7 @@ class CakeStockServiceTest {
     void onSiteSaleSqlBindsSharedMovementParameters() throws Exception {
         Configuration configuration = new Configuration();
         configuration.getTypeAliasRegistry().registerAliases("com.lois.management.domain");
-        try (InputStream input = getClass().getResourceAsStream("/mapper/CakeMovementMapper.xml")) {
+        try (InputStream input = getClass().getResourceAsStream("/mapper/cake/CakeMovementMapper.xml")) {
             new XMLMapperBuilder(input, configuration, "CakeMovementMapper.xml", configuration.getSqlFragments()).parse();
         }
         var boundSql = configuration.getMappedStatement(CakeMovementMapper.class.getName() + ".insertStockMovement")

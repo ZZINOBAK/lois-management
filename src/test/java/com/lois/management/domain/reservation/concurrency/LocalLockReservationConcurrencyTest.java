@@ -1,9 +1,10 @@
-package com.lois.management.domain.reservation;
+package com.lois.management.domain.reservation.concurrency;
 
 import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.service.ReservationService;
 import com.lois.management.domain.reservation.mapper.ReservationMapper;
 import com.lois.management.domain.reservation.service.limiter.AbstractReservationLimiter;
+import com.lois.management.domain.reservation.service.limiter.LocalLockReservationLimiter;
 import com.lois.management.domain.reservation.service.limiter.ReservationLimiter;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,18 +23,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(properties = "reservation.limiter.type=db-lock")
+@SpringBootTest(properties = "reservation.limiter.type=local-lock")
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class DbLockReservationConcurrencyTest {
+class LocalLockReservationConcurrencyTest {
     @Autowired
     private ReservationService reservationService;
     @Autowired
     private ReservationMapper reservationMapper;
     @Autowired
 //    @Qualifier("dbLockConcurrencyGuard")
-    private ReservationLimiter dbLockConcurrencyGuard; // 💡 현재 테스트 중인 가드 주입
-
+    private ReservationLimiter reservationLimiter; // 💡 현재 테스트 중인 가드 주입
 
     // 테스트에 사용한 가짜 전화번호 식별자
     private final String TEST_CONTACT_PREFIX = "010-9876-";
@@ -49,31 +49,38 @@ public class DbLockReservationConcurrencyTest {
     // 실제 측정 횟수
     private static final int MEASURE_COUNT = 10;
 
+
     @AfterEach
     @DisplayName("테스트 완료 후 가짜 예약 데이터를 자동으로 청소한다")
     void tearDown() {
         // 테스트가 성공하든 실패하든, 010-9999- 로 시작하는 가짜 예약 데이터를 DB에서 싹 지웁니다.
         reservationMapper.deleteTestReservations(TEST_CONTACT_PREFIX);
+
         AbstractReservationLimiter limiter =
-                (AbstractReservationLimiter) dbLockConcurrencyGuard;
+                (AbstractReservationLimiter) reservationLimiter;
 
         limiter.clearClosedFlags();
+
+        LocalLockReservationLimiter limiter2 =
+                (LocalLockReservationLimiter) reservationLimiter;
+
+        limiter2.clearCounters();
     }
 
-//    @AfterAll
-//    static void printFinalSummary_by_gemini() {
-//        System.out.println("\n=========================================");
-//        System.out.println("====== 📊 동시성 테스트 최종 집계 리포트 ======");
-//        System.out.println("=========================================");
-//        System.out.println("총 실행한 테스트 횟수: " + totalTestsRun.get() + "회");
-//        System.out.println("❌ 초과 예약 버그 발생 (재현 성공): " + bugReproducedCount.get() + "회");
-//        System.out.println("🟢 정상 차단됨 (버그 재현 실패): " + bugFailedCount.get() + "회");
-//
-//        double reproductionRate = ((double) bugReproducedCount.get() / totalTestsRun.get()) * 100;
-//        System.out.printf("🎯 버그 재현율 (동시성 이슈 발생 확률): %.2f%%\n", reproductionRate);
-//        System.out.printf("📈 테스트당 평균 DB 저장 건수: %.1f건\n", (double) totalDbCount.get() / totalTestsRun.get());
-//        System.out.println("=========================================\n");
-//    }
+    @AfterAll
+    static void printFinalSummary_by_gemini() {
+        System.out.println("\n=========================================");
+        System.out.println("====== 📊 동시성 테스트 최종 집계 리포트 ======");
+        System.out.println("=========================================");
+        System.out.println("총 실행한 테스트 횟수: " + totalTestsRun.get() + "회");
+        System.out.println("❌ 초과 예약 버그 발생 (재현 성공): " + bugReproducedCount.get() + "회");
+        System.out.println("🟢 정상 차단됨 (버그 재현 실패): " + bugFailedCount.get() + "회");
+
+        double reproductionRate = ((double) bugReproducedCount.get() / totalTestsRun.get()) * 100;
+        System.out.printf("🎯 버그 재현율 (동시성 이슈 발생 확률): %.2f%%\n", reproductionRate);
+        System.out.printf("📈 테스트당 평균 DB 저장 건수: %.1f건\n", (double) totalDbCount.get() / totalTestsRun.get());
+        System.out.println("=========================================\n");
+    }
 
 //    @Test
     @RepeatedTest(100)
@@ -81,14 +88,14 @@ public class DbLockReservationConcurrencyTest {
     void concurrency_limit_fail_test() throws InterruptedException {
         // [기본 세팅] 테스트할 날짜와 시간 고정 (예: 2026-06-10 15:00)
 //        LocalDate targetDate = LocalDate.of(2026, 6, 10);
-        LocalDate targetDate = LocalDate.of(2026, 11, 11);
-        LocalTime targetTime = LocalTime.of(11, 0);
+        LocalDate targetDate = LocalDate.of(2026, 9, 10);
+        LocalTime targetTime = LocalTime.of(15, 0);
 
         // 테스트 시작 전 해당 시간대의 기존 예약이 0개인지 확인
         int beforeCount = reservationMapper.countByDateAndTime(targetDate, targetTime);
         assertThat(beforeCount).isEqualTo(0);
 
-        int threadCount = 100; // 동시에 요청을 보낼 사람(스레드) 수
+        int threadCount = 50; // 동시에 요청을 보낼 사람(스레드) 수
         ExecutorService executorService = Executors.newFixedThreadPool(32); // 32개의 스레드 풀 생성
         CountDownLatch latch = new CountDownLatch(threadCount); // 50명이 모두 준비될 때까지 대기하는 래치
 
@@ -189,13 +196,13 @@ public class DbLockReservationConcurrencyTest {
 //    @Test
     @RepeatedTest(13)
     void 속도_비교_테스트_시간날짜한개() throws InterruptedException {
-        LocalDate targetDate = LocalDate.of(2026, 11, 12);
-        LocalTime targetTime = LocalTime.of(12, 0);
+        LocalDate targetDate = LocalDate.of(2026, 12, 10);
+        LocalTime targetTime = LocalTime.of(15, 0);
 
         int threadCount = 300; // 💡 변별력을 위해 요청 수를 2,000개 정도로 크게 잡습니다.
 
-        AbstractReservationLimiter guard = (AbstractReservationLimiter) dbLockConcurrencyGuard;
-        guard.setEnableFastFail(false); // 팻말 끄기
+//        AbstractReservationLimiter guard = (AbstractReservationLimiter) reservationLimiter;
+//        guard.setEnableFastFail(false); // 팻말 끄기
 
         ExecutorService executorService = Executors.newFixedThreadPool(50); // 200개 스레드로 동시 압박
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -223,8 +230,8 @@ public class DbLockReservationConcurrencyTest {
 
                 } catch (Exception e) {
                     // 실패(마감) 처리된 것도 스레드 연산 속도에 포함되므로 둡니다.
-
                     failCount.incrementAndGet(); // 예약 초과 등의 예외 발생 시 카운트 증가
+
 
                 } finally {
                     latch.countDown();
@@ -248,7 +255,6 @@ public class DbLockReservationConcurrencyTest {
             bugFailedCount.incrementAndGet();     // 버그 재현 실패 (운 좋게 10개만 저장됨)
         }
 
-
         long durationMillis = (endTime - startTime) / 1_000_000;
         System.out.println("=========================================");
         System.out.println("총 처리 소요 시간: " + durationMillis + " ms");
@@ -261,11 +267,11 @@ public class DbLockReservationConcurrencyTest {
         System.out.println("실제 DB에 쌓인 최종 예약 건수: " + afterCount);
         System.out.println("=========================================");
 
-
         resultList.add(durationMillis);
     }
 
     @Test
+    @DisplayName("성능 측정 : 2000명이 여러 날짜/시간에 랜덤 요청할 때 총 소요시간 측정")
     void 속도_비교_테스트_시간날짜여러개() throws InterruptedException {
         // 💡 랜덤으로 선택할 후보군 배열 정의
         LocalDate[] targetDates = {
@@ -324,11 +330,11 @@ public class DbLockReservationConcurrencyTest {
         System.out.println("=========================================");
     }
 
-
     @Test
+    @DisplayName("최적화 효과 측정 : 같은 날짜/시간에서 Fast-Fail OFF/ON 속도 비교")
     void 속도_비교_테스트_시간날짜한개_플래그온오프() throws InterruptedException {
         // 부모 클래스 타입으로 캐스팅하여 스위치 리모컨을 확보합니다.
-        AbstractReservationLimiter guard = (AbstractReservationLimiter) dbLockConcurrencyGuard;
+        AbstractReservationLimiter guard = (AbstractReservationLimiter) reservationLimiter;
 
         // 💡 [수정] 배열을 완전히 빼고 깔끔하게 단일 객체로만 선언합니다.
         LocalDate targetDate = LocalDate.of(2026, 9, 10);
@@ -424,9 +430,10 @@ public class DbLockReservationConcurrencyTest {
         }
     }
     @Test
+    @DisplayName("최적화 효과 측정 : 여러 날짜/시간에서 Fast-Fail OFF/ON 속도 비교")
     void 속도_비교_테스트_시간날짜여러개_플래그온오프() throws InterruptedException {
         // 부모 클래스 타입으로 캐스팅하여 스위치 리모컨을 확보합니다.
-        AbstractReservationLimiter guard = (AbstractReservationLimiter) dbLockConcurrencyGuard;
+        AbstractReservationLimiter guard = (AbstractReservationLimiter) reservationLimiter;
 
         LocalDate[] targetDates = {
                 LocalDate.of(2026, 9, 10),
@@ -535,3 +542,4 @@ public class DbLockReservationConcurrencyTest {
         }
     }
 }
+

@@ -1,6 +1,5 @@
 package com.lois.management.domain.cake.controller;
 
-import com.lois.management.domain.cake.controller.CakeProductionController;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,7 +126,7 @@ class CakeProductionControllerTest {
     void existingFlavorQueryReturnsCodeWithoutGroupingRows() throws Exception {
         Configuration configuration = new Configuration();
         configuration.getTypeAliasRegistry().registerAliases("com.lois.management.domain");
-        try (InputStream input = getClass().getResourceAsStream("/mapper/ReservationMapper.xml")) {
+        try (InputStream input = getClass().getResourceAsStream("/mapper/reservation/ReservationMapper.xml")) {
             new XMLMapperBuilder(input, configuration, "ReservationMapper.xml", configuration.getSqlFragments()).parse();
         }
         String sql = configuration.getMappedStatement(ReservationMapper.class.getName() + ".findAllCakeFlavor")

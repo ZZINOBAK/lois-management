@@ -1,4 +1,4 @@
-package com.lois.management.domain.reservation;
+package com.lois.management.domain.reservation.service;
 
 import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.service.ReservationService;
@@ -64,7 +64,7 @@ class ReservationContactUpdateTest {
     private String sql(String statement, Object parameter) throws Exception {
         Configuration configuration = new Configuration();
         configuration.getTypeAliasRegistry().registerAliases("com.lois.management.domain");
-        try (InputStream input = getClass().getResourceAsStream("/mapper/ReservationMapper.xml")) {
+        try (InputStream input = getClass().getResourceAsStream("/mapper/reservation/ReservationMapper.xml")) {
             new XMLMapperBuilder(input, configuration, "ReservationMapper.xml", configuration.getSqlFragments()).parse();
         }
         return configuration.getMappedStatement(ReservationMapper.class.getName() + "." + statement)

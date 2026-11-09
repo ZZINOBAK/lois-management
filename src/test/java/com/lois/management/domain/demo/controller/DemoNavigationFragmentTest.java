@@ -1,4 +1,4 @@
-package com.lois.management.domain.demo;
+package com.lois.management.domain.demo.controller;
 
 import com.lois.management.global.auth.EmployeeUserDetailsService;
 import com.lois.management.global.auth.JwtTokenProvider;
@@ -6,7 +6,7 @@ import com.lois.management.global.auth.LoginSuccessHandler;
 import com.lois.management.global.controller.MainController;
 import com.lois.management.domain.demo.controller.DemoController;
 import com.lois.management.domain.demo.controller.DemoStockRequestController;
-import com.lois.management.domain.ipaccess.IpAccessService;
+import com.lois.management.domain.ipaccess.service.IpAccessService;
 import com.lois.management.domain.demo.service.DemoDataService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

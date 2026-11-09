@@ -2,6 +2,7 @@ package com.lois.management.domain.ipaccess;
 
 
 import com.lois.management.domain.ipaccess.filter.IpWhitelistFilter;
+import com.lois.management.domain.ipaccess.service.IpAccessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package com.lois.management.domain.reservation;
+package com.lois.management.domain.reservation.service;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;

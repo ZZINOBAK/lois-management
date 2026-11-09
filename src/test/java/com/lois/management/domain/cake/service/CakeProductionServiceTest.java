@@ -1,6 +1,5 @@
-package com.lois.management.domain.cake;
+package com.lois.management.domain.cake.service;
 
-import com.lois.management.domain.cake.service.CakeProductionService;
 import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
 import com.lois.management.domain.cake.mapper.CakeProductionMapper;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
@@ -62,7 +61,7 @@ class CakeProductionServiceTest {
     @Test
     void queryFiltersTodayReservedSizeAndReadsCurrentQuantityWithoutDate() throws Exception {
         Configuration config = new Configuration();
-        try (var input = getClass().getResourceAsStream("/mapper/CakeProductionMapper.xml")) {
+        try (var input = getClass().getResourceAsStream("/mapper/cake/CakeProductionMapper.xml")) {
             new XMLMapperBuilder(input, config, "CakeProductionMapper.xml", config.getSqlFragments()).parse();
         }
         var statement = config.getMappedStatement(CakeProductionMapper.class.getName() + ".findProductionNeeds");
@@ -91,7 +90,7 @@ class CakeProductionServiceTest {
     @Test
     void sizeOneQueryRequiresTodayReservationWithoutExcludingPickedUp() throws Exception {
         Configuration config = new Configuration();
-        try (var input = getClass().getResourceAsStream("/mapper/CakeProductionMapper.xml")) {
+        try (var input = getClass().getResourceAsStream("/mapper/cake/CakeProductionMapper.xml")) {
             new XMLMapperBuilder(input, config, "CakeProductionMapper.xml", config.getSqlFragments()).parse();
         }
         var statement = config.getMappedStatement(CakeProductionMapper.class.getName() + ".findProductionNeeds");

@@ -1,7 +1,7 @@
 package com.lois.management.domain.ipaccess.filter;
 
 import com.lois.management.domain.ipaccess.IpWhitelistProperties;
-import com.lois.management.domain.ipaccess.IpAccessService;
+import com.lois.management.domain.ipaccess.service.IpAccessService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
