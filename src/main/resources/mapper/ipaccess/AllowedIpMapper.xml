@@ -5,7 +5,7 @@
 <mapper namespace="com.lois.management.domain.ipaccess.AllowedIpMapper">
 
     <!-- 1. 매핑 설정 (항상 최상단) -->
-    <resultMap id="AllowedIpMap" type="com.lois.management.domain.AllowedIp">
+    <resultMap id="AllowedIpMap" type="com.lois.management.domain.ipaccess.AllowedIp">
         <id property="id" column="id"/>
         <result property="ipAddress" column="ip_address"/>
         <result property="name" column="name"/>
@@ -39,7 +39,7 @@
     </select>
 
     <!-- 3. 삽입/수정 (데이터 변경 로직) -->
-    <insert id="insert" parameterType="com.lois.management.domain.AllowedIp">
+    <insert id="insert" parameterType="com.lois.management.domain.ipaccess.AllowedIp">
         INSERT INTO allowed_ips (ip_address, name, contact, memo, status)
         VALUES (#{ipAddress}, #{name}, #{contact}, #{memo}, #{status})
     </insert>

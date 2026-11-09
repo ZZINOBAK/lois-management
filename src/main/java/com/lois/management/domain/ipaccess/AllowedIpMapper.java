@@ -1,6 +1,5 @@
 package com.lois.management.domain.ipaccess;
 
-import com.lois.management.domain.AllowedIp;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
