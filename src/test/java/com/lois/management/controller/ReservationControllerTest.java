@@ -6,10 +6,12 @@ import com.lois.management.domain.Reservation;
 import com.lois.management.domain.cake.Cake;
 import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
 import com.lois.management.domain.cake.service.CakeProductionService;
-import com.lois.management.dto.reservation.ReservationPageReq;
+import com.lois.management.domain.reservation.controller.ReservationController;
+import com.lois.management.domain.reservation.dto.ProductionStatus;
+import com.lois.management.domain.reservation.dto.ReservationPageReq;
 import com.lois.management.domain.cake.service.CakeMovementService;
 import com.lois.management.domain.cake.service.CakeService;
-import com.lois.management.service.ReservationService;
+import com.lois.management.domain.reservation.service.ReservationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -49,7 +51,7 @@ class ReservationControllerTest {
 
     @BeforeEach
     void passInfrastructureFilters() throws Exception {
-        when(cakeMovementService.getProductionStatus(any())).thenReturn(new com.lois.management.dto.reservation.ProductionStatus(
+        when(cakeMovementService.getProductionStatus(any())).thenReturn(new ProductionStatus(
                 java.util.Map.of(), java.util.Map.of(), java.util.Map.of(), java.util.Map.of(), java.util.Map.of()));
         doAnswer(invocation -> {
             invocation.getArgument(2, FilterChain.class).doFilter(
@@ -145,7 +147,7 @@ class ReservationControllerTest {
     void sizeTwoUsesStockWhileSizeOneAndProducedStayLegacy(String uri, int stock, int ready, int required, int extra) throws Exception {
         var old = java.util.Map.of(1, java.util.Map.of(3L, 9), 2, java.util.Map.of(3L, 99));
         var produced = java.util.Map.of(1, java.util.Map.of(3L, 4), 2, java.util.Map.of(3L, 7));
-        when(cakeMovementService.getProductionStatus(any())).thenReturn(new com.lois.management.dto.reservation.ProductionStatus(old, produced, old, old, old));
+        when(cakeMovementService.getProductionStatus(any())).thenReturn(new ProductionStatus(old, produced, old, old, old));
         Reservation reserved = new Reservation(); reserved.setCakeId(3L); reserved.setCakeSize(2); reserved.setStatus("RESERVED");
         reserved.setId(1L); reserved.setResDate(java.time.LocalDate.now()); reserved.setResTime(java.time.LocalTime.NOON);
         Reservation picked = new Reservation(); picked.setCakeId(3L); picked.setCakeSize(2); picked.setStatus("PICKED_UP");
@@ -157,7 +159,7 @@ class ReservationControllerTest {
         need.setCakeId(3L); need.setCakeSize(2); need.setReservationQuantity(1); need.setStockQuantity(stock); need.setRequiredQuantity(required);
         when(cakeProductionService.findTodayProductionNeeds()).thenReturn(List.of(need));
         var result = mockMvc.perform(get(uri).with(user("staff").roles("STAFF"))).andExpect(status().isOk()).andReturn();
-        var actual = (com.lois.management.dto.reservation.ProductionStatus) result.getModelAndView().getModel().get("status");
+        var actual = (ProductionStatus) result.getModelAndView().getModel().get("status");
         org.assertj.core.api.Assertions.assertThat(actual.getDemand().get(2)).containsEntry(3L, 2);
         org.assertj.core.api.Assertions.assertThat(actual.getPickupReady().get(2)).containsEntry(3L, ready);
         org.assertj.core.api.Assertions.assertThat(actual.getToMake().get(2)).containsEntry(3L, required);

@@ -1,22 +1,15 @@
-package com.lois.management.service.reservation.cache;
+package com.lois.management.domain.reservation.service.cache;
 
-import com.lois.management.domain.ReservationPolicy;
-import com.lois.management.dto.reservation.ReservationCountDto;
-import com.lois.management.mapper.ReservationMapper;
-import com.lois.management.mapper.ReservationPolicyMapper;
-import com.lois.management.service.reservation.limiter.AtomicReservationLimiter;
-import com.lois.management.service.reservation.limiter.ReservationCacheLimiter;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
+import com.lois.management.domain.reservation.service.limiter.ReservationCacheLimiter;
+import com.lois.management.domain.reservation.mapper.ReservationMapper;
+import com.lois.management.domain.reservation.mapper.ReservationPolicyMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @ConditionalOnProperty(

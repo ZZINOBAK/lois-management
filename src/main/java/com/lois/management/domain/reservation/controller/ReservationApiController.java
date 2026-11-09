@@ -1,9 +1,9 @@
-package com.lois.management.controller.api;
+package com.lois.management.domain.reservation.controller;
 
 import com.lois.management.domain.Reservation;
-import com.lois.management.dto.reservation.*;
+import com.lois.management.domain.reservation.dto.*;
 import com.lois.management.domain.cake.service.CakeMovementService;
-import com.lois.management.service.ReservationService;
+import com.lois.management.domain.reservation.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;

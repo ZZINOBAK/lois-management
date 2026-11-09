@@ -1,4 +1,4 @@
-package com.lois.management.service.reservation.cache;
+package com.lois.management.domain.reservation.service.cache;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

@@ -1,4 +1,4 @@
-package com.lois.management.service.reservation.limiter;
+package com.lois.management.domain.reservation.service.limiter;
 
 import java.time.LocalDate;
 import java.util.Map;

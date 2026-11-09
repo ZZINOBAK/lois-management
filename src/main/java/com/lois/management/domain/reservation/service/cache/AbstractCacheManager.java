@@ -1,10 +1,10 @@
-package com.lois.management.service.reservation.cache;
+package com.lois.management.domain.reservation.service.cache;
 
 import com.lois.management.domain.ReservationPolicy;
-import com.lois.management.dto.reservation.ReservationCountDto;
-import com.lois.management.mapper.ReservationMapper;
-import com.lois.management.mapper.ReservationPolicyMapper;
-import com.lois.management.service.reservation.limiter.ReservationCacheLimiter;
+import com.lois.management.domain.reservation.service.limiter.ReservationCacheLimiter;
+import com.lois.management.domain.reservation.dto.ReservationCountDto;
+import com.lois.management.domain.reservation.mapper.ReservationMapper;
+import com.lois.management.domain.reservation.mapper.ReservationPolicyMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 

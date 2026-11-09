@@ -1,12 +1,13 @@
 package com.lois.management.service;
 
 import com.lois.management.domain.Reservation;
-import com.lois.management.dto.reservation.ReservationUpdateReq;
-import com.lois.management.mapper.ReservationMapper;
+import com.lois.management.domain.reservation.service.ReservationService;
+import com.lois.management.domain.reservation.dto.ReservationUpdateReq;
+import com.lois.management.domain.reservation.mapper.ReservationMapper;
 import com.lois.management.domain.cake.mapper.CakeStockMapper;
 import com.lois.management.domain.cake.mapper.CakeMovementMapper;
-import com.lois.management.mapper.ReservationPolicyMapper;
-import com.lois.management.service.reservation.limiter.ReservationLimiter;
+import com.lois.management.domain.reservation.mapper.ReservationPolicyMapper;
+import com.lois.management.domain.reservation.service.limiter.ReservationLimiter;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Test;

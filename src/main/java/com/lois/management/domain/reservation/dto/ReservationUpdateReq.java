@@ -1,4 +1,4 @@
-package com.lois.management.dto.reservation;
+package com.lois.management.domain.reservation.dto;
 
 public record ReservationUpdateReq(
         CharSequence resDate,

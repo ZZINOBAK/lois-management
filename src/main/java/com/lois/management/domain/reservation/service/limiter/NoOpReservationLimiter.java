@@ -1,10 +1,9 @@
-package com.lois.management.service.reservation.limiter;
+package com.lois.management.domain.reservation.service.limiter;
 
 import com.lois.management.domain.ReservationPolicy;
-import com.lois.management.mapper.ReservationMapper;
-import com.lois.management.mapper.ReservationPolicyMapper;
+import com.lois.management.domain.reservation.mapper.ReservationMapper;
+import com.lois.management.domain.reservation.mapper.ReservationPolicyMapper;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

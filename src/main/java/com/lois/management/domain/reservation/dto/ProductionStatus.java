@@ -1,4 +1,4 @@
-package com.lois.management.dto.reservation;
+package com.lois.management.domain.reservation.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

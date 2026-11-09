@@ -1,4 +1,4 @@
-package com.lois.management.mapper;
+package com.lois.management.domain.reservation.mapper;
 
 import com.lois.management.domain.Reservation;
 import com.lois.management.domain.ReservationPolicy;

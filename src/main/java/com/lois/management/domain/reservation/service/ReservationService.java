@@ -1,16 +1,16 @@
-package com.lois.management.service;
+package com.lois.management.domain.reservation.service;
 
 import com.lois.management.domain.cake.Cake;
 import com.lois.management.domain.cake.CakeMovement;
 import com.lois.management.domain.Reservation;
-import com.lois.management.dto.reservation.*;
-import com.lois.management.mapper.ReservationMapper;
+import com.lois.management.domain.reservation.dto.*;
+import com.lois.management.domain.reservation.mapper.ReservationMapper;
 import com.lois.management.domain.cake.mapper.CakeStockMapper;
 import com.lois.management.domain.cake.mapper.CakeMovementMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import com.lois.management.mapper.ReservationPolicyMapper;
-import com.lois.management.service.reservation.limiter.ReservationLimiter;
+import com.lois.management.domain.reservation.mapper.ReservationPolicyMapper;
+import com.lois.management.domain.reservation.service.limiter.ReservationLimiter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

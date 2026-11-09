@@ -1,8 +1,8 @@
 package com.lois.management.config;
 
-import com.lois.management.mapper.ReservationMapper;
-import com.lois.management.mapper.ReservationPolicyMapper;
-import com.lois.management.service.reservation.limiter.*;
+import com.lois.management.domain.reservation.mapper.ReservationMapper;
+import com.lois.management.domain.reservation.mapper.ReservationPolicyMapper;
+import com.lois.management.domain.reservation.service.limiter.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +15,7 @@ public class ReservationLimiterConfig {
             name = "reservation.limiter.type",
             havingValue = "db-lock"
     )
-    public ReservationLimiter dbLockConcurrencyGuard(ReservationMapper reservationMapper,  ReservationPolicyMapper reservationPolicyMapper) {
+    public ReservationLimiter dbLockConcurrencyGuard(ReservationMapper reservationMapper, ReservationPolicyMapper reservationPolicyMapper) {
         return new DbLockReservationLimiter(reservationMapper, reservationPolicyMapper);
     }
 

@@ -2,10 +2,10 @@ package com.lois.management.domain.cake.service;
 
 import com.lois.management.domain.cake.CakeMovement;
 import com.lois.management.domain.Reservation;
-import com.lois.management.dto.reservation.ProductionStatus;
+import com.lois.management.domain.reservation.dto.ProductionStatus;
 import com.lois.management.domain.cake.mapper.CakeMovementMapper;
-import com.lois.management.mapper.ReservationMapper;
-import com.lois.management.service.ReservationService;
+import com.lois.management.domain.reservation.mapper.ReservationMapper;
+import com.lois.management.domain.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

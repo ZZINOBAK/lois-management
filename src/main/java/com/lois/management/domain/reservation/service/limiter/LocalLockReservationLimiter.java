@@ -1,8 +1,7 @@
-package com.lois.management.service.reservation.limiter;
+package com.lois.management.domain.reservation.service.limiter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

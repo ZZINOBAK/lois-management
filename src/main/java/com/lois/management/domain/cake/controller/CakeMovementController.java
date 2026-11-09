@@ -2,7 +2,7 @@ package com.lois.management.domain.cake.controller;
 
 import com.lois.management.domain.Reservation;
 import com.lois.management.domain.cake.service.CakeMovementService;
-import com.lois.management.service.ReservationService;
+import com.lois.management.domain.reservation.service.ReservationService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -2,11 +2,12 @@ package com.lois.management.controller;
 
 import com.lois.management.domain.Reservation;
 import com.lois.management.domain.cake.Cake;
-import com.lois.management.dto.reservation.ReservationPageReq;
-import com.lois.management.dto.reservation.ProductionStatus;
+import com.lois.management.domain.reservation.controller.ReservationController;
+import com.lois.management.domain.reservation.dto.ReservationPageReq;
+import com.lois.management.domain.reservation.dto.ProductionStatus;
 import com.lois.management.domain.cake.service.CakeMovementService;
 import com.lois.management.domain.cake.service.CakeService;
-import com.lois.management.service.ReservationService;
+import com.lois.management.domain.reservation.service.ReservationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

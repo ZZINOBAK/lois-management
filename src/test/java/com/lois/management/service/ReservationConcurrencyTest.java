@@ -1,14 +1,11 @@
 package com.lois.management.service;
 
 import com.lois.management.domain.Reservation;
-import com.lois.management.domain.ReservationPolicy;
-import com.lois.management.mapper.ReservationMapper;
-import com.lois.management.mapper.ReservationPolicyMapper;
-import com.lois.management.service.reservation.limiter.AbstractReservationLimiter;
-import com.lois.management.service.reservation.limiter.ReservationLimiter;
+import com.lois.management.domain.reservation.service.ReservationService;
+import com.lois.management.domain.reservation.mapper.ReservationMapper;
+import com.lois.management.domain.reservation.mapper.ReservationPolicyMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 

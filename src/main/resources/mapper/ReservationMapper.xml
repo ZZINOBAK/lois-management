@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lois.management.mapper.ReservationMapper">
+<mapper namespace="com.lois.management.domain.reservation.mapper.ReservationMapper">
 
     <!--    CakeMovement-->
     <select id="countDemandByDate" resultType="Reservation">
@@ -336,7 +336,7 @@
     </select>
 
     <!-- 예약 정책용 캐시 초기화 쿼리 추가 -->
-    <select id="countReservationsBetween" resultType="com.lois.management.dto.reservation.ReservationCountDto">
+    <select id="countReservationsBetween" resultType="com.lois.management.domain.reservation.dto.ReservationCountDto">
         SELECT
         res_date AS resDate,
         res_time AS resTime,

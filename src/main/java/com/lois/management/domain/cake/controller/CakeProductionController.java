@@ -2,7 +2,7 @@ package com.lois.management.domain.cake.controller;
 
 import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
 import com.lois.management.domain.cake.service.CakeProductionService;
-import com.lois.management.service.ReservationService;
+import com.lois.management.domain.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
