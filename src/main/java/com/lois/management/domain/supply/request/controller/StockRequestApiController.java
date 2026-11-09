@@ -1,8 +1,7 @@
-package com.lois.management.controller.api;
+package com.lois.management.domain.supply.request.controller;
 
-import com.lois.management.domain.StockRequest;
-import com.lois.management.service.StockRequestService;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import com.lois.management.domain.supply.request.StockRequest;
+import com.lois.management.domain.supply.request.service.StockRequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

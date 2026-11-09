@@ -1,15 +1,9 @@
 package com.lois.management.controller;
 
-import com.lois.management.domain.StockRequest;
-import com.lois.management.dto.SmsDto;
 import com.lois.management.service.SmsService;
-import com.lois.management.service.StockRequestService;
 import lombok.RequiredArgsConstructor;
-import net.nurigo.sdk.message.model.Message;
-import net.nurigo.sdk.message.request.SingleMessageSendingRequest;
 import net.nurigo.sdk.message.response.SingleMessageSentResponse;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

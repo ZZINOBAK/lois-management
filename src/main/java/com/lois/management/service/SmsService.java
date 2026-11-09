@@ -1,12 +1,12 @@
 package com.lois.management.service;
 
 import com.lois.management.api.sms.SmsApiClient;
-import com.lois.management.domain.StockRequest;
+import com.lois.management.domain.supply.request.StockRequest;
+import com.lois.management.domain.supply.request.service.StockRequestService;
 import com.lois.management.dto.SmsDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.message.model.Message;
-import net.nurigo.sdk.message.request.SingleMessageSendingRequest;
 import net.nurigo.sdk.message.response.SingleMessageSentResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

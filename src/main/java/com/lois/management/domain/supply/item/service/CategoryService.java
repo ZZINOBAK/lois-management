@@ -1,7 +1,7 @@
-package com.lois.management.service;
+package com.lois.management.domain.supply.item.service;
 
-import com.lois.management.domain.Category;
-import com.lois.management.mapper.CategoryMapper;
+import com.lois.management.domain.supply.item.Category;
+import com.lois.management.domain.supply.item.mapper.CategoryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

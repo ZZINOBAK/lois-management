@@ -2,10 +2,10 @@ package com.lois.management.service.demo;
 
 import com.lois.management.domain.Cake;
 import com.lois.management.domain.CakeMovement;
-import com.lois.management.domain.Category;
-import com.lois.management.domain.Item;
+import com.lois.management.domain.supply.item.Category;
+import com.lois.management.domain.supply.item.Item;
 import com.lois.management.domain.Reservation;
-import com.lois.management.domain.StockRequest;
+import com.lois.management.domain.supply.request.StockRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
 

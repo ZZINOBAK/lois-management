@@ -1,10 +1,10 @@
-package com.lois.management.controller;
+package com.lois.management.domain.supply.request.controller;
 
 
-import com.lois.management.domain.Item;
-import com.lois.management.domain.StockRequest;
-import com.lois.management.service.ItemService;
-import com.lois.management.service.StockRequestService;
+import com.lois.management.domain.supply.item.Item;
+import com.lois.management.domain.supply.request.StockRequest;
+import com.lois.management.domain.supply.item.service.ItemService;
+import com.lois.management.domain.supply.request.service.StockRequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

@@ -1,13 +1,16 @@
-package com.lois.management.domain;
+package com.lois.management.domain.supply.item;
 
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-public class Category {
+public class Item {
     private Long id;
-    private String categoryName;
+    private String itemName;
+    private int currentQty;
+    private int minQty;
+    private Long categoryId;
     private String note;
     private LocalDateTime createAt;
     private LocalDateTime updatedAt;

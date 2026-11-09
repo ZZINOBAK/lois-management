@@ -1,7 +1,6 @@
-package com.lois.management.mapper;
+package com.lois.management.domain.supply.item.mapper;
 
-import com.lois.management.domain.Item;
-import com.lois.management.domain.StockRequest;
+import com.lois.management.domain.supply.item.Item;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

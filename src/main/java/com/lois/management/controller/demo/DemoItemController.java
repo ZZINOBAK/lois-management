@@ -1,6 +1,6 @@
 package com.lois.management.controller.demo;
 
-import com.lois.management.domain.Item;
+import com.lois.management.domain.supply.item.Item;
 import com.lois.management.service.demo.DemoDataService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;

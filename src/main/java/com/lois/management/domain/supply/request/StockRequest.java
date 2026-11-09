@@ -1,4 +1,4 @@
-package com.lois.management.domain;
+package com.lois.management.domain.supply.request;
 
 import lombok.Data;
 

@@ -1,6 +1,6 @@
-package com.lois.management.mapper;
+package com.lois.management.domain.supply.item.mapper;
 
-import com.lois.management.domain.Category;
+import com.lois.management.domain.supply.item.Category;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

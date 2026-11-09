@@ -19,7 +19,7 @@
                     직원 관리
                 </button>
                 <button type="button"
-                        th:href="${isDemo} ? @{/demo/items} : @{/items}">
+                        th:onclick="${isDemo} ? |location.href='@{/demo/items}'| : |location.href='@{/items}'|">
                     비품 관리
                 </button>
                 <button type="button" onclick="showPreparing()">
@@ -29,7 +29,7 @@
                 <button type="button"
                         sec:authorize="isAnonymous()"
                         th:unless="${isDemo}"
-                        th:href="@{/login}">
+                        th:onclick="|location.href='@{/login}'|">
                     로그인
                 </button>
                 <!-- POST 요청 -->

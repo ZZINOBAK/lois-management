@@ -1,6 +1,6 @@
-package com.lois.management.controller;
+package com.lois.management.domain.supply.item.controller;
 
-import com.lois.management.service.CategoryService;
+import com.lois.management.domain.supply.item.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 

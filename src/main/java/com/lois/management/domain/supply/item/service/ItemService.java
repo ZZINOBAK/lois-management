@@ -1,8 +1,7 @@
-package com.lois.management.service;
+package com.lois.management.domain.supply.item.service;
 
-import com.lois.management.domain.Item;
-import com.lois.management.domain.StockRequest;
-import com.lois.management.mapper.ItemMapper;
+import com.lois.management.domain.supply.item.Item;
+import com.lois.management.domain.supply.item.mapper.ItemMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
