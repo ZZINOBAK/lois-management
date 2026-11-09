@@ -1,4 +1,4 @@
-package com.lois.management.config;
+package com.lois.management.global.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

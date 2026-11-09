@@ -1,4 +1,4 @@
-package com.lois.management.auth;
+package com.lois.management.global.auth;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

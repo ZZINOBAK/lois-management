@@ -1,4 +1,4 @@
-package com.lois.management.auth;
+package com.lois.management.global.auth;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

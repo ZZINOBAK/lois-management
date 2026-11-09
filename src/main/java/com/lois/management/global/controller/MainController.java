@@ -1,4 +1,4 @@
-package com.lois.management.controller;
+package com.lois.management.global.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;

@@ -1,6 +1,6 @@
 package com.lois.management.mapper;
 
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.mapper.ReservationMapper;
 import com.lois.management.domain.reservation.dto.ReservationPageReq;
 import org.junit.jupiter.api.Test;

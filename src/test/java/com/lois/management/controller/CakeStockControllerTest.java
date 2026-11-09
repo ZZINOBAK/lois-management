@@ -1,9 +1,12 @@
 package com.lois.management.controller;
 
-import com.lois.management.auth.*;
-import com.lois.management.config.filter.IpWhitelistFilter;
+import com.lois.management.domain.ipaccess.filter.IpWhitelistFilter;
 import com.lois.management.domain.cake.controller.CakeStockController;
 import com.lois.management.domain.cake.service.CakeStockService;
+import com.lois.management.global.auth.EmployeeUserDetailsService;
+import com.lois.management.global.auth.JwtAuthenticationFilter;
+import com.lois.management.global.auth.LoginSuccessHandler;
+import com.lois.management.global.auth.SecurityConfig;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -27,10 +30,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CakeStockControllerTest {
     @Autowired MockMvc mvc;
     @MockitoBean CakeStockService service;
-    @MockitoBean JwtAuthenticationFilter jwtFilter;
+    @MockitoBean
+    JwtAuthenticationFilter jwtFilter;
     @MockitoBean IpWhitelistFilter ipFilter;
-    @MockitoBean EmployeeUserDetailsService users;
-    @MockitoBean LoginSuccessHandler loginSuccessHandler;
+    @MockitoBean
+    EmployeeUserDetailsService users;
+    @MockitoBean
+    LoginSuccessHandler loginSuccessHandler;
 
     @BeforeEach
     void passInfrastructureFilters() throws Exception {

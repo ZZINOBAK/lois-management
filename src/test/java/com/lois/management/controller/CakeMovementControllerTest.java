@@ -1,6 +1,6 @@
 package com.lois.management.controller;
 
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.cake.controller.CakeMovementController;
 import com.lois.management.domain.cake.service.CakeMovementService;
 import com.lois.management.domain.reservation.service.ReservationService;

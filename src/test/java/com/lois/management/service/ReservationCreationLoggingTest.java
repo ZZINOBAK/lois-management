@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.service.ReservationService;
 import com.lois.management.domain.reservation.dto.ReservationCreateReq;
 import com.lois.management.domain.reservation.mapper.ReservationMapper;

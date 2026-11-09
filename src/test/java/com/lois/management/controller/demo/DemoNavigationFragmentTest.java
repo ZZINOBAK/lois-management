@@ -1,9 +1,9 @@
 package com.lois.management.controller.demo;
 
-import com.lois.management.auth.EmployeeUserDetailsService;
-import com.lois.management.auth.JwtTokenProvider;
-import com.lois.management.auth.LoginSuccessHandler;
-import com.lois.management.controller.MainController;
+import com.lois.management.global.auth.EmployeeUserDetailsService;
+import com.lois.management.global.auth.JwtTokenProvider;
+import com.lois.management.global.auth.LoginSuccessHandler;
+import com.lois.management.global.controller.MainController;
 import com.lois.management.domain.demo.controller.DemoController;
 import com.lois.management.domain.demo.controller.DemoStockRequestController;
 import com.lois.management.domain.ipaccess.IpAccessService;

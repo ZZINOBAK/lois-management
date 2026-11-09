@@ -1,6 +1,6 @@
-package com.lois.management.auth;
+package com.lois.management.global.auth;
 
-import com.lois.management.config.filter.IpWhitelistFilter;
+import com.lois.management.domain.ipaccess.filter.IpWhitelistFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

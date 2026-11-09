@@ -1,6 +1,6 @@
 package com.lois.management.service;
 
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.service.ReservationService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.RepeatedTest;

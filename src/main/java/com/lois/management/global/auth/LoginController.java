@@ -1,4 +1,4 @@
-package com.lois.management.controller;
+package com.lois.management.global.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

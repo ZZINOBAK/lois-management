@@ -1,4 +1,4 @@
-package com.lois.management.auth;
+package com.lois.management.global.auth;
 
 import com.lois.management.domain.employee.Employee;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.lois.management.config;
+package com.lois.management.global.config;
 
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Configuration;

@@ -1,11 +1,11 @@
 package com.lois.management.controller.api;
 
-import com.lois.management.auth.*;
-import com.lois.management.config.filter.IpWhitelistFilter;
+import com.lois.management.domain.ipaccess.filter.IpWhitelistFilter;
 import com.lois.management.domain.cake.service.CakeMovementService;
 import com.lois.management.domain.cake.service.CakeService;
 import com.lois.management.domain.reservation.controller.ReservationApiController;
 import com.lois.management.domain.reservation.service.ReservationService;
+import com.lois.management.global.auth.*;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -36,9 +36,12 @@ class ReservationApiControllerTest {
     @MockitoBean ReservationService reservationService;
     @MockitoBean CakeMovementService cakeMovementService;
     @MockitoBean CakeService cakeService;
-    @MockitoBean EmployeeUserDetailsService employeeUserDetailsService;
-    @MockitoBean LoginSuccessHandler loginSuccessHandler;
-    @MockitoBean JwtTokenProvider jwtTokenProvider;
+    @MockitoBean
+    EmployeeUserDetailsService employeeUserDetailsService;
+    @MockitoBean
+    LoginSuccessHandler loginSuccessHandler;
+    @MockitoBean
+    JwtTokenProvider jwtTokenProvider;
     @MockitoBean IpWhitelistFilter ipFilter;
 
     @BeforeEach

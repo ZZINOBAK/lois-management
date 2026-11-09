@@ -6,6 +6,9 @@ import com.lois.management.domain.demo.controller.DemoReservationController;
 import com.lois.management.domain.demo.controller.DemoStockRequestController;
 import com.lois.management.domain.ipaccess.IpAccessService;
 import com.lois.management.domain.demo.service.DemoDataService;
+import com.lois.management.global.auth.EmployeeUserDetailsService;
+import com.lois.management.global.auth.JwtTokenProvider;
+import com.lois.management.global.auth.LoginSuccessHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -42,13 +45,13 @@ class DemoReservationControllerTest {
     MockMvc mockMvc;
 
     @MockitoBean
-    com.lois.management.auth.JwtTokenProvider jwtTokenProvider;
+    JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
-    com.lois.management.auth.EmployeeUserDetailsService employeeUserDetailsService;
+    EmployeeUserDetailsService employeeUserDetailsService;
 
     @MockitoBean
-    com.lois.management.auth.LoginSuccessHandler loginSuccessHandler;
+    LoginSuccessHandler loginSuccessHandler;
 
     @MockitoBean
     IpAccessService ipAccessService;

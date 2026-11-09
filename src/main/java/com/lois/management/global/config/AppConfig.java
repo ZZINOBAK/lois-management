@@ -1,4 +1,4 @@
-package com.lois.management.config;
+package com.lois.management.global.config;
 
 public class AppConfig {
 }

@@ -1,4 +1,4 @@
-package com.lois.management.auth;
+package com.lois.management.global.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,8 +1,7 @@
 package com.lois.management.controller;
 
-import com.lois.management.auth.*;
-import com.lois.management.config.filter.IpWhitelistFilter;
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.ipaccess.filter.IpWhitelistFilter;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.cake.Cake;
 import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
 import com.lois.management.domain.cake.service.CakeProductionService;
@@ -12,6 +11,10 @@ import com.lois.management.domain.reservation.dto.ReservationPageReq;
 import com.lois.management.domain.cake.service.CakeMovementService;
 import com.lois.management.domain.cake.service.CakeService;
 import com.lois.management.domain.reservation.service.ReservationService;
+import com.lois.management.global.auth.EmployeeUserDetailsService;
+import com.lois.management.global.auth.JwtAuthenticationFilter;
+import com.lois.management.global.auth.LoginSuccessHandler;
+import com.lois.management.global.auth.SecurityConfig;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -44,9 +47,12 @@ class ReservationControllerTest {
     @MockitoBean CakeService cakeService;
     @MockitoBean
     CakeProductionService cakeProductionService;
-    @MockitoBean EmployeeUserDetailsService employeeUserDetailsService;
-    @MockitoBean LoginSuccessHandler loginSuccessHandler;
-    @MockitoBean JwtAuthenticationFilter jwtFilter;
+    @MockitoBean
+    EmployeeUserDetailsService employeeUserDetailsService;
+    @MockitoBean
+    LoginSuccessHandler loginSuccessHandler;
+    @MockitoBean
+    JwtAuthenticationFilter jwtFilter;
     @MockitoBean IpWhitelistFilter ipFilter;
 
     @BeforeEach

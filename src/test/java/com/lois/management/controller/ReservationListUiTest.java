@@ -1,6 +1,6 @@
 package com.lois.management.controller;
 
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.cake.Cake;
 import com.lois.management.domain.reservation.controller.ReservationController;
 import com.lois.management.domain.reservation.dto.ReservationPageReq;

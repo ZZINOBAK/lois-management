@@ -1,6 +1,6 @@
 package com.lois.management.service;
 
-import com.lois.management.domain.Reservation;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.service.ReservationService;
 import com.lois.management.domain.reservation.dto.ReservationUpdateReq;
 import com.lois.management.domain.reservation.mapper.ReservationMapper;
