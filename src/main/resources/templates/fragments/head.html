@@ -10,14 +10,18 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="is-authenticated"
           th:content="${#authorization.expression('isAuthenticated()')}">
+
     <!-- 페이지 제목 -->
     <title th:text="${pageTitle}">Lois Management</title>
+
     <!-- 공통 CSS -->
     <link rel="stylesheet" th:href="@{/css/common.css}">
+
     <!-- 공통 js  -->
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <script th:src="@{/js/auth/auth-jwt.js}" defer></script>
     <script th:src="@{/js/common.js}" defer></script>
+
     <!-- 페이지별 추가 영역 -->
     <th:block th:replace="${pageResources}"/>
 </head>

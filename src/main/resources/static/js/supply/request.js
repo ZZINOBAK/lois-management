@@ -45,3 +45,21 @@ function sendStockRequestsSms(btn) {
             // 새 탭으로 프린트 전용 페이지
             window.open("/stock-requests/print", "_blank", "noopener,noreferrer");
           }
+// 이미 요청한 아이템 안내
+document.body.addEventListener("alreadyRequested", function () {
+    alert("이미 요청된 아이템입니다!");
+});
+
+// 발주 요청 상세 접기
+document.body.addEventListener("htmx:beforeRequest", function (event) {
+    const btn = event.target;
+    if (!btn.matches(".request-main")) return;
+
+    const row = btn.closest(".request-row");
+    const next = row.nextElementSibling;
+
+    if (next && next.classList.contains("request-detail-card")) {
+        next.remove();
+        event.preventDefault();
+    }
+});

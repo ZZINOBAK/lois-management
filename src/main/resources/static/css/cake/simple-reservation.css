@@ -1,0 +1,19 @@
+.time-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    gap: 8px;
+    }
+
+    .btn-choice {
+    padding: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #f8f8f8;
+    cursor: pointer;
+    }
+
+    .btn-choice.selected {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+    }

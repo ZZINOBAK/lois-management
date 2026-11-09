@@ -1,85 +1,83 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>현장 판매</title>
-    <meta name="_csrf" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
 
-    <link rel="stylesheet" th:href="@{/css/common.css}">
-    <link rel="stylesheet" th:href="@{/css/index.css}">
-    <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
-    <link rel="stylesheet" th:href="@{/css/cake/reservation-dashboard.css}">
-    <link rel="stylesheet" th:href="@{/css/cake/on-site.css}">
+<head th:replace="~{fragments/head :: head('현장 판매', ~{::pageResources})}">
+    <!-- 페이지 별 리소스 추가 -->
+    <th:block th:fragment="pageResources">
+        <link rel="stylesheet" th:href="@{/css/index.css}">
+        <link rel="stylesheet" th:href="@{/css/common-dashboard.css}">
+        <link rel="stylesheet" th:href="@{/css/cake/reservation-dashboard.css}">
+        <link rel="stylesheet" th:href="@{/css/cake/on-site.css}">
 
-    <script th:src="@{/js/common.js}" defer></script>
-    <script th:src="@{/js/auth/auth-common.js}" defer></script>
-    <script th:src="@{/js/cake/on-site-sale.js}" defer></script>
+        <script th:src="@{/js/auth/auth-common.js}" defer></script>
+        <script th:src="@{/js/cake/on-site-sale.js}" defer></script>
+    </th:block>
 </head>
+
 <body>
+    <div class="wrap">
+        <!-- 공통 헤더 -->
+        <header th:replace="~{fragments/header :: header}"></header>
 
-<div class="wrap">
-    <!-- 공통 헤더 -->
-    <header th:replace="~{fragments/header :: header}"></header>
+        <!-- 이 페이지 내용 -->
+        <main>
+            <form th:action="@{/cake-stocks/on-site-sales}" method="post" class="step-form" data-on-site-sale>
 
-    <!-- 이 페이지 내용 -->
-    <main>
-        <form th:action="@{/cake-stocks/on-site-sales}" method="post" class="step-form" data-on-site-sale>
-
-            <!-- =========================
+                <!-- =========================
                  1) 케이크 선택
             ========================== -->
-            <div class="section-head">
-                <h2 class="title">케이크 선택</h2>
-            </div>
+                <div class="section-head">
+                    <h2 class="title">케이크 선택</h2>
+                </div>
 
-            <div class="grid cake-grid">
-                <label class="option" th:each="c : ${cakes}">
-                    <input type="radio" name="cake_id" th:value="${c.id}" required />
-                    <div class="card">
-                        <div class="card__title" th:text="${c.flavor}">딸기 생크림</div>
-                    </div>
-                </label>
-            </div>
+                <div class="grid cake-grid">
+                    <label class="option" th:each="c : ${cakes}">
+                        <input type="radio" name="cake_id" th:value="${c.id}" required />
+                        <div class="card">
+                            <div class="card__title" th:text="${c.flavor}">딸기 생크림</div>
+                        </div>
+                    </label>
+                </div>
 
 
-            <!-- =========================
+                <!-- =========================
                  2) 호수 선택
             ========================== -->
-            <div class="section-head" style="margin-top: 18px;">
-                <h2 class="title">호수 선택</h2>
-            </div>
+                <div class="section-head" style="margin-top: 18px;">
+                    <h2 class="title">호수 선택</h2>
+                </div>
 
-            <div class="grid size-grid">
-                <label class="option">
-                    <input type="radio" name="cake_size" value="1" required />
-                    <div class="card"><div class="card__title">1호</div></div>
-                </label>
-                <label class="option">
-                    <input type="radio" name="cake_size" value="2" />
-                    <div class="card"><div class="card__title">2호</div></div>
-                </label>
-                <!-- 필요하면 4호/미니 등 추가 -->
-            </div>
+                <div class="grid size-grid">
+                    <label class="option">
+                        <input type="radio" name="cake_size" value="1" required />
+                        <div class="card">
+                            <div class="card__title">1호</div>
+                        </div>
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="cake_size" value="2" />
+                        <div class="card">
+                            <div class="card__title">2호</div>
+                        </div>
+                    </label>
+                    <!-- 필요하면 4호/미니 등 추가 -->
+                </div>
 
 
-            <!-- =========================
+                <!-- =========================
                  4) 완료 버튼
             ========================== -->
-            <div class="actions">
-                <button type="submit" class="btn primary">완료</button>
-            </div>
+                <div class="actions">
+                    <button type="submit" class="btn primary">완료</button>
+                </div>
 
-            <p data-sale-feedback role="status" aria-live="polite" hidden></p>
-        </form>
+                <p data-sale-feedback role="status" aria-live="polite" hidden></p>
+            </form>
+        </main>
 
-    </main>
-
-    <!-- 공통 푸터 -->
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
-</div>
-
+        <!-- 공통 푸터 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
 </body>
+
 </html>

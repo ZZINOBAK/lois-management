@@ -1,0 +1,51 @@
+ .social-box {
+     margin-top: 20px;
+     border-top: 1px solid #eee;
+     padding-top: 18px;
+ }
+
+ .social-title {
+     font-size: 12px;
+     color: #777;
+     text-align: center;
+     margin-bottom: 10px;
+ }
+
+ .social-buttons {
+     display: flex;
+     flex-direction: column;
+     gap: 8px;
+ }
+
+ .btn-social {
+     width: 100%;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     gap: 8px;
+     padding: 9px 10px;
+     font-size: 14px;
+     border-radius: 999px;
+     border: 1px solid #ddd;
+     text-decoration: none;
+     color: #333;
+     background: #fff;
+ }
+
+ .btn-social:hover {
+     background: #fafafa;
+ }
+
+ .btn-kakao {
+     background: #fee500;
+     border-color: #e0c900;
+ }
+
+ .btn-kakao:hover {
+     background: #f4da00;
+ }
+
+ .btn-google img,
+ .btn-kakao img {
+     height: 18px;
+ }

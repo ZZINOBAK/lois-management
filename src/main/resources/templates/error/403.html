@@ -1,37 +1,27 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <meta name="_csrf" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
-
-    <title>after-login</title>
-
-    <link rel="stylesheet" th:href="@{/css/common.css}">
-    <link rel="stylesheet" th:href="@{/css/index.css}">
-
-    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+<head th:replace="~{fragments/head :: head('권한 없음', ~{::pageResources})}">
+    <!-- 페이지 별 리소스 추가 -->
+    <th:block th:fragment="pageResources">
+        <link rel="stylesheet" th:href="@{/css/index.css}">
+    </th:block>
 </head>
+
 <body>
+    <div class="wrap">
+        <!-- 공통 헤더 -->
+        <header th:replace="~{fragments/header :: header}"></header>
 
-<div class="wrap">
-    <!-- 공통 헤더 -->
-    <header th:replace="~{fragments/header :: header}"></header>
+        <!-- 이 페이지 내용 -->
+        <main>
+            <h1>접근 권한이 없습니다.</h1>
+            <a href="/">메인으로</a>
+        </main>
 
-    <!-- 이 페이지 내용 -->
-    <main>
-        <h1>접근 권한이 없습니다.</h1>
-        <a href="/">메인으로</a>
-
-    </main>
-
-    <!-- 공통 푸터 -->
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
-</div>
-
-
+        <!-- 공통 푸터 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
 </body>
+
 </html>
