@@ -154,7 +154,7 @@
                                 <!-- 행 반복 -->
                                 <!--  조각 insert rowFragment(r) -->
                                 <div th:each="r, stat : ${reservations}" th:with="rowNo=${stat.count}"
-                                    th:insert="~{reservation/fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})}">
+                                    th:insert="~{cake/reservation/fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})}">
 
                                 </div>
                                 <!-- ✅ 오늘(scope == 'today')일 때만 인쇄 버튼 보이기 -->

@@ -84,7 +84,7 @@ public class CakeMovementController {
         response.setHeader("HX-Trigger", "productionStatusChanged");
 
 //        return "reservation/reservation-dashboard :: rowFragment(r=${r})";
-        return "reservation/fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";
+        return "cake/reservation/fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";
 
     }
 

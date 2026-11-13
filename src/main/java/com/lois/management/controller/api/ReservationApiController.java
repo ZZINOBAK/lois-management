@@ -131,7 +131,7 @@ public class ReservationApiController {
         // ✅ 픽업 버튼 fragment만 반환
 //        return "reservation/reservation-dashboard :: pickupButton(r=${r})";
 //        return "reservation/reservation-dashboard :: rowFragment(r=${r}, rowNo=${rowNo})";
-        return "reservation/fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";
+        return "cake/reservation/fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";
     }
 
     @PatchMapping("/{id}/make-toggle") // 제작 상태 토글
