@@ -16,11 +16,11 @@
         <!-- 이 페이지 내용 -->
         <main>
             <section class="grid">
-                <a class="card" th:href="@{/reservations}">
+                <div class="card" th:onclick="|location.href='@{/reservations}'|">
                     <div class="card__title">Reservation</div>
                     <div class="card__sub">케이크 예약</div>
-                </a>
-                <div class="card" th:href="@{/stock-requests}">
+                </div>
+                <div class="card" th:onclick="|location.href='@{/stock-requests}'|">
                     <div class="card__title">Stock Request</div>
                     <div class="card__sub">비품 발주 요청</div>
                 </div>

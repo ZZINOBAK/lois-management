@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lois.management.domain.cake.mapper.CakeMovementMapper">
+
+    <!-- 조회 -->
+    <select id="findById" resultType="CakeMovement">
+        SELECT
+        *
+        FROM cake_movements
+        WHERE id = #{id}
+    </select>
+
+    <select id="sumStockByDate" resultType="CakeMovement">
+        SELECT
+        m.cake_size AS cakeSize,
+        m.cake_id   AS cakeId,
+        COALESCE(SUM(m.delta), 0) AS stock
+        FROM cake_movements m
+        WHERE m.biz_date = #{today}
+        GROUP BY m.cake_size, m.cake_id
+    </select>
+
+    <select id="getStockByKey" resultType="int">
+        SELECT COALESCE(SUM(m.delta), 0)
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        AND m.cake_id = #{cakeId}
+        AND m.cake_size = #{cakeSize}
+    </select>
+
+
+    <select id="getExtraStockByKey" resultType="int">
+        SELECT COALESCE(SUM(m.delta), 0)
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        AND m.cake_id = #{cakeId}
+        AND m.cake_size = #{cakeSize}
+        AND m.reservation_id IS NULL
+    </select>
+
+    <select id="sumProducedByDate" resultType="CakeMovement">
+        SELECT
+        m.cake_size AS cakeSize,
+        m.cake_id   AS cakeId,
+        COALESCE(SUM(
+        CASE
+        WHEN m.move_type = 'PRODUCED' THEN 1
+        WHEN m.move_type = 'UNDO_PRODUCED' THEN -1
+        ELSE 0
+        END
+        ), 0) AS stock
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        GROUP BY m.cake_size, m.cake_id
+    </select>
+
+    <select id="sumPickupReadyByDate" resultType="CakeMovement">
+        SELECT
+        m.cake_size AS cakeSize,
+        m.cake_id   AS cakeId,
+        COALESCE(SUM(m.delta), 0) AS stock
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        AND m.reservation_id IS NOT NULL
+        GROUP BY m.cake_size, m.cake_id
+    </select>
+
+    <select id="sumExtraStockByDate" resultType="CakeMovement">
+        SELECT
+        m.cake_size AS cakeSize,
+        m.cake_id   AS cakeId,
+        COALESCE(SUM(m.delta), 0) AS stock
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        AND m.reservation_id IS NULL
+        GROUP BY m.cake_size, m.cake_id
+    </select>
+
+    <select id="getReservationIdsByProduced" resultType="long">
+        SELECT m.reservation_id
+        FROM cake_movements m
+        WHERE m.biz_date = #{bizDate}
+        AND m.cake_id = #{cakeId}
+        AND m.cake_size = #{cakeSize}
+        AND m.reservation_id IS NOT NULL
+        GROUP BY m.reservation_id
+        HAVING SUM(
+        CASE
+        WHEN m.move_type = 'PRODUCED' THEN 1
+        WHEN m.move_type = 'UNDO_PRODUCED' THEN -1
+        ELSE 0
+        END
+        ) > 0
+        ORDER BY m.reservation_id;
+    </select>
+
+    <!-- 삽입/수정 -->
+    <insert id="insertMovement" parameterType="CakeMovement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cake_movements
+        (biz_date, cake_id, cake_size, delta, move_type, reservation_id, request_id, memo)
+        VALUES
+        (#{bizDate}, #{cakeId}, #{cakeSize}, #{delta}, #{moveType}, #{reservationId}, #{requestId}, #{memo})
+    </insert>
+
+<!-- 케이크 변동 이력 저장 without reservationId: 제작 여부, 현장 판매 -->
+    <insert id="insertStockMovement">
+        INSERT INTO cake_movements
+            (cake_id, cake_size, move_type, stock_changed, request_id)
+        VALUES
+            (#{cakeId}, #{cakeSize}, #{moveType}, #{stockChanged}, #{requestId})
+    </insert>
+
+<!-- 케이크 변동 이력 저장 with reservationId: 픽업 여부 -->
+    <insert id="insertPickupMovement">
+        INSERT INTO cake_movements
+            (cake_id, cake_size, move_type, stock_changed, reservation_id, request_id, memo)
+        VALUES
+            (#{cakeId}, #{cakeSize}, #{moveType}, #{stockChanged}, #{reservationId}, #{requestId}, #{memo})
+    </insert>
+
+<!-- 케이크 픽업 취소 시 스톡 변경 여부, move_type 조회 with 행 락 -->
+    <select id="findLatestPickupMovementForUpdate" resultType="CakeMovement">
+        SELECT id, cake_id, cake_size, move_type, stock_changed
+        FROM cake_movements
+        WHERE reservation_id = #{reservationId}
+        AND move_type IN ('PICKED_UP', 'UNDO_PICKED_UP')
+        ORDER BY id DESC
+        LIMIT 1
+        FOR UPDATE
+    </select>
+
+
+    <update id="addReservationId">
+        UPDATE cake_movements
+        SET reservation_id = #{reservationId}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

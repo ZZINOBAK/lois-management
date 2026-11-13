@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lois.management.domain.supply.item.mapper.CategoryMapper">
+
+    <!-- 조회 -->
+    <select id="findAll" resultType="Category">
+        SELECT *
+        FROM categories
+        ORDER BY id DESC
+    </select>
+
+    <select id="findById" parameterType="long" resultType="Category">
+        SELECT id, employee_name, phone, note, created_at, updated_at
+        FROM categories
+        WHERE id = #{id}
+    </select>
+
+    <!-- 삽입/수정 -->
+    <insert id="create" parameterType="Category" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO categories (employee_name)
+        VALUES (#{employeeName})
+    </insert>
+
+    <update id="update" parameterType="Category">
+        UPDATE categories
+        SET employee_name = #{employeeName},
+        phone = #{phone},
+        note = #{note}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="delete" parameterType="long">
+        DELETE FROM categories WHERE id = #{id}
+    </delete>
+
+</mapper>
