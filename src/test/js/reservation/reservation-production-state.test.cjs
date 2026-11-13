@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-const source = fs.readFileSync(path.join(__dirname, '../../main/resources/static/js/reservation.js'), 'utf8');
+const source = fs.readFileSync(path.join(__dirname, '../../../main/resources/static/js/cake/reservation/reservation.js'), 'utf8');
 const productionSelector = 'section.plan-card[hx-get="/reservations/production-status"]';
 
 function page() {

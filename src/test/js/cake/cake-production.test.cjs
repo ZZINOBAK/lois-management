@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
-const load = name => fs.readFileSync(path.join(__dirname, '../../main/resources/static/js', name), 'utf8');
+const load = name => fs.readFileSync(path.join(__dirname, '../../../main/resources/static/js', name), 'utf8');
 
 function page(fetcher = async () => ({ status: 204 }), readFetcher = async () => ({ status: 200, json: async () => [] }), state = {}) {
     const calls = [];
@@ -213,12 +213,12 @@ test('cancellation network failure does not retry and restores buttons', async (
 });
 
 test('card layout preserves server ID order without CSS reordering', () => {
-    const css = fs.readFileSync(path.join(__dirname, '../../main/resources/static/css/cake/cake-production.css'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, '../../../main/resources/static/css/cake/cake-production.css'), 'utf8');
     assert.doesNotMatch(css, /(?:^|[;{])\s*order\s*:/m);
 });
 
 test('card and minus button retain rounded borderless styles', () => {
-    const css = fs.readFileSync(path.join(__dirname, '../../main/resources/static/css/cake/cake-production.css'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, '../../../main/resources/static/css/cake/cake-production.css'), 'utf8');
     assert.doesNotMatch(css, /\bb\s+border-radius\s*:/);
     for (const [selector, radius] of [
         ['.cake-production .cake-production-button', '20px'],
@@ -367,7 +367,7 @@ test('production-needed display is emphasized without changing reservation state
     assert.equal(row.status.textContent, '제작 필요');
     assert.equal(row.needsProduction, true);
     assert.deepEqual(row.dataset, original);
-    const css = fs.readFileSync(path.join(__dirname, '../../main/resources/static/css/cake/cake-production.css'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, '../../../main/resources/static/css/cake/cake-production.css'), 'utf8');
     const start = css.indexOf('.cake-production .is-production-needed .cake-production-reservation-status {');
     assert.notEqual(start, -1);
     const rule = css.slice(start, css.indexOf('}', start));
