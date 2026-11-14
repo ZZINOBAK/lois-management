@@ -34,6 +34,13 @@ public class CakeProductionController {
         return "cake/production/production-management";
     }
 
+    @GetMapping("/reservations") // 실시간 변경 알림 시 오늘 예약 표 재조회
+    public String showTodayReservations(Model model) {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        model.addAttribute("reservations", reservationService.findTodayOrderByPickUpTime(today));
+        return "cake/production/production-management :: reservationTable";
+    }
+
     @GetMapping("/production-needs") // 스톡 증감 시 제작 필요 수량 재조회
     public ResponseEntity<List<CakeProductionNeedDto>> showProductionNeeds() {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore())

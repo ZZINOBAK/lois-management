@@ -10,7 +10,7 @@ const sample = [
 ];
 function page({ get = async () => ({ status: 200, json: async () => sample }), post = async () => ({ status: 204 }) } = {}) {
     const calls = [], feedback = [], triggers = [];
-    let beforeRequest, toggleClick, panelClick;
+    let beforeRequest, toggleClick, panelClick, sseChanged;
     function node(tag) {
         return { tag, dataset: {}, children: [], disabled: false, attributes: {},
             append(...items) { this.children.push(...items); },
@@ -38,7 +38,7 @@ function page({ get = async () => ({ status: 200, json: async () => sample }), p
             if (selector === 'meta[name="_csrf_header"]') return { content: 'X-CSRF-TOKEN' };
         },
         createElement: node, createDocumentFragment: () => node('fragment'),
-        addEventListener() {}, dispatchEvent: event => feedback.push(event.detail),
+        addEventListener(name, fn) { if (name === 'sse:changed') sseChanged = fn; }, dispatchEvent: event => feedback.push(event.detail),
         body: { addEventListener(name, fn) { beforeRequest = fn; } }
     };
     const context = vm.createContext({ document, window: { htmx: { trigger: (target, event) => triggers.push(event) } },
@@ -50,7 +50,8 @@ function page({ get = async () => ({ status: 200, json: async () => sample }), p
     vm.runInContext(source('/cake/reservation/reservation-stock-panel.js'), context);
     return { panel, toggle, items, status, calls, feedback, triggers, buttons,
         open: () => toggleClick(), click: button => panelClick({ target: button }),
-        request: id => beforeRequest({ detail: { target: { id } } }) };
+        request: (id, headers) => beforeRequest({ detail: { target: { id }, requestConfig: { headers } } }),
+        sse: () => sseChanged() };
 }
 test('starts closed and does not fetch until opened', async () => {
     const p = page(); assert.equal(p.panel.hidden, true); assert.equal(p.calls.length, 0);
@@ -121,4 +122,24 @@ test('search during a write stays closed even after success', async () => {
     const pending = p.click(p.buttons()[0]); p.request('list'); resolve({ status: 204 }); await pending;
     assert.equal(p.panel.hidden, true); assert.equal(p.calls.filter(call => call.options.method === 'GET').length, 1);
     assert.deepEqual(p.triggers, ['productionStatusChanged']);
+});
+test('sse change reloads an open panel', async () => {
+    const p = page(); await p.open(); await p.sse();
+    assert.equal(p.calls.filter(call => call.options.method === 'GET').length, 2); assert.equal(p.items.children.length, 2);
+});
+test('sse change does not open or read a closed panel', async () => {
+    const p = page(); await p.sse();
+    assert.equal(p.panel.hidden, true); assert.equal(p.calls.length, 0);
+});
+test('sse change during a write waits for the write refresh only', async () => {
+    let resolve;
+    const p = page({ post: () => new Promise(done => { resolve = done; }) }); await p.open();
+    const pending = p.click(p.buttons()[0]); await p.sse();
+    assert.equal(p.calls.filter(call => call.options.method === 'GET').length, 1);
+    resolve({ status: 204 }); await pending;
+    assert.equal(p.calls.filter(call => call.options.method === 'GET').length, 2);
+});
+test('sse list refresh keeps the panel open', async () => {
+    const p = page(); await p.open(); p.request('list', { 'X-SSE-Refresh': 'true' });
+    assert.equal(p.panel.hidden, false); assert.equal(p.toggle['aria-expanded'], 'true');
 });

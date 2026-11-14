@@ -143,3 +143,61 @@ document.body.addEventListener('htmx:afterSettle', (e) => {
     setProductionSizeExpanded('One', productionSizeExpanded.One)
     setProductionSizeExpanded('Two', productionSizeExpanded.Two)
 })
+
+
+// 실시간 변경 알림(sse:changed) 시 마지막 목록 조회와 제작 현황을 다시 불러온다.
+const SSE_REFRESH_HEADER = 'X-SSE-Refresh'
+const SSE_RETRY_MS = 500
+let lastListRequest = null
+let inFlightRequests = 0
+let sseRetryTimer = null
+let sseRestoreDetailIds = []
+
+document.body.addEventListener('htmx:configRequest', (e) => {
+    // 위 핸들러가 range/date를 주입한 뒤의 목록 조회만 기억한다.
+    if (e.detail.target?.id !== 'list' || String(e.detail.verb || '').toUpperCase() !== 'GET') return
+    lastListRequest = { path: e.detail.path, parameters: { ...e.detail.parameters } }
+})
+document.body.addEventListener('htmx:beforeSend', () => { inFlightRequests++ })
+document.body.addEventListener('htmx:afterRequest', () => { inFlightRequests = Math.max(inFlightRequests - 1, 0) })
+
+function defaultListRequest() {
+    const range = sessionStorage.getItem('reservationRange') || 'all'
+    const parameters = { range }
+    const date = sessionStorage.getItem('reservationDate')
+    if (range === 'date' && date) parameters.date = date
+    return { path: '/reservations/list', parameters }
+}
+
+// 모달·다이얼로그·날짜 선택 중이거나 요청 처리 중이면 갱신을 미룬다.
+function isDashboardBusy() {
+    if (inFlightRequests > 0) return true
+    if (document.getElementById('confirm-modal')?.classList.contains('hidden') === false) return true
+    if (document.getElementById('date-popover')?.classList.contains('hidden') === false) return true
+    return Boolean(document.querySelector('[data-pickup-cancel-dialog]')?.open)
+}
+
+function refreshDashboardFromSse() {
+    if (!window.htmx || !document.getElementById('list')) return
+    clearTimeout(sseRetryTimer)
+    if (isDashboardBusy()) {
+        sseRetryTimer = setTimeout(refreshDashboardFromSse, SSE_RETRY_MS)
+        return
+    }
+    sseRestoreDetailIds = [...document.querySelectorAll('#list .detail-row:not(.hidden)')].map(row => row.id)
+    const request = lastListRequest || defaultListRequest()
+    htmx.ajax('GET', request.path, {
+        target: '#list', swap: 'innerHTML', values: request.parameters,
+        headers: { [SSE_REFRESH_HEADER]: 'true' }
+    })
+    htmx.trigger(document.body, 'productionStatusChanged')
+}
+
+document.body.addEventListener('htmx:afterSwap', (e) => {
+    // 실시간 갱신 전에 펼쳐 두었던 상세 행을 다시 펼친다.
+    if (e.detail.target?.id !== 'list' || !e.detail.requestConfig?.headers?.[SSE_REFRESH_HEADER]) return
+    for (const id of sseRestoreDetailIds) document.getElementById(id)?.classList.remove('hidden')
+    sseRestoreDetailIds = []
+})
+
+document.addEventListener('sse:changed', refreshDashboardFromSse)

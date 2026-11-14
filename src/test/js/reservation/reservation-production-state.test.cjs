@@ -141,3 +141,85 @@ test('기본 진입은 오늘이며 전체 전환 후 정렬 요청도 전체를
     }
     assert.equal(request({sort: 'created-at'}).range, 'all');
 });
+
+function ssePage({ storage = new Map(), modalOpen = false, openDetails = [] } = {}) {
+    const handlers = {};
+    const timers = new Map();
+    let timerId = 0;
+    const ajaxCalls = [], triggers = [];
+    const modal = { classList: { contains: name => name === 'hidden' && !modalOpen } };
+    const details = Object.fromEntries(openDetails.map(id => [id, { id, removed: [], classList: { remove(name) { details[id].removed.push(name); } } }]));
+    const on = (name, handler) => { (handlers[name] ??= []).push(handler); };
+    const context = vm.createContext({
+        window: { htmx: true, location: { pathname: '/reservations' } },
+        htmx: { ajax: (verb, path, options) => ajaxCalls.push({ verb, path, options }), trigger: (target, name) => triggers.push(name) },
+        sessionStorage: {
+            getItem: key => storage.get(key) ?? null,
+            setItem: (key, value) => storage.set(key, value),
+            removeItem: key => storage.delete(key)
+        },
+        setTimeout(handler) { const id = ++timerId; timers.set(id, handler); return id; },
+        clearTimeout(id) { timers.delete(id); },
+        document: {
+            getElementById: id => id === 'list' ? {} : id === 'confirm-modal' ? modal : details[id] ?? null,
+            querySelector: () => null,
+            querySelectorAll: selector => selector === '#list .detail-row:not(.hidden)' ? Object.values(details) : [],
+            addEventListener: on,
+            body: { addEventListener: on }
+        }
+    });
+    vm.runInContext(source, context);
+    const emit = (name, detail) => (handlers[name] ?? []).forEach(handler => handler({ detail }));
+    return {
+        ajaxCalls, triggers, details, timers,
+        closeModal() { modalOpen = false; },
+        runTimers() { const pending = [...timers.values()]; timers.clear(); pending.forEach(handler => handler()); },
+        listRequest: (path, parameters) => emit('htmx:configRequest',
+            { target: { id: 'list' }, verb: 'get', path, parameters, elt: { getAttribute: () => null } }),
+        sse: () => emit('sse:changed'),
+        swap: headers => emit('htmx:afterSwap', { target: { id: 'list' }, requestConfig: { headers } })
+    };
+}
+
+test('실시간 알림은 마지막 목록 조회를 SSE 헤더와 함께 다시 요청한다', () => {
+    const p = ssePage();
+    p.listRequest('/reservations/search', { contactSuffix: '1234' });
+    p.sse();
+    assert.equal(p.ajaxCalls.length, 1);
+    const { verb, path: requestPath, options } = p.ajaxCalls[0];
+    assert.equal(verb, 'GET');
+    assert.equal(requestPath, '/reservations/search');
+    assert.equal(options.target, '#list');
+    assert.equal(options.values.contactSuffix, '1234');
+    assert.equal(options.headers['X-SSE-Refresh'], 'true');
+    assert.deepEqual(p.triggers, ['productionStatusChanged']);
+});
+
+test('목록 조회 기록이 없으면 저장된 범위와 날짜로 다시 요청한다', () => {
+    const p = ssePage({ storage: new Map([['reservationRange', 'date'], ['reservationDate', '2026-11-13']]) });
+    p.sse();
+    assert.equal(p.ajaxCalls[0].path, '/reservations/list');
+    assert.equal(p.ajaxCalls[0].options.values.range, 'date');
+    assert.equal(p.ajaxCalls[0].options.values.date, '2026-11-13');
+});
+
+test('삭제 확인 모달이 열려 있으면 닫힐 때까지 갱신을 미룬다', () => {
+    const p = ssePage({ modalOpen: true });
+    p.sse();
+    assert.equal(p.ajaxCalls.length, 0);
+    p.runTimers();
+    assert.equal(p.ajaxCalls.length, 0);
+    p.closeModal();
+    p.runTimers();
+    assert.equal(p.ajaxCalls.length, 1);
+    assert.deepEqual(p.triggers, ['productionStatusChanged']);
+});
+
+test('실시간 갱신 후 펼쳐 두었던 상세 행을 다시 펼친다', () => {
+    const p = ssePage({ openDetails: ['detail-7'] });
+    p.sse();
+    p.swap({});
+    assert.deepEqual(p.details['detail-7'].removed, []);
+    p.swap({ 'X-SSE-Refresh': 'true' });
+    assert.deepEqual(p.details['detail-7'].removed, ['hidden']);
+});

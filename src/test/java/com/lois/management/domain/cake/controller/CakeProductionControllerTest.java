@@ -188,6 +188,24 @@ class CakeProductionControllerTest {
     }
 
     @Test
+    void reservationsFragmentRendersOnlyTodayTable() throws Exception {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        when(reservations.findTodayOrderByPickUpTime(today)).thenReturn(List.of(
+                reservation(801L, LocalTime.of(10, 0), "가나슈")));
+
+        String html = mvc.perform(get("/cake-production/reservations").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("cake/production/production-management :: reservationTable"))
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(html.trim()).startsWith("<table").endsWith("</table>");
+        assertThat(html).contains("data-production-reservation-table", "data-reservation-id=\"801\"", "10시", "가나슈");
+        assertThat(html).doesNotContain("<header", "data-production-root", "cake-production-needs");
+        verify(reservations).findTodayOrderByPickUpTime(today);
+        verifyNoInteractions(production);
+    }
+
+    @Test
     void productionNeedsInitiallyRendersZeroNormallyAndPositiveEmphasized() throws Exception {
         when(production.findTodayProductionNeeds()).thenReturn(List.of(need("가나슈", 2), need("모카", 0)));
         String html = render();

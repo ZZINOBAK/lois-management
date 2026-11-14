@@ -8,6 +8,7 @@
     const needsOneGroup = root.querySelector('[data-production-needs-one-group]');
     const needsWarning = root.querySelector('[data-production-needs-warning]');
     let pending = false;
+    let sseRefreshQueued = false;
     let toastTimer;
 
     function notify(message, kind = 'success') {
@@ -92,6 +93,34 @@
         needsWarning.hidden = true;
     }
 
+    async function refreshReservations() {
+        const response = await window.secureFetch(root.dataset.reservationsUrl, {
+            method: 'GET', redirect: 'error', cache: 'no-store'
+        });
+        if (response.status !== 200) throw new Error('Reservation refresh failed');
+        const template = document.createElement('template');
+        template.innerHTML = await response.text();
+        const table = template.content.querySelector('[data-production-reservation-table]');
+        if (!table) throw new Error('Invalid reservation response');
+        root.querySelector('[data-production-reservation-table]').replaceWith(table);
+    }
+
+    // 실시간 변경 알림 시 예약 표를 교체한 뒤 수량과 제작 상태를 다시 계산한다.
+    async function refreshFromSse() {
+        if (pending) {
+            sseRefreshQueued = true;
+            return;
+        }
+        try {
+            await refreshReservations();
+            await refreshNeeds();
+        } catch {
+            needsWarning.hidden = false;
+        }
+    }
+
+    document.addEventListener('sse:changed', refreshFromSse);
+
     root.addEventListener('click', async event => {
         const button = event.target.closest('[data-production-action]');
         if (!button || !root.contains(button) || pending) return;
@@ -135,6 +164,10 @@
             pending = false;
             buttons.forEach(item => { item.disabled = false; });
             root.removeAttribute('aria-busy');
+            if (sseRefreshQueued) {
+                sseRefreshQueued = false;
+                refreshFromSse();
+            }
         }
     });
 })();

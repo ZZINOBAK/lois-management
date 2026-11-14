@@ -75,7 +75,13 @@
         await load();
     });
     document.body.addEventListener('htmx:beforeRequest', event => {
+        // 실시간 갱신으로 인한 목록 조회는 패널을 닫지 않는다.
+        if (event.detail.requestConfig?.headers?.['X-SSE-Refresh']) return;
         if (event.detail.target?.id === 'list') close();
+    });
+    // 실시간 변경 알림 시 열린 패널만 다시 조회한다. 처리 중이면 처리 완료 후 조회된다.
+    document.addEventListener('sse:changed', () => {
+        if (!panel.hidden && !writing) load();
     });
     panel.addEventListener('click', async event => {
         const button = event.target.closest('[data-stock-action]');

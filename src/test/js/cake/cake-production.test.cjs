@@ -30,14 +30,17 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
         disabled: false, closest() { return this; }
     }));
     const other = { dataset: { productionAction: 'other' }, closest() { return this; } };
-    let click;
+    let click, sseChanged;
+    const replacedTables = [];
+    const table = { replaceWith(next) { replacedTables.push(next); } };
     const attrs = {};
     const root = {
-        dataset: { produceUrl: '/cake-stocks/produce', cancelUrl: '/cake-stocks/produce-cancel', needsUrl: '/cake-production/production-needs' },
+        dataset: { produceUrl: '/cake-stocks/produce', cancelUrl: '/cake-stocks/produce-cancel', needsUrl: '/cake-production/production-needs', reservationsUrl: '/cake-production/reservations' },
         querySelector: selector => selector === '[data-production-needs]' ? needsList
             : selector === '[data-production-needs-one]' ? needsOneList
             : selector === '[data-production-needs-one-group]' ? needsOneGroup
-            : selector === '[data-production-needs-warning]' ? needsWarning : toast,
+            : selector === '[data-production-needs-warning]' ? needsWarning
+            : selector === '[data-production-reservation-table]' ? table : toast,
         querySelectorAll: selector => {
             if (selector === '[data-card-stock]') return cardStocks;
             if (selector === '[data-production-reservation]') return state.rows || [];
@@ -51,7 +54,9 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
         removeAttribute: name => { delete attrs[name]; },
         addEventListener(name, handler) { if (name === 'click') click = handler; }
     };
-    const element = tag => ({ tag, children: [], append(...items) { this.children.push(...items); } });
+    const element = tag => tag === 'template'
+        ? { set innerHTML(html) { this.content = { querySelector: selector => html.includes(selector.slice(1, -1)) ? { html } : null }; } }
+        : { tag, children: [], append(...items) { this.children.push(...items); } };
     const document = {
         createElement: element,
         createDocumentFragment: () => element('fragment'),
@@ -61,7 +66,7 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
             if (selector === 'meta[name="_csrf_header"]') return { content: 'X-CSRF-TOKEN' };
             return null;
         },
-        addEventListener() {}
+        addEventListener(name, handler) { if (name === 'sse:changed') sseChanged = handler; }
     };
     const context = vm.createContext({
         document, window: {}, URLSearchParams, Headers,
@@ -74,7 +79,7 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
     });
     vm.runInContext(load('/auth/auth-common.js'), context);
     vm.runInContext(load('/cake/cake-production.js'), context);
-    return { calls, readCalls, needsOneList, needsOneGroup, needsList, needsWarning, cardStocks, buttons, cancelButtons, other, toast, timers, attrs, click: button => click({ target: button }) };
+    return { calls, readCalls, replacedTables, sse: () => sseChanged(), needsOneList, needsOneGroup, needsList, needsWarning, cardStocks, buttons, cancelButtons, other, toast, timers, attrs, click: button => click({ target: button }) };
 }
 
 for (let i = 0; i < 5; i++) {
@@ -463,4 +468,38 @@ test('refresh separates size one and two and hides size one when absent', async 
     assert.equal(p.needsOneGroup.hidden, false);
     needs = [needs[0]]; await p.click(p.buttons[0]);
     assert.equal(p.needsOneGroup.hidden, true); assert.equal(p.needsOneList.children.length, 0);
+});
+
+const sseReads = (table = '<table data-production-reservation-table></table>') => async url => url === '/cake-production/reservations'
+    ? { status: 200, text: async () => table }
+    : { status: 200, json: async () => [{ cakeId: 11, cakeFlavor: '가나슈', cakeSize: 2, requiredQuantity: 1, stockQuantity: 4 }] };
+
+test('sse change replaces reservation table then refreshes quantities', async () => {
+    const p = page(undefined, sseReads());
+    await p.sse();
+    assert.deepEqual(p.readCalls.map(call => call.url), ['/cake-production/reservations', '/cake-production/production-needs']);
+    assert.equal(p.readCalls[0].options.cache, 'no-store');
+    assert.equal(p.replacedTables.length, 1);
+    assert.equal(p.cardStocks[0].textContent, '4');
+    assert.equal(p.needsWarning.hidden, true);
+});
+
+test('sse change during a production request waits until it finishes', async () => {
+    let resolve;
+    const p = page(() => new Promise(done => { resolve = done; }), sseReads());
+    const pending = p.click(p.buttons[0]);
+    await p.sse();
+    assert.equal(p.readCalls.length, 0);
+    resolve({ status: 204 });
+    await pending;
+    await new Promise(done => setImmediate(done));
+    assert.ok(p.readCalls.some(call => call.url === '/cake-production/reservations'));
+    assert.equal(p.replacedTables.length, 1);
+});
+
+test('sse table refresh failure keeps current table and shows stale warning', async () => {
+    const p = page(undefined, async url => url === '/cake-production/reservations' ? { status: 500 } : { status: 200, json: async () => [] });
+    await p.sse();
+    assert.equal(p.replacedTables.length, 0);
+    assert.equal(p.needsWarning.hidden, false);
 });

@@ -11,12 +11,13 @@
     <script th:src="@{/js/common.js}" defer></script>
     <script th:src="@{/js/auth/auth-common.js}" defer></script>
     <script th:src="@{/js/cake/cake-production.js}" defer></script>
+    <script th:src="@{/js/sse/sse-client.js}" defer></script>
 </head>
 <body class="cake-production">
 <div class="wrap">
     <header th:replace="~{fragments/header :: header}"></header>
     <main class="cake-production-main" data-production-root
-          th:attr="data-produce-url=@{/cake-stocks/produce},data-cancel-url=@{/cake-stocks/produce-cancel},data-needs-url=@{/cake-production/production-needs}">
+          th:attr="data-produce-url=@{/cake-stocks/produce},data-cancel-url=@{/cake-stocks/produce-cancel},data-needs-url=@{/cake-production/production-needs},data-reservations-url=@{/cake-production/reservations}">
         <div class="cake-production-heading">
             <p class="cake-production-eyebrow">CAKE PRODUCTION</p>
             <div class="cake-production-title-row">
@@ -85,7 +86,7 @@
                 <h2 id="production-reservations-title">오늘 예약</h2>
             </div>
             <div class="cake-production-reservation-scroll" tabindex="0" role="region" aria-label="오늘 예약 목록">
-            <table class="cake-production-reservation-table">
+            <table class="cake-production-reservation-table" th:fragment="reservationTable" data-production-reservation-table>
                 <thead>
                 <tr><th scope="col">연번</th><th scope="col">시간</th><th scope="col">맛</th><th scope="col" class="cake-production-size-column"><span class="cake-production-sr-only">호수</span></th><th scope="col">상태</th></tr>
                 </thead>
