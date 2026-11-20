@@ -7,6 +7,10 @@
     const needsOneList = root.querySelector('[data-production-needs-one]');
     const needsOneGroup = root.querySelector('[data-production-needs-one-group]');
     const needsWarning = root.querySelector('[data-production-needs-warning]');
+    const sizeButtons = [...root.querySelectorAll('[data-production-size]')];
+    // 선택된 제작 호수. 새로고침 시 항상 2호로 시작한다.
+    let selectedSize = '2';
+    let latestNeeds = [];
     let pending = false;
     let sseRefreshQueued = false;
     let toastTimer;
@@ -22,6 +26,7 @@
     }
 
     function updateCardStocks(needs) {
+        latestNeeds = needs;
         const quantities = new Map(needs.map(need => [
             String(need.cakeId) + ':' + String(need.cakeSize), need.stockQuantity
         ]));
@@ -61,8 +66,31 @@
     const initialNeeds = [...root.querySelectorAll('[data-production-need]')].map(item => ({
         cakeId: item.dataset.cakeId, cakeSize: item.dataset.cakeSize, stockQuantity: item.dataset.stockQuantity
     }));
+    // 제작 필요 수량에 없는 맛(1호 예약이 없는 맛)도 카드에는 재고를 보여 주기 위해 카드의 호수별 재고를 함께 쓴다.
+    for (const element of root.querySelectorAll('[data-card-stock]')) {
+        if (element.dataset.stockOne !== undefined) {
+            initialNeeds.push({ cakeId: element.dataset.cakeId, cakeSize: '1', stockQuantity: element.dataset.stockOne });
+        }
+        if (element.dataset.stockTwo !== undefined) {
+            initialNeeds.push({ cakeId: element.dataset.cakeId, cakeSize: '2', stockQuantity: element.dataset.stockTwo });
+        }
+    }
     updateCardStocks(initialNeeds);
     updateReservationReadiness(initialNeeds);
+
+    // 선택된 호수를 버튼 색, 카드 재고, 취소 버튼 라벨에 반영한다.
+    function renderSelectedSize() {
+        for (const button of sizeButtons) {
+            button.setAttribute('aria-pressed', String(button.dataset.productionSize === selectedSize));
+        }
+        for (const element of root.querySelectorAll('[data-card-stock]')) {
+            element.dataset.cakeSize = selectedSize;
+        }
+        for (const button of root.querySelectorAll('[data-production-action="cancel"]')) {
+            button.setAttribute('aria-label', button.dataset.flavor + ' ' + selectedSize + '호 1개 제작 취소');
+        }
+        updateCardStocks(latestNeeds);
+    }
 
     async function refreshNeeds() {
         const response = await window.secureFetch(root.dataset.needsUrl, {
@@ -82,14 +110,16 @@
             quantity.className = 'cake-production-need-quantity';
             quantity.textContent = need.requiredQuantity;
             item.append(name, quantity);
-            if (Number(need.cakeSize) === 1) oneFragment.append(item);
-            else if (Number(need.cakeSize) === 2) fragment.append(item);
+            if (Number(need.cakeSize) === 1) {
+                // 1호 제작 필요 수량은 오늘 1호 예약이 있는 맛만 보여 준다.
+                if (need.todayReserved) oneFragment.append(item);
+            } else if (Number(need.cakeSize) === 2) fragment.append(item);
         }
         updateCardStocks(needs);
         updateReservationReadiness(needs);
         needsList.replaceChildren(fragment);
         needsOneList.replaceChildren(oneFragment);
-        needsOneGroup.hidden = !needs.some(need => Number(need.cakeSize) === 1);
+        needsOneGroup.hidden = !needs.some(need => Number(need.cakeSize) === 1 && need.todayReserved);
         needsWarning.hidden = true;
     }
 
@@ -122,6 +152,14 @@
     document.addEventListener('sse:changed', refreshFromSse);
 
     root.addEventListener('click', async event => {
+        const sizeButton = event.target.closest('[data-production-size]');
+        if (sizeButton?.dataset.productionSize) {
+            // 처리 중에는 호수를 바꾸지 않는다. (요청 호수와 화면 호수가 어긋나지 않도록)
+            if (pending || sizeButton.dataset.productionSize === selectedSize) return;
+            selectedSize = sizeButton.dataset.productionSize;
+            renderSelectedSize();
+            return;
+        }
         const button = event.target.closest('[data-production-action]');
         if (!button || !root.contains(button) || pending) return;
         if (button.dataset.productionAction === 'other') {
@@ -129,11 +167,13 @@
             return;
         }
         const cancelling = button.dataset.productionAction === 'cancel';
+        const size = selectedSize;
         pending = true;
         buttons.forEach(item => { item.disabled = true; });
+        sizeButtons.forEach(item => { item.disabled = true; });
         root.setAttribute('aria-busy', 'true');
         try {
-            const body = new URLSearchParams({ cake_id: button.dataset.cakeId, cake_size: '2' });
+            const body = new URLSearchParams({ cake_id: button.dataset.cakeId, cake_size: size });
             const response = await window.secureFetch(cancelling ? root.dataset.cancelUrl : root.dataset.produceUrl, {
                 method: 'POST',
                 redirect: 'error',
@@ -141,7 +181,7 @@
                 body
             });
             if (response.status === 204) {
-                const successMessage = button.dataset.flavor + (cancelling ? ' 2호 1개 제작 취소' : ' 2호 1개 제작 완료');
+                const successMessage = button.dataset.flavor + ' ' + size + (cancelling ? '호 1개 제작 취소' : '호 1개 제작 완료');
                 notify(successMessage);
                 try {
                     await refreshNeeds();
@@ -163,6 +203,7 @@
         } finally {
             pending = false;
             buttons.forEach(item => { item.disabled = false; });
+            sizeButtons.forEach(item => { item.disabled = false; });
             root.removeAttribute('aria-busy');
             if (sseRefreshQueued) {
                 sseRefreshQueued = false;

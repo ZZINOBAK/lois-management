@@ -10,4 +10,6 @@ public class CakeProductionNeedDto {
     private int reservationQuantity;
     private int stockQuantity;
     private int requiredQuantity;
+    // 1호 제작 필요 수량 표시 대상 판단용, 2호는 항상 true
+    private boolean todayReserved;
 }

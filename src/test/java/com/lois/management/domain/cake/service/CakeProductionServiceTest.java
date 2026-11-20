@@ -88,16 +88,19 @@ class CakeProductionServiceTest {
     }
 
     @Test
-    void sizeOneQueryRequiresTodayReservationWithoutExcludingPickedUp() throws Exception {
+    void sizeOneQueryReturnsAllFlavorsAndMarksTodayReservationWithoutExcludingPickedUp() throws Exception {
         Configuration config = new Configuration();
         try (var input = getClass().getResourceAsStream("/mapper/cake/CakeProductionMapper.xml")) {
             new XMLMapperBuilder(input, config, "CakeProductionMapper.xml", config.getSqlFragments()).parse();
         }
         var statement = config.getMappedStatement(CakeProductionMapper.class.getName() + ".findProductionNeeds");
         String oneSql = statement.getBoundSql(Map.of("today", LocalDate.now(), "cakeSize", 1)).getSql();
-        String presence = oneSql.substring(oneSql.indexOf("WHERE EXISTS"));
+        // 카드에 1호 재고를 맛 전체로 보여 주기 위해 1호도 맛을 걸러내지 않는다.
+        assertThat(oneSql).doesNotContain("WHERE EXISTS");
+        String presence = oneSql.substring(oneSql.indexOf("EXISTS"), oneSql.indexOf("AS todayReserved"));
         assertThat(presence).contains("today_reservation.cake_id = c.id", "today_reservation.res_date = ?", "today_reservation.cake_size = ?")
                 .doesNotContain("status =");
-        assertThat(statement.getBoundSql(Map.of("today", LocalDate.now(), "cakeSize", 2)).getSql()).doesNotContain("WHERE EXISTS");
+        String twoSql = statement.getBoundSql(Map.of("today", LocalDate.now(), "cakeSize", 2)).getSql();
+        assertThat(twoSql).doesNotContain("EXISTS").contains("TRUE", "AS todayReserved");
     }
 }

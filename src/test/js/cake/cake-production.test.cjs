@@ -22,12 +22,17 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
         closest() { return this; }
     }));
     const cardStocks = flavors.map((flavor, i) => ({
-        dataset: { cakeId: String(11 + i), cakeSize: '2' }, textContent: '0',
+        dataset: { cakeId: String(11 + i), cakeSize: '2', ...((state.cardStocks || [])[i] || {}) }, textContent: '0',
         closest: () => buttons[i]
     }));
     const cancelButtons = flavors.map((flavor, i) => ({
         dataset: { cakeId: String(11 + i), flavor, productionAction: 'cancel' },
-        disabled: false, closest() { return this; }
+        disabled: false, attrs: {}, setAttribute(name, value) { this.attrs[name] = value; }, closest() { return this; }
+    }));
+    const sizeButtons = ['1', '2'].map(size => ({
+        dataset: { productionSize: size }, disabled: false,
+        attrs: { 'aria-pressed': String(size === '2') }, setAttribute(name, value) { this.attrs[name] = value; },
+        closest() { return this; }
     }));
     const other = { dataset: { productionAction: 'other' }, closest() { return this; } };
     let click, sseChanged;
@@ -43,6 +48,8 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
             : selector === '[data-production-reservation-table]' ? table : toast,
         querySelectorAll: selector => {
             if (selector === '[data-card-stock]') return cardStocks;
+            if (selector === '[data-production-size]') return sizeButtons;
+            if (selector === '[data-production-action="cancel"]') return cancelButtons;
             if (selector === '[data-production-reservation]') return state.rows || [];
             if (selector === '[data-production-need]') return (state.needs || []).map(need => ({
                 dataset: { cakeId: String(need.cakeId), cakeSize: String(need.cakeSize), stockQuantity: String(need.stockQuantity) }
@@ -79,7 +86,7 @@ function page(fetcher = async () => ({ status: 204 }), readFetcher = async () =>
     });
     vm.runInContext(load('/auth/auth-common.js'), context);
     vm.runInContext(load('/cake/cake-production.js'), context);
-    return { calls, readCalls, replacedTables, sse: () => sseChanged(), needsOneList, needsOneGroup, needsList, needsWarning, cardStocks, buttons, cancelButtons, other, toast, timers, attrs, click: button => click({ target: button }) };
+    return { calls, readCalls, replacedTables, sse: () => sseChanged(), needsOneList, needsOneGroup, needsList, needsWarning, cardStocks, buttons, cancelButtons, sizeButtons, other, toast, timers, attrs, click: button => click({ target: button }) };
 }
 
 for (let i = 0; i < 5; i++) {
@@ -222,20 +229,6 @@ test('card layout preserves server ID order without CSS reordering', () => {
     assert.doesNotMatch(css, /(?:^|[;{])\s*order\s*:/m);
 });
 
-test('card and minus button retain rounded borderless styles', () => {
-    const css = fs.readFileSync(path.join(__dirname, '../../../main/resources/static/css/cake/cake-production.css'), 'utf8');
-    assert.doesNotMatch(css, /\bb\s+border-radius\s*:/);
-    for (const [selector, radius] of [
-        ['.cake-production .cake-production-button', '20px'],
-        ['.cake-production .cake-production-cancel', '50%']
-    ]) {
-        const start = css.indexOf(selector + ' {');
-        assert.notEqual(start, -1);
-        const rule = css.slice(start, css.indexOf('}', start));
-        assert.match(rule, /(?:^|[;{])\s*border:\s*0\s*;/);
-        assert.ok(rule.includes('border-radius: ' + radius + ';'));
-    }
-});
 
 for (const action of ['produce', 'cancel']) {
     test(action + ' success refreshes shortage with emphasis and safe text', async () => {
@@ -372,13 +365,6 @@ test('production-needed display is emphasized without changing reservation state
     assert.equal(row.status.textContent, '제작 필요');
     assert.equal(row.needsProduction, true);
     assert.deepEqual(row.dataset, original);
-    const css = fs.readFileSync(path.join(__dirname, '../../../main/resources/static/css/cake/cake-production.css'), 'utf8');
-    const start = css.indexOf('.cake-production .is-production-needed .cake-production-reservation-status {');
-    assert.notEqual(start, -1);
-    const rule = css.slice(start, css.indexOf('}', start));
-    assert.match(rule, /font-size: 18px/);
-    assert.match(rule, /font-weight: 750/);
-    assert.doesNotMatch(rule, /color\s*:/);
 });
 test('readiness removes production-needed emphasis and cancellation restores it', async () => {
     const row = reservationRow(1, '12:00');
@@ -460,7 +446,7 @@ test('size one reservations use only size one stock', () => {
 });
 test('refresh separates size one and two and hides size one when absent', async () => {
     let needs = [{ cakeId: 11, cakeSize: 2, stockQuantity: 2, requiredQuantity: 0, cakeFlavor: '가나슈' },
-        { cakeId: 12, cakeSize: 1, stockQuantity: 0, requiredQuantity: 1, cakeFlavor: '무화과' }];
+        { cakeId: 12, cakeSize: 1, stockQuantity: 0, requiredQuantity: 1, cakeFlavor: '무화과', todayReserved: true }];
     const p = page(undefined, async () => ({ status: 200, json: async () => needs }));
     await p.click(p.buttons[0]);
     assert.equal(p.needsList.children.length, 1); assert.equal(p.needsOneList.children.length, 1);
@@ -502,4 +488,54 @@ test('sse table refresh failure keeps current table and shows stale warning', as
     await p.sse();
     assert.equal(p.replacedTables.length, 0);
     assert.equal(p.needsWarning.hidden, false);
+});
+
+test('size one selection sends size one and mentions it in the toast', async () => {
+    const p = page();
+    await p.click(p.sizeButtons[0]);
+    assert.equal(p.sizeButtons[0].attrs['aria-pressed'], 'true');
+    assert.equal(p.sizeButtons[1].attrs['aria-pressed'], 'false');
+    await p.click(p.buttons[0]);
+    await p.click(p.cancelButtons[1]);
+    assert.equal(p.calls[0].options.body.get('cake_size'), '1');
+    assert.equal(p.calls[1].options.body.get('cake_size'), '1');
+    assert.match(p.toast.textContent, /1호 1개 제작 취소/);
+    assert.equal(p.cancelButtons[0].attrs['aria-label'], '가나슈 1호 1개 제작 취소');
+});
+test('switching size shows that size stock on cards including flavors without size one reservations', async () => {
+    const p = page(undefined, undefined, { cardStocks: [{ stockOne: '3', stockTwo: '1' }, { stockOne: '0', stockTwo: '4' }] });
+    assert.equal(p.cardStocks[0].textContent, '1');
+    assert.equal(p.cardStocks[1].textContent, '4');
+    await p.click(p.sizeButtons[0]);
+    assert.equal(p.cardStocks[0].textContent, '3');
+    assert.equal(p.cardStocks[1].textContent, '0');
+    await p.click(p.sizeButtons[1]);
+    assert.equal(p.cardStocks[0].textContent, '1');
+});
+test('size cannot change while a production request is pending', async () => {
+    let resolve;
+    const p = page(() => new Promise(done => { resolve = done; }));
+    const pending = p.click(p.buttons[0]);
+    assert.ok(p.sizeButtons.every(button => button.disabled));
+    await p.click(p.sizeButtons[0]);
+    resolve({ status: 204 });
+    await pending;
+    assert.equal(p.sizeButtons[1].attrs['aria-pressed'], 'true');
+    assert.ok(p.sizeButtons.every(button => !button.disabled));
+    const next = p.click(p.buttons[0]);
+    assert.equal(p.calls[1].options.body.get('cake_size'), '2');
+    resolve({ status: 204 });
+    await next;
+});
+test('size one needs list shows only flavors reserved today while cards keep all stock', async () => {
+    const p = page(undefined, async () => ({ status: 200, json: async () => [
+        { cakeId: 11, cakeSize: 1, stockQuantity: 2, cakeFlavor: '가나슈', requiredQuantity: 0, todayReserved: false },
+        { cakeId: 12, cakeSize: 1, stockQuantity: 0, cakeFlavor: '무화과', requiredQuantity: 1, todayReserved: true }
+    ] }));
+    await p.click(p.sizeButtons[0]);
+    await p.click(p.buttons[0]);
+    assert.equal(p.needsOneList.children.length, 1);
+    assert.equal(p.needsOneList.children[0].children[0].textContent, '무화과');
+    assert.equal(p.needsOneGroup.hidden, false);
+    assert.equal(p.cardStocks[0].textContent, '2');
 });

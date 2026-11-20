@@ -12,7 +12,21 @@
                    FROM cake_stocks s
                    WHERE s.cake_id = c.id
                      AND s.cake_size = #{cakeSize}
-               ), 0) AS stockQuantity
+               ), 0) AS stockQuantity,
+               <!-- 1호: 오늘 1호 예약(현장판매 제외, 픽업 완료 포함)이 있는 맛인지. 제작 필요 수량 표시 대상 판단용 -->
+               <choose>
+                   <when test="cakeSize == 1">
+                       EXISTS (
+                           SELECT 1
+                           FROM reservations today_reservation
+                           WHERE today_reservation.cake_id = c.id
+                             AND today_reservation.res_date = #{today}
+                             AND today_reservation.cake_size = #{cakeSize}
+                             AND (today_reservation.contact IS NULL OR today_reservation.contact != 'ON_SITE')
+                       )
+                   </when>
+                   <otherwise>TRUE</otherwise>
+               </choose> AS todayReserved
         FROM cakes c
         LEFT JOIN (
             SELECT cake_id, COUNT(*) AS reservation_quantity
@@ -22,16 +36,6 @@
               AND status = 'RESERVED'
             GROUP BY cake_id
         ) r ON r.cake_id = c.id
-        <if test="cakeSize == 1">
-            WHERE EXISTS (
-                SELECT 1
-                FROM reservations today_reservation
-                WHERE today_reservation.cake_id = c.id
-                  AND today_reservation.res_date = #{today}
-                  AND today_reservation.cake_size = #{cakeSize}
-                  AND (today_reservation.contact IS NULL OR today_reservation.contact != 'ON_SITE')
-            )
-        </if>
         ORDER BY c.id ASC
     </select>
 </mapper>

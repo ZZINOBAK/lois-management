@@ -263,6 +263,7 @@ class CakeProductionControllerTest {
     void sizeOneNeedsRenderSeparatelyAndBadgeAppearsOnlyForSizeOne() throws Exception {
         var one = need("무화과", 1);
         one.setCakeSize(1);
+        one.setTodayReserved(true);
         when(production.findTodayProductionNeeds()).thenReturn(List.of(need("가나슈", 0), one));
         var reservation = reservation(1L, LocalTime.NOON, "무화과");
         reservation.setCakeSize(1);
@@ -271,6 +272,21 @@ class CakeProductionControllerTest {
         String group = html.substring(html.indexOf("<div class=\"cake-production-needs-one\""), html.indexOf("</section>"));
         assertThat(group).contains("무화과", "data-cake-size=\"1\"").doesNotContain("가나슈", "hidden");
         assertThat(html).contains("class=\"cake-production-size-badge\">1호</span>");
+    }
+
+    @Test
+    void sizeToggleDefaultsToSizeTwoAndCardsCarryBothSizeStocks() throws Exception {
+        var two = need("가나슈", 0);
+        var one = need("가나슈", 0);
+        one.setCakeSize(1);
+        one.setStockQuantity(3);
+        when(production.findTodayProductionNeeds()).thenReturn(List.of(two, one));
+        String html = render();
+        assertThat(html).contains("data-production-size=\"1\" aria-pressed=\"false\"", "data-production-size=\"2\" aria-pressed=\"true\"",
+                "data-stock-one=\"3\"", "data-stock-two=\"1\"");
+        // 오늘 1호 예약이 없는 맛은 카드 재고만 보여 주고 1호 제작 필요 수량에는 나오지 않는다.
+        String group = html.substring(html.indexOf("<div class=\"cake-production-needs-one\""), html.indexOf("</section>"));
+        assertThat(group).contains("hidden").doesNotContain("가나슈");
     }
 
     @Test
