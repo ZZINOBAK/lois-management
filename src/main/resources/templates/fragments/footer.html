@@ -5,9 +5,12 @@
             class="footer"
             th:with="currentPath=${#ctx.getExchange().getRequest().getPathWithinApplication()},
             isDemo=${currentPath == '/demo' or #strings.startsWith(currentPath, '/demo/')}">
-        <button type="button"
-                th:onclick="${isDemo} ? @{/} : @{/demo}"
-                th:text="${isDemo} ? '로이스 메인으로 가기' : '로이스 구경하기'">
+<!--        <button type="button"-->
+<!--                th:onclick="${isDemo} ? @{/} : @{/demo}"-->
+<!--                th:text="${isDemo} ? '로이스 메인으로 가기' : '로이스 구경하기'">-->
+
+            <button type="button"
+                    th:onclick=showPreparing()>
             로이스 구경하기
         </button>
         © Lois by Auntie Jin
