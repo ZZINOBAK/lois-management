@@ -490,34 +490,34 @@ public class ReservationController {
     }
 
     private ProductionStatus dashboardProductionStatus(LocalDate today, List<Reservation> reservations, Model model) {
-        // 1호와 제작 누적 집계는 기존 기준을 유지한다.
+        // 현재 재고(cake_stocks)와 오늘 예약 기준으로 집계한다. 제작 누적(produced)만 기존 기준을 유지한다.
         ProductionStatus legacy = cakeMovementService.getProductionStatus(today);
-        Map<Long, Integer> demandTwo = new LinkedHashMap<>();
-        for (Reservation reservation : reservations) {
-            if (Integer.valueOf(2).equals(reservation.getCakeSize())
-                    && ("RESERVED".equals(reservation.getStatus()) || "PICKED_UP".equals(reservation.getStatus()))) {
-                demandTwo.merge(reservation.getCakeId(), 1, Integer::sum);
-            }
-        }
-        Map<Long, Integer> pickupReadyTwo = new LinkedHashMap<>();
-        Map<Long, Integer> toMakeTwo = new LinkedHashMap<>();
-        Map<Long, Integer> extraTwo = new LinkedHashMap<>();
-        List<CakeProductionNeedDto> needs = cakeProductionService.findTodayProductionNeeds();
-        addProductionReadyIds(model, reservations, needs);
-        for (CakeProductionNeedDto need : needs) {
-            if (!Integer.valueOf(2).equals(need.getCakeSize())) continue;
-            pickupReadyTwo.put(need.getCakeId(), Math.min(need.getReservationQuantity(), need.getStockQuantity()));
-            toMakeTwo.put(need.getCakeId(), need.getRequiredQuantity());
-            extraTwo.put(need.getCakeId(), Math.max(need.getStockQuantity() - need.getReservationQuantity(), 0));
-        }
         Map<Integer, Map<Long, Integer>> demand = new LinkedHashMap<>(legacy.getDemand());
         Map<Integer, Map<Long, Integer>> pickupReady = new LinkedHashMap<>(legacy.getPickupReady());
         Map<Integer, Map<Long, Integer>> toMake = new LinkedHashMap<>(legacy.getToMake());
         Map<Integer, Map<Long, Integer>> extra = new LinkedHashMap<>(legacy.getExtraStock());
-        demand.put(2, demandTwo);
-        pickupReady.put(2, pickupReadyTwo);
-        toMake.put(2, toMakeTwo);
-        extra.put(2, extraTwo);
+        for (int size : List.of(1, 2)) {
+            demand.put(size, new LinkedHashMap<>());
+            pickupReady.put(size, new LinkedHashMap<>());
+            toMake.put(size, new LinkedHashMap<>());
+            extra.put(size, new LinkedHashMap<>());
+        }
+        for (Reservation reservation : reservations) {
+            Map<Long, Integer> sizeDemand = demand.get(reservation.getCakeSize());
+            if (sizeDemand != null && isProductionSize(reservation.getCakeSize())
+                    && ("RESERVED".equals(reservation.getStatus()) || "PICKED_UP".equals(reservation.getStatus()))) {
+                sizeDemand.merge(reservation.getCakeId(), 1, Integer::sum);
+            }
+        }
+        List<CakeProductionNeedDto> needs = cakeProductionService.findTodayProductionNeeds();
+        addProductionReadyIds(model, reservations, needs);
+        for (CakeProductionNeedDto need : needs) {
+            if (!isProductionSize(need.getCakeSize())) continue;
+            int size = need.getCakeSize();
+            pickupReady.get(size).put(need.getCakeId(), Math.min(need.getReservationQuantity(), need.getStockQuantity()));
+            toMake.get(size).put(need.getCakeId(), need.getRequiredQuantity());
+            extra.get(size).put(need.getCakeId(), Math.max(need.getStockQuantity() - need.getReservationQuantity(), 0));
+        }
         return new ProductionStatus(demand, legacy.getProduced(), pickupReady, toMake, extra);
     }
 
@@ -547,6 +547,10 @@ public class ReservationController {
                     }
                 });
         model.addAttribute("productionReadyIds", readyIds);
+    }
+
+    private boolean isProductionSize(Integer cakeSize) {
+        return Integer.valueOf(1).equals(cakeSize) || Integer.valueOf(2).equals(cakeSize);
     }
 
     private String stockKey(Integer cakeSize, Long cakeId) {

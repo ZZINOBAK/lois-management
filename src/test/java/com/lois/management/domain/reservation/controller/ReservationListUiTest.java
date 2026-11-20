@@ -167,6 +167,32 @@ class ReservationListUiTest {
         assertThat(html).contains("production-ready-btn", "제작 완료").doesNotContain("픽업예정");
     }
 
+    @Test
+    void sizeOneExtraStockUsesCurrentStockLikeSizeTwo() throws Exception {
+        Cake cake = new Cake();
+        cake.setId(1L);
+        cake.setName("가나슈");
+        cake.setCode("GANACHE");
+        when(cakes.findFlavorsForDashboard()).thenReturn(List.of(cake));
+        // 기존 수불 기록 기준 값(9개)은 쓰지 않아야 한다.
+        when(movements.getProductionStatus(any())).thenReturn(new ProductionStatus(
+                Map.of(), Map.of(), Map.of(), Map.of(), Map.of(1, Map.of(1L, 9))));
+        CakeProductionNeedDto need = new CakeProductionNeedDto();
+        need.setCakeId(1L);
+        need.setCakeSize(1);
+        need.setReservationQuantity(1);
+        need.setStockQuantity(3);
+        when(cakeProductionService.findTodayProductionNeeds()).thenReturn(List.of(need));
+
+        String html = mvc.perform(get("/reservations/production-status"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        String marker = "예약 없이 구매 가능해요!";
+        int sizeOneExtra = html.indexOf(marker, html.indexOf(marker) + marker.length());
+        String sizeOneExtraCard = html.substring(sizeOneExtra, html.indexOf("status-card", sizeOneExtra));
+        assertThat(sizeOneExtraCard).contains("2개").doesNotContain("9개");
+    }
+
     private void assertList(String html) {
         int summaryStart = html.indexOf("class=\"row summary-row");
         int detailStart = html.indexOf("class=\"detail-row hidden\"");
