@@ -54,7 +54,7 @@
     /* border-collapse 표에서는 고정(sticky) 머리글의 border가 스크롤 시 함께 사라지므로 그림자로 아래 선을 그린다. */
     box-shadow: inset 0 -1px 0 #dcdad0;
 }
-.cake-production .cake-production-reservations h2 { margin: 0 0 0; font-size: 20px; letter-spacing: -.03em; }
+.cake-production .cake-production-reservations h2 { margin: 0 0 5px; font-size: 20px; letter-spacing: -.03em; }
 .cake-production .cake-production-reservation-table { width: 100%; border-collapse: collapse; font-size: 20px; }
 .cake-production .cake-production-reservation-table th {
     height: var(--reservation-header-height);
@@ -211,7 +211,7 @@
 .cake-production .cake-production-nav-link:hover { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); transform: translateY(-1px); }
 .cake-production .cake-production-nav-link:focus-visible { outline: 3px solid #88a891; outline-offset: 3px; }
 
-.cake-production .cake-production-needs-one { display: flex; align-items: baseline; gap: 14px; margin-top: 10px; padding-top: 12px; border-top: 2px solid #dcdad0; }
+.cake-production .cake-production-needs-one { display: flex; align-items: baseline; gap: 14px; margin-top: 10px; padding-top: 12px; border-top: 1.5px solid #dcdad0; }
 .cake-production .cake-production-needs-one[hidden] { display: none; }
 .cake-production .cake-production-needs-one h3 { flex: none; margin: 0; color: #747467; font-size: 13px; }
 .cake-production .cake-production-size-column { width: 40px; padding-left: 3px; padding-right: 3px; }
