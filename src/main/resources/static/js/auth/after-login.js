@@ -1,4 +1,4 @@
-const KEY = "lois_access_token";
+//const KEY = "lois_access_token";
 
 function csrfHeaders() {
   const token = document.querySelector('meta[name="_csrf"]')?.content;
