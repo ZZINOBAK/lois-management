@@ -66,41 +66,6 @@ public class ReservationService {
 
     }
 
-//    @Transactional
-//    public void create(Reservation reservation) {
-//        String contact = reservation.getContact();
-//        reservation.setContactSuffix(contact.substring(contact.length() - 4));
-//
-//        // [STEP 1] DB에서 실시간 제한 정책 기준값 조회 (예: 시간당 10개, 당일 무제한)
-//        ReservationPolicy policy = reservationPolicyMapper.selectLatestPolicy();
-////        ReservationPolicy policy = reservationPolicyMapper.selectLatestPolicyWithLock();
-//
-//        if (policy != null) {
-//            // 날짜와 시간대 파라미터 추출
-//            LocalDate resDate = reservation.getResDate();
-//            // 시간대 비교를 위해 LocalTime에서 시(Hour) 정보나 전체 시간 포맷을 활용합니다.
-//            LocalTime resTime = reservation.getResTime();
-//
-//            // [STEP 2] DB를 조회하여 "당일" 현재 예약 완료된 총 건수 계산
-//            if (policy.getDailyMaxLimit() != -1) { // -1이 아닐 때만 제한 체크
-//                int currentDailyCount = reservationMapper.countByDate(resDate);
-//                if (currentDailyCount >= policy.getDailyMaxLimit()) {
-//                    throw new IllegalArgumentException("당일 예약 가능 수량을 초과했습니다. (최대: " + policy.getDailyMaxLimit() + "개)");
-//                }
-//            }
-//
-//            // [STEP 3] DB를 조회하여 "해당 시간대" 현재 예약 완료된 총 건수 계산
-//            // (참고: reservationMapper에 특정 날짜/시간대 카운트 쿼리가 있다고 가정)
-//            int currentHourlyCount = reservationMapper.countByDateAndTime(resDate, resTime);
-//
-//            if (currentHourlyCount >= policy.getHourlyMaxLimit()) {
-//                throw new IllegalArgumentException("해당 시간대 예약 가능 수량을 초과했습니다. (최대: " + policy.getHourlyMaxLimit() + "개)");
-//            }
-//        }
-//
-//        reservationMapper.insert(reservation);
-//    }
-
     public void createOnSite(Reservation reservation) {
 
         // 날짜/시간은 서버에서 강제
@@ -108,8 +73,7 @@ public class ReservationService {
         reservation.setResTime(LocalTime.now().withSecond(0).withNano(0));
 
         // 현장판매는 이미 나간 케이크
-        reservation.setPickupStatus("PICKED");   // 더 이상 WAITING 아님
-        reservation.setMakeStatus("READY");      // 이미 만들어진 케이크
+        reservation.setStatus("PICKED_UP");
 
         // 현장판매 식별자
         reservation.setContact("ON_SITE");
@@ -117,9 +81,9 @@ public class ReservationService {
         // 결제 완료
         reservation.setPaid(true);
 
-        log.info("업무=예약생성 event=SQL전달 stage=ReservationMapper.insertOnSite res_date={} res_time={} cake_id={} cake_size={} make_status={} paid={} pickup_status={} commit=미확인",
+        log.info("업무=예약생성 event=SQL전달 stage=ReservationMapper.insertOnSite res_date={} res_time={} cake_id={} cake_size={} paid={} status={} commit=미확인",
                 reservation.getResDate(), reservation.getResTime(), reservation.getCakeId(), reservation.getCakeSize(),
-                reservation.getMakeStatus(), reservation.getPaid(), reservation.getPickupStatus());
+                reservation.getPaid(), reservation.getStatus());
 
         int rows = reservationMapper.insertOnSite(reservation);
         log.info("업무=예약생성 event=DB처리반환 stage=ReservationMapper.insertOnSite id={} affectedRows={} commit=미확인", reservation.getId(), rows);
@@ -251,21 +215,6 @@ public class ReservationService {
         return true;
     }
 
-    @Transactional
-    public void togglePickupStatus(Long id) {
-        Reservation r = reservationMapper.findById(id);
-        if (r == null) {
-            throw new NoSuchElementException("Reservation not found");
-        }
-
-        if ("PICKED".equals(r.getPickupStatus())) {
-            // 픽업완료 → 픽업예정
-            reservationMapper.updatePickupStatus(id, "WAITING", null);
-        } else {
-            // 픽업예정 → 픽업완료
-            reservationMapper.updatePickupStatus(id, "PICKED", LocalDateTime.now());
-        }
-    }
 
     @Transactional
     public void toggleMakeStatus(Long id) {
@@ -274,13 +223,13 @@ public class ReservationService {
             throw new NoSuchElementException("Reservation not found");
         }
 
-        if ("READY".equals(r.getMakeStatus())) {
+        if ("PICKED_UP".equals(r.getStatus())) {
             log.info("event=SQL전달 stage=ReservationMapper.updateMakeStatus id={} make_status=RESERVED commit=미확인", id);
-            int affectedRows = reservationMapper.updateMakeStatus(id, "RESERVED");
+            int affectedRows = reservationMapper.updateStatus(id, "RESERVED");
             log.info("event=DB처리반환 stage=ReservationMapper.updateMakeStatus id={} affectedRows={} commit=미확인", id, affectedRows);
         } else {
             log.info("event=SQL전달 stage=ReservationMapper.updateMakeStatus id={} make_status=READY commit=미확인", id);
-            int affectedRows = reservationMapper.updateMakeStatus(id, "READY");
+            int affectedRows = reservationMapper.updateStatus(id, "PICKED_UP");
             log.info("event=DB처리반환 stage=ReservationMapper.updateMakeStatus id={} affectedRows={} commit=미확인", id, affectedRows);
         }
 
@@ -308,10 +257,7 @@ public class ReservationService {
     }
 
 
-
-
-
-//API GPT 코드
+//API
     @Transactional
     public Long create(ReservationCreateReq req) {
         Reservation r = new Reservation();
@@ -341,7 +287,7 @@ public class ReservationService {
             r.setContactSuffix(req.contact().substring(req.contact().length() - 4));
         }
         if (req.paid() != null) r.setPaid(req.paid());
-        if (req.status() != null) r.setMakeStatus(req.status());
+        if (req.status() != null) r.setStatus(req.status());
         if (req.note() != null) r.setNote(req.note());
         reservationMapper.updateApi(r);
     }
@@ -351,7 +297,7 @@ public class ReservationService {
         if (r == null) {
             throw new NoSuchElementException("Reservation not found with id: " + id);
         }
-        return new ReservationRes(r.getId(), r.getMakeStatus());
+        return new ReservationRes(r.getId(), r.getStatus());
     }
 
     public List<ReservationSummaryRes> findAllSummaries(ReservationPageReq pageRequest) {
@@ -361,7 +307,7 @@ public class ReservationService {
                         r.getCakeId(),
                         r.getResDate() != null ? r.getResDate().toString() : null,
                         r.getResTime() != null ? r.getResTime().toString() : null,
-                        r.getMakeStatus()
+                        r.getStatus()
                 ))
                 .toList();
     }
@@ -371,8 +317,8 @@ public class ReservationService {
 
     }
 
-    public List<Reservation> findByPickupStatus(String pickupStatus) {
-        return reservationMapper.findByPickupStatus(pickupStatus);
+    public List<Reservation> findByStatus(String status) {
+        return reservationMapper.findByStatus(status);
     }
 
     public boolean existsExactSameReservation(Reservation reserve) {
@@ -407,108 +353,16 @@ public class ReservationService {
 
     }
 
-    public List<Reservation> findFromTodayByPickupStatusWaiting() {
-        return reservationMapper.findFromTodayByPickupStatusWaiting();
-
-    }
-
-    public List<Reservation> findByDateAndPickupStatusWaiting(LocalDate date) {
-        return reservationMapper.findByDateAndPickupStatusWaiting(date);
-
-    }
-
-    public Map<Integer, Map<String, Integer>> calcToMakeBySizeAndFlavor(List<Reservation> reservations, LocalDate date) {
-
-        Map<Integer, Map<String, Integer>> result = new HashMap<>();
-
-        for (Reservation r : reservations) {
-            if (r.getCakeFlavor() == null) continue;
-
-            // WAITING만 집계 대상으로
-            if (r.getPickupStatus() == null || !"WAITING".equals(r.getPickupStatus())) {
-                continue;
-            }
-            if ("ON_SITE".equals(r.getContact())) continue;   // ★ 추가
-
-            int size = r.getCakeSize();
-            String flavor = r.getCakeFlavor();
-
-            result.computeIfAbsent(size, k -> new HashMap<>());
-            Map<String, Integer> flavorMap = result.get(size);
-
-            int v = flavorMap.getOrDefault(flavor, 0);
-            v += 1;
-            if ("READY".equals(r.getMakeStatus())) v -= 1;
-            if (v < 0) v = 0;
-
-            flavorMap.put(flavor, v);
-        }
-
-        // 2) ON_SITE 수량은 +로 더한다 (핵심)
-        List<Map<String, Object>> rows = reservationMapper.countTodayOnSiteBySizeAndFlavor(date);
-        for (Map<String, Object> row : rows) {
-            Integer size = toInt(row.get("cakeSize"));
-            String flavor = (String) row.get("cakeFlavor");
-            Integer cnt = toInt(row.get("cnt"));
-
-            if (size == null || flavor == null || cnt == null) continue;
-
-            result.computeIfAbsent(size, k -> new HashMap<>());
-            Map<String, Integer> flavorMap = result.get(size);
-            flavorMap.put(flavor, flavorMap.getOrDefault(flavor, 0) + cnt);
-        }
-
-        log.info("계산한값: {}", result);
-        return result;
-    }
-
-    private Integer toInt(Object o) {
-        if (o == null) return null;
-        if (o instanceof Integer i) return i;
-        if (o instanceof Long l) return l.intValue();
-        if (o instanceof java.math.BigDecimal bd) return bd.intValue();
-        if (o instanceof String s) return Integer.parseInt(s);
-        return null;
-    }
-
-    public List<Reservation> findTodayForToMakeCalc(LocalDate today) {
-        return reservationMapper.findTodayForToMakeCalc(today);
-    }
 
     public List<Reservation> countDemandByDate(LocalDate today) {
         return reservationMapper.countDemandByDate(today);
     }
 
-    public void updatePickupStatus(Long reservationId, String picked, LocalDateTime now) {
+    public void updatePickupStatus(Long reservationId, String status, LocalDateTime now) {
         log.info("event=SQL전달 stage=ReservationMapper.updatePickupStatus id={} pickup_status={} picked_up_at={} commit=미확인",
-                reservationId, picked, now);
-        int affectedRows = reservationMapper.updatePickupStatus(reservationId, picked, now);
+                reservationId, status, now);
+        int affectedRows = reservationMapper.updatePickupStatus(reservationId, status, now);
         log.info("event=DB처리반환 stage=ReservationMapper.updatePickupStatus id={} affectedRows={} commit=미확인", reservationId, affectedRows);
-    }
-
-    public Map<Long, Boolean> markProducedUi(List<Reservation> reservations, Map<Integer, Map<Long, Integer>> stockMap) {
-        Map<Integer, Map<Long, Integer>> remain = new HashMap<>();
-        stockMap.forEach((size, m) -> remain.put(size, new HashMap<>(m)));
-
-        Map<Long, Boolean> producedByReservationId = new HashMap<>();
-
-        for (Reservation r : reservations) {
-            int size = r.getCakeSize();
-            long cakeId = r.getCakeId();
-
-            int left = remain
-                    .getOrDefault(size, Map.of())
-                    .getOrDefault(cakeId, 0);
-
-            boolean produced = left > 0;
-
-            if (produced) {
-                remain.get(size).put(cakeId, left - 1);
-            }
-
-            producedByReservationId.put(r.getId(), produced);
-        }
-        return producedByReservationId;
     }
 
 

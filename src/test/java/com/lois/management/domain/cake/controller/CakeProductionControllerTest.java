@@ -1,43 +1,42 @@
 package com.lois.management.domain.cake.controller;
 
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import com.lois.management.global.auth.SecurityConfig;
-import com.lois.management.global.auth.JwtAuthenticationFilter;
+import com.lois.management.domain.cake.Cake;
+import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
+import com.lois.management.domain.cake.service.CakeProductionService;
 import com.lois.management.domain.ipaccess.filter.IpWhitelistFilter;
+import com.lois.management.domain.reservation.Reservation;
+import com.lois.management.domain.reservation.mapper.ReservationMapper;
+import com.lois.management.domain.reservation.service.ReservationService;
 import com.lois.management.global.auth.EmployeeUserDetailsService;
+import com.lois.management.global.auth.JwtAuthenticationFilter;
 import com.lois.management.global.auth.LoginSuccessHandler;
+import com.lois.management.global.auth.SecurityConfig;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-
-import com.lois.management.domain.cake.Cake;
-import com.lois.management.domain.reservation.Reservation;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import com.lois.management.domain.reservation.mapper.ReservationMapper;
-import com.lois.management.domain.cake.service.CakeProductionService;
-import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
-import com.lois.management.domain.reservation.service.ReservationService;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -144,11 +143,8 @@ class CakeProductionControllerTest {
         first.setCakeSize(1);
         first.setPaid(true);
         first.setStatus("PICKED_UP");
-        first.setPickupStatus("WAITING");
-        first.setMakeStatus("RESERVED");
         Reservation second = reservation(502L, LocalTime.of(13, 30), "무화과");
         second.setRowNumber(52);
-        second.setPickupStatus("PICKED");
         String flavor = "<script>alert(1)</script>";
         when(reservations.findTodayOrderByPickUpTime(today)).thenReturn(List.of(
                 first, second, reservation(503L, LocalTime.of(14, 5), flavor)));
@@ -293,8 +289,6 @@ class CakeProductionControllerTest {
         reservation.setCakeId("가나슈".equals(flavor) ? 1L : 2L);
         reservation.setCakeSize(2);
         reservation.setStatus("RESERVED");
-        reservation.setMakeStatus("RESERVED");
-        reservation.setPickupStatus("WAITING");
         return reservation;
     }
 

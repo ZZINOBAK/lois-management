@@ -1,15 +1,14 @@
 package com.lois.management.domain.reservation.controller;
 
-import com.lois.management.domain.ipaccess.filter.IpWhitelistFilter;
-import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.cake.Cake;
 import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
+import com.lois.management.domain.cake.service.CakeMovementService;
 import com.lois.management.domain.cake.service.CakeProductionService;
-import com.lois.management.domain.reservation.controller.ReservationController;
+import com.lois.management.domain.cake.service.CakeService;
+import com.lois.management.domain.ipaccess.filter.IpWhitelistFilter;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.dto.ProductionStatus;
 import com.lois.management.domain.reservation.dto.ReservationPageReq;
-import com.lois.management.domain.cake.service.CakeMovementService;
-import com.lois.management.domain.cake.service.CakeService;
 import com.lois.management.domain.reservation.service.ReservationService;
 import com.lois.management.global.auth.EmployeeUserDetailsService;
 import com.lois.management.global.auth.JwtAuthenticationFilter;
@@ -19,8 +18,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +33,10 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 
 @WebMvcTest(ReservationController.class)
 @Import(SecurityConfig.class)
@@ -80,8 +80,6 @@ class ReservationControllerTest {
         reservation.setId(7L);
         reservation.setCakeFlavor("가나슈");
         reservation.setStatus(state);
-        reservation.setMakeStatus("READY");
-        reservation.setPickupStatus("WAITING");
         reservation.setCakeSize(2);
         reservation.setResDate(java.time.LocalDate.now());
         reservation.setResTime(java.time.LocalTime.of(13, 0));

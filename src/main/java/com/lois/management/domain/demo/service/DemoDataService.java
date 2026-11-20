@@ -16,6 +16,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -44,7 +45,7 @@ public class DemoDataService {
         return data(session).reservations.stream()
                 .filter(reservation -> matchesRange(reservation, range, date, today))
                 .filter(reservation -> !"waiting".equals(normalize(sort))
-                        || "WAITING".equals(reservation.getPickupStatus()))
+                        || "RESERVED".equals(reservation.getStatus()))
                 .sorted(reservationComparator(sort))
                 .map(this::copy)
                 .toList();
@@ -74,8 +75,7 @@ public class DemoDataService {
             saved.setCakeSize(2);
         }
         saved.setCakeFlavor(cakeFlavor(data, saved.getCakeId(), saved.getCakeFlavor()));
-        saved.setMakeStatus(defaultString(saved.getMakeStatus(), "RESERVED"));
-        saved.setPickupStatus(defaultString(saved.getPickupStatus(), "WAITING"));
+        saved.setStatus(defaultString(saved.getStatus(), "RESERVED"));
         saved.setPaid(Boolean.TRUE.equals(saved.getPaid()));
         saved.setCreatedAt(LocalDateTime.now(KST));
         saved.setUpdatedAt(saved.getCreatedAt());
@@ -109,8 +109,8 @@ public class DemoDataService {
 
     public Optional<Reservation> togglePickup(HttpSession session, Long id) {
         return mutateReservation(session, id, reservation -> {
-            boolean picked = "PICKED".equals(reservation.getPickupStatus());
-            reservation.setPickupStatus(picked ? "WAITING" : "PICKED");
+            boolean picked = "PICKED_UP".equals(reservation.getStatus());
+            reservation.setStatus(picked ? "RESERVED" : "PICKED_UP");
             reservation.setPickedUpAt(picked ? null : LocalDateTime.now(KST));
             reservation.setUpdatedAt(LocalDateTime.now(KST));
         });
@@ -122,15 +122,15 @@ public class DemoDataService {
             if (!Objects.equals(reservation.getId(), id)) {
                 continue;
             }
-            boolean wasReady = "READY".equals(reservation.getMakeStatus());
+            boolean wasReady = data.readyReservationIds.contains(id);
             LocalDate bizDate = LocalDate.now(KST);
             if (wasReady) {
-                reservation.setMakeStatus("RESERVED");
+                data.readyReservationIds.remove(id);
                 addMovement(data, bizDate, reservation.getCakeId(), reservation.getCakeSize(),
                         -1, "UNDO_PRODUCED", id, "RES-" + System.currentTimeMillis(),
                         "from reservation dashboard");
             } else {
-                reservation.setMakeStatus("READY");
+                data.readyReservationIds.add(id);
                 addMovement(data, bizDate, reservation.getCakeId(), reservation.getCakeSize(),
                         1, "PRODUCED", id, "RES-" + System.currentTimeMillis(),
                         "from reservation dashboard");
@@ -148,7 +148,7 @@ public class DemoDataService {
 
         Optional<Reservation> target = data.reservations.stream()
                 .filter(reservation -> Objects.equals(reservation.getResDate(), bizDate))
-                .filter(reservation -> "RESERVED".equals(reservation.getMakeStatus()))
+                .filter(reservation -> !data.readyReservationIds.contains(reservation.getId()))
                 .filter(reservation -> Objects.equals(reservation.getCakeId(), cakeId))
                 .filter(reservation -> reservation.getCakeSize() == cakeSize)
                 .min(Comparator.comparing(Reservation::getResTime, Comparator.nullsLast(LocalTime::compareTo))
@@ -156,7 +156,7 @@ public class DemoDataService {
 
         if (target.isPresent()) {
             Reservation reservation = target.get();
-            reservation.setMakeStatus("READY");
+            data.readyReservationIds.add(reservation.getId());
             reservation.setUpdatedAt(LocalDateTime.now(KST));
             reservationId = reservation.getId();
         }
@@ -295,11 +295,16 @@ public class DemoDataService {
         data(session).stockRequests.removeIf(request -> Objects.equals(request.getId(), id));
     }
 
+    public Set<Long> readyReservationIds(HttpSession session) {
+        return Set.copyOf(data(session).readyReservationIds);
+    }
+
     public Map<Integer, Map<Long, Integer>> toMakeMap(HttpSession session) {
         LocalDate today = LocalDate.now(KST);
-        Map<Integer, Map<Long, Long>> counts = data(session).reservations.stream()
+        DemoData data = data(session);
+        Map<Integer, Map<Long, Long>> counts = data.reservations.stream()
                 .filter(reservation -> Objects.equals(reservation.getResDate(), today))
-                .filter(reservation -> !"READY".equals(reservation.getMakeStatus()))
+                .filter(reservation -> !data.readyReservationIds.contains(reservation.getId()))
                 .collect(Collectors.groupingBy(Reservation::getCakeSize,
                         Collectors.groupingBy(Reservation::getCakeId, LinkedHashMap::new, Collectors.counting())));
         return flattenCounts(counts);
@@ -330,8 +335,8 @@ public class DemoDataService {
     private Long readyToReserved(DemoData data, Long cakeId, Integer cakeSize, LocalDate today) {
         Optional<Reservation> target = data.reservations.stream()
                 .filter(reservation -> Objects.equals(reservation.getResDate(), today))
-                .filter(reservation -> "WAITING".equals(reservation.getPickupStatus()))
-                .filter(reservation -> "READY".equals(reservation.getMakeStatus()))
+                .filter(reservation -> "RESERVED".equals(reservation.getStatus()))
+                .filter(reservation -> data.readyReservationIds.contains(reservation.getId()))
                 .filter(reservation -> Objects.equals(reservation.getCakeId(), cakeId))
                 .filter(reservation -> reservation.getCakeSize() == cakeSize)
                 .max(Comparator.comparing(Reservation::getResTime, Comparator.nullsLast(LocalTime::compareTo))
@@ -340,7 +345,7 @@ public class DemoDataService {
             return 0L;
         }
         Reservation reservation = target.get();
-        reservation.setMakeStatus("RESERVED");
+        data.readyReservationIds.remove(reservation.getId());
         reservation.setUpdatedAt(LocalDateTime.now(KST));
         return reservation.getId();
     }
@@ -461,12 +466,11 @@ public class DemoDataService {
         copy.setCandles(source.getCandles());
         copy.setContact(source.getContact());
         copy.setPaid(source.getPaid());
-        copy.setMakeStatus(source.getMakeStatus());
         copy.setNote(source.getNote());
         copy.setCreatedAt(source.getCreatedAt());
         copy.setUpdatedAt(source.getUpdatedAt());
         copy.setPickedUpAt(source.getPickedUpAt());
-        copy.setPickupStatus(source.getPickupStatus());
+        copy.setStatus(source.getStatus());
         copy.setCakeFlavor(source.getCakeFlavor());
         copy.setRowNumber(source.getRowNumber());
         copy.setCnt(source.getCnt());
@@ -558,15 +562,15 @@ public class DemoDataService {
         data.items.add(item(10L, "케이크 칼", 5, 20, 1L));
 
         data.reservations.add(reservation(1L, today, LocalTime.of(11, 0), 1L, 1,
-                "010-0000-1122", true, "READY", "WAITING", "초 3개", now.minusHours(4)));
+                "010-0000-1122", true, "RESERVED", "초 3개", now.minusHours(4)));
         data.reservations.add(reservation(2L, today, LocalTime.of(14, 30), 2L, 2,
-                "010-0000-3344", false, "RESERVED", "WAITING", "문구: 축하해", now.minusHours(2)));
+                "010-0000-3344", false, "RESERVED", "문구: 축하해", now.minusHours(2)));
         data.reservations.add(reservation(3L, today, LocalTime.of(17, 0), 5L, 1,
-                "당일-0000-7788", true, "RESERVED", "WAITING", "픽업 전 연락", now.minusMinutes(30)));
+                "당일-0000-7788", true, "RESERVED", "픽업 전 연락", now.minusMinutes(30)));
         data.reservations.add(reservation(4L, today.plusDays(1), LocalTime.of(13, 0), 7L, 2,
-                "010-0000-9911", true, "RESERVED", "WAITING", "레터링 짧게", now.minusDays(1)));
+                "010-0000-9911", true, "RESERVED", "레터링 짧게", now.minusDays(1)));
         data.reservations.add(reservation(5L, today.minusDays(1), LocalTime.of(16, 0), 1L, 1,
-                "010-0000-5566", true, "READY", "PICKED", "데모 완료건", now.minusDays(2)));
+                "010-0000-5566", true, "PICKED_UP", "데모 완료건", now.minusDays(2)));
 
         data.stockRequests.add(stockRequest(1L, data.items.get(0), "케이크", now.minusDays(2)));
         data.stockRequests.add(stockRequest(2L, data.items.get(5), "스티커", now.minusDays(1)));
@@ -574,6 +578,9 @@ public class DemoDataService {
         data.nextReservationId = 6L;
         data.nextStockRequestId = 4L;
         data.nextCakeMovementId = 1L;
+        // 제작 완료(READY) seed 예약: 1번(오늘), 5번(어제 픽업 완료)
+        data.readyReservationIds.add(1L);
+        data.readyReservationIds.add(5L);
         // READY seed 예약과 세션 재고(stockFor) 정합: 대응하는 PRODUCED movement
         addMovement(data, today, 1L, 1, 1, "PRODUCED", 1L, "SEED-1", "seed ready");
         addMovement(data, today.minusDays(1), 1L, 1, 1, "PRODUCED", 5L, "SEED-5", "seed ready");
@@ -612,7 +619,7 @@ public class DemoDataService {
     }
 
     private Reservation reservation(Long id, LocalDate date, LocalTime time, Long cakeId, int size,
-                                    String contact, boolean paid, String makeStatus, String pickupStatus,
+                                    String contact, boolean paid, String status,
                                     String note, LocalDateTime createdAt) {
         Reservation reservation = new Reservation();
         reservation.setId(id);
@@ -634,12 +641,11 @@ public class DemoDataService {
         reservation.setCandles(3);
         reservation.setContact(contact);
         reservation.setPaid(paid);
-        reservation.setMakeStatus(makeStatus);
-        reservation.setPickupStatus(pickupStatus);
+        reservation.setStatus(status);
         reservation.setNote(note);
         reservation.setCreatedAt(createdAt);
         reservation.setUpdatedAt(createdAt);
-        reservation.setPickedUpAt("PICKED".equals(pickupStatus) ? createdAt.plusHours(1) : null);
+        reservation.setPickedUpAt("PICKED_UP".equals(status) ? createdAt.plusHours(1) : null);
         return reservation;
     }
 
@@ -672,5 +678,7 @@ public class DemoDataService {
         private final List<Category> categories = new ArrayList<>();
         private final List<Item> items = new ArrayList<>();
         private final List<CakeMovement> cakeMovements = new ArrayList<>();
+        // Reservation에 제작 상태 필드가 없어 데모 세션에서 제작 완료(READY) 예약 ID를 따로 보관
+        private final Set<Long> readyReservationIds = new HashSet<>();
     }
 }

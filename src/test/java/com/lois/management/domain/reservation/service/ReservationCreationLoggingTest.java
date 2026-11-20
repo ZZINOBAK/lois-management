@@ -4,18 +4,23 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.lois.management.domain.cake.mapper.CakeMovementMapper;
+import com.lois.management.domain.cake.mapper.CakeStockMapper;
 import com.lois.management.domain.reservation.Reservation;
-import com.lois.management.domain.reservation.service.ReservationService;
 import com.lois.management.domain.reservation.dto.ReservationCreateReq;
 import com.lois.management.domain.reservation.mapper.ReservationMapper;
-import com.lois.management.domain.cake.mapper.CakeStockMapper;
-import com.lois.management.domain.cake.mapper.CakeMovementMapper;
 import com.lois.management.domain.reservation.mapper.ReservationPolicyMapper;
 import com.lois.management.domain.reservation.service.limiter.ReservationLimiter;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
-import java.time.*;
-import static org.assertj.core.api.Assertions.*;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class ReservationCreationLoggingTest {
@@ -84,7 +89,7 @@ class ReservationCreationLoggingTest {
         Reservation r = reservation();
         when(mapper.insertOnSite(r)).thenAnswer(i -> { r.setId(73L); return 1; });
         service.createOnSite(r);
-        assertThat(output()).contains("stage=ReservationMapper.insertOnSite res_date=" + r.getResDate(), "res_time=" + r.getResTime(), "cake_id=3 cake_size=2 make_status=READY paid=true pickup_status=PICKED", "id=73 affectedRows=1").doesNotContain("ON_SITE");
+        assertThat(output()).contains("stage=ReservationMapper.insertOnSite res_date=" + r.getResDate(), "res_time=" + r.getResTime(), "cake_id=3 cake_size=2 paid=true status=PICKED_UP", "id=73 affectedRows=1").doesNotContain("ON_SITE");
         verify(mapper).insertOnSite(r); verifyNoMoreInteractions(mapper); verifyNoInteractions(limiter); safe();
     }
     @Test void onSiteFailurePreservesException() {

@@ -75,7 +75,7 @@ class ReservationListUiTest {
         reservation.setContactSuffix("0056");
         reservation.setCakeSize(2);
         reservation.setPaid(true);
-        reservation.setPickupStatus("WAITING");
+        reservation.setStatus("RESERVED");
         when(service.findAll(any(ReservationPageReq.class))).thenReturn(List.of(reservation));
         when(service.findTodayOrderByPickUpTime(any())).thenReturn(List.of(reservation));
         when(service.findFromTodayOrderByPickUpTime()).thenReturn(List.of(reservation));

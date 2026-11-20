@@ -5,7 +5,7 @@
     <div class="row summary-row"
          th:id="'row-' + ${r.id}"
          th:onclick="|toggleDetailRow(event, ${r.id})|"
-         th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked' : ''"
+         th:classappend="${r.status == 'PICKED_UP'} ? ' picked' : ''"
          th:attr="data-sameday=${r.createdAt != null
                                      and #temporals.format(r.createdAt, 'yyyy-MM-dd') == #temporals.format(today, 'yyyy-MM-dd')},
                 data-row-no=${rowNo}">
@@ -15,11 +15,11 @@
         <button type="button"
                 class="flavor-btn ellipsis"
                 th:text="${r.cakeFlavor}"
-                th:classappend="${r.makeStatus == 'READY'} ? ' ready' : ''"
-                th:disabled="${r.pickupStatus == 'PICKED'}"
-                th:hx-patch="${r.pickupStatus == 'PICKED'} ? null : @{/demo/reservations/{id}/make-toggle(id=${r.id}, rowNo=${rowNo})}"
+                th:classappend="${readyIds != null and readyIds.contains(r.id)} ? ' ready' : ''"
+                th:disabled="${r.status == 'PICKED_UP'}"
+                th:hx-patch="${r.status == 'PICKED_UP'} ? null : @{/demo/reservations/{id}/make-toggle(id=${r.id}, rowNo=${rowNo})}"
                 th:attr="hx-target=${'#row-block-' + r.id}, hx-swap='outerHTML'"
-                th:hx-confirm="${r.makeStatus == 'READY' ? '미제작으로 변경할까요?' : '케이크를 만들었나요?'}">
+                th:hx-confirm="${readyIds != null and readyIds.contains(r.id) ? '미제작으로 변경할까요?' : '케이크를 만들었나요?'}">
         </button>
         <div th:text="${r.cakeSize}"></div>
         <div class="phone" th:text="${r.contact}"></div>
@@ -30,11 +30,11 @@
         </div>
         <div class="pickup-cell">
             <button class="btn pickup-btn"
-                    th:classappend="${r.pickupStatus == 'PICKED'} ? ' picked-btn' : ''"
+                    th:classappend="${r.status == 'PICKED_UP'} ? ' picked-btn' : ''"
                     th:hx-patch="@{/demo/reservations/{id}/pickup-toggle(id=${r.id}, rowNo=${rowNo})}"
                     th:attr="hx-target=${'#row-block-' + r.id}, hx-swap='outerHTML'"
                     hx-confirm="픽업상태를 변경할까요?">
-                <span th:text="${r.pickupStatus == 'PICKED' ? '픽업완료' : '픽업예정'}"></span>
+                <span th:text="${r.status == 'PICKED_UP' ? '픽업완료' : '픽업예정'}"></span>
             </button>
         </div>
         <div class="actions">

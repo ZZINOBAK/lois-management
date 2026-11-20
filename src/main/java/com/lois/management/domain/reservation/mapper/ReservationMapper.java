@@ -10,7 +10,6 @@ import org.apache.ibatis.annotations.Param;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 
 @Mapper
 public interface ReservationMapper {
@@ -34,16 +33,13 @@ public interface ReservationMapper {
 
     List<Cake> findAllCakeFlavor();
 
-
-//    ScopedValue<Object> findById(Long id);
-
     void updateApi(Reservation r);
 
     void update(@Param("id") Long id, @Param("reservation") Reservation reservation);
 
-    int updatePickupStatus(@Param("id") Long id, @Param("pickupStatus") String pickupStatus, @Param("pickedUpAt") Object o);
+    int updatePickupStatus(@Param("id") Long id, @Param("status") String status, @Param("pickedUpAt") Object o);
 
-    int updateMakeStatus(@Param("id") Long id, @Param("makeStatus")String reserved);
+    int updateStatus(@Param("id") Long id, @Param("status")String reserved);
 
     void delete(Long id);
 
@@ -51,12 +47,10 @@ public interface ReservationMapper {
 
     List<Reservation> findTodayOrderByPickUpTime(LocalDate date);
 
-    List<Reservation> findAllOrderByPickUpTime();
-
 
     List<Reservation> findByContactSuffix(String contactSuffix);
 
-    List<Reservation> findByPickupStatus(String pickupStatus);
+    List<Reservation> findByStatus(String status);
 
     boolean existsExactSameReservation(Reservation reserve);
 
@@ -74,16 +68,7 @@ public interface ReservationMapper {
 
     List<Reservation> findTodayByPickupStatusWaiting(LocalDate date);
 
-    List<Reservation> findFromTodayByPickupStatusWaiting();
-
-    List<Reservation> findByDateAndPickupStatusWaiting(LocalDate date);
-
     int insertOnSite(Reservation reservation);
-
-    List<Reservation> findTodayForToMakeCalc(LocalDate date);
-    List<Reservation> findByDateForToMakeCalc(LocalDate date);
-
-    List<Map<String, Object>> countTodayOnSiteBySizeAndFlavor(LocalDate date);
 
     //CakeMovement
     List<Reservation> countDemandByDate(@Param("today") LocalDate today);

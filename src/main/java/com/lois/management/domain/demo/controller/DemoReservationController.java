@@ -58,6 +58,7 @@ public class DemoReservationController {
                          @RequestParam("contactSuffix") String contactSuffix,
                          Model model) {
         model.addAttribute("reservations", demoDataService.searchReservations(session, contactSuffix));
+        model.addAttribute("readyIds", demoDataService.readyReservationIds(session));
         model.addAttribute("today", LocalDate.now(KST));
         return "demo/reservation/reservation-dashboard :: list";
     }
@@ -265,6 +266,7 @@ public class DemoReservationController {
         Reservation reservation = demoDataService.togglePickup(session, id)
                 .orElseThrow(() -> new IllegalArgumentException("Demo reservation not found: " + id));
         model.addAttribute("r", reservation);
+        model.addAttribute("readyIds", demoDataService.readyReservationIds(session));
         model.addAttribute("rowNo", rowNo);
         model.addAttribute("today", LocalDate.now(KST));
         return "demo/fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";
@@ -278,6 +280,7 @@ public class DemoReservationController {
         Reservation reservation = demoDataService.toggleMake(session, id)
                 .orElseThrow(() -> new IllegalArgumentException("Demo reservation not found: " + id));
         model.addAttribute("r", reservation);
+        model.addAttribute("readyIds", demoDataService.readyReservationIds(session));
         model.addAttribute("rowNo", rowNo);
         model.addAttribute("today", LocalDate.now(KST));
         return "demo/fragments/reservation-row :: rowFragment(r=${r}, rowNo=${rowNo})";
@@ -294,6 +297,7 @@ public class DemoReservationController {
         LocalDate today = LocalDate.now(KST);
         LocalDate targetDate = "today".equals(range) ? today : date;
         model.addAttribute("reservations", demoDataService.findReservations(session, range, sort, date));
+        model.addAttribute("readyIds", demoDataService.readyReservationIds(session));
         model.addAttribute("cakeSizes", List.of(2, 1));
         model.addAttribute("flavors", demoDataService.cakes(session));
         model.addAttribute("toMakeMap", demoDataService.toMakeMap(session));

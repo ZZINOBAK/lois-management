@@ -164,7 +164,7 @@
         </div>
 
         <div class="item-flavor"
-             th:classappend="${r.pickupStatus != null and r.pickupStatus == 'PICKED'} ? ' done' : ''"
+             th:classappend="${r.status != null and r.status == 'PICKED_UP'} ? ' done' : ''"
              th:with="
          digits=${r.contact != null ? r.contact.replaceAll('\\D','') : ''},
          last4=${#strings.length(digits) >= 4 ? #strings.substring(digits, #strings.length(digits) - 4) : ''},
@@ -179,7 +179,7 @@ payText=${r.paid == true ? '결O' : '결X'},
     <div class="note-row"
          th:if="${r.note != null and !#strings.isEmpty(#strings.trim(r.note))}">
         <div class="note-text"
-             th:classappend="${r.pickupStatus != null and r.pickupStatus == 'PICKED'} ? ' done' : ''"
+             th:classappend="${r.status != null and r.status == 'PICKED_UP'} ? ' done' : ''"
              th:text="${'→ ' + r.note}">
         </div>
     </div>

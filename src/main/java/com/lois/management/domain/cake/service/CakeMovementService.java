@@ -168,47 +168,6 @@ public class CakeMovementService {
         sellOnSite(today, cakeId, cakeSize, requestId, note);
     }
 
-    /**
-     * 3) 픽업 처리(예약 1건)
-     * - reservations.pickup_status='PICKED'
-     * - 재고 -1 (PICKUP)
-     */
-    @Transactional
-    public void pickupReservation(Long reservationId, String requestId) {
-
-        Reservation r = reservationService.findById(reservationId);
-        if (r == null) throw new IllegalArgumentException("예약 없음 id=" + reservationId);
-
-        // 이미 픽업이면 중복 방지
-        if ("PICKED".equals(r.getPickupStatus())) {
-            return;
-        }
-
-        // 재고 체크: (cakeId, cakeSize)
-        Long cakeId = r.getCakeId();
-        Integer cakeSize = r.getCakeSize();
-        LocalDate bizDate = r.getResDate();
-
-        int stock = cakeMovementMapper.getStockByKey(bizDate, cakeId, cakeSize);
-        if (stock < 1) {
-            reservationService.toggleMakeStatus(reservationId);
-            log.info("픽업으로 인한 makeStatus 상태 변경 : RESERVED -> READY");
-        }
-
-        // 1) 예약 상태 변경
-        reservationService.updatePickupStatus(reservationId, "PICKED", LocalDateTime.now());
-
-        // 2) movement 기록
-        CakeMovement m = new CakeMovement();
-        m.setBizDate(bizDate);
-        m.setCakeId(cakeId);
-        m.setCakeSize(cakeSize);
-        m.setDelta(-1);
-        m.setMoveType("PICKUP");
-        m.setReservationId(reservationId);
-        m.setRequestId(requestId);
-        cakeMovementMapper.insertMovement(m);
-    }
 
     @Transactional
     public void togglePickupReservation(Long reservationId, String requestId) {
@@ -221,7 +180,7 @@ public class CakeMovementService {
         LocalDate bizDate = r.getResDate();
 
         CakeMovement m = new CakeMovement();
-        boolean isPicked = "PICKED".equals(r.getPickupStatus());
+        boolean isPicked = "PICKED_UP".equals(r.getStatus());
 
         if (!isPicked) { // 픽업예정인 예약 건에 대한 로직
             // WAITING -> PICKED : 재고 -1
@@ -238,7 +197,7 @@ public class CakeMovementService {
                 toggleProduce(r, requestId + "-1", "AUTO_PRODUCE_ON_PICKUP");
             }
             // 해당 예약건의 픽업 상태를 픽업 완료로 변경
-            reservationService.updatePickupStatus(reservationId, "PICKED", LocalDateTime.now());
+            reservationService.updatePickupStatus(reservationId, "PICKED_UP", LocalDateTime.now());
 
             // 그리고 케이크무브먼트 테이블에도 픽업 기록 추가
             m.setBizDate(bizDate);
@@ -260,7 +219,7 @@ public class CakeMovementService {
         // 픽업 완료 건에 대한 로직
         // PICKED -> WAITING : 취소(원복) => 재고 +1
         // 해당 예약건의 픽업 상태를 픽업 대기로 변경(실수로 픽업 완료 시 원복하기 위한 기능)
-        reservationService.updatePickupStatus(reservationId, "WAITING", LocalDateTime.now());
+        reservationService.updatePickupStatus(reservationId, "RESERVED", LocalDateTime.now());
 
         // 그리고 케이크무브먼트 테이블에도 픽업 취소 기록 추가
         m.setBizDate(bizDate);

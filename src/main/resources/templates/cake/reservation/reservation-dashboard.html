@@ -125,7 +125,7 @@
                             <div class="sorts" id="sorts">
                                 <!-- 📦 픽업예정만 보기 버튼 (이건 그대로 아래에 둠) -->
                                 <button type="button" class="chip chip--sub pickup-filter-btn hidden" data-show="today"
-                                    th:attr="hx-get=@{/reservations/list?sort=waiting}" hx-target="#list"
+                                    th:attr="hx-get=@{/reservations/list?sort=reserved}" hx-target="#list"
                                     hx-swap="innerHTML">
                                     픽업예정
                                 </button>

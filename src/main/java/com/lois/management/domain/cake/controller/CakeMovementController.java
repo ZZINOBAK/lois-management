@@ -64,7 +64,7 @@ public class CakeMovementController {
         int cakeSize = r.getCakeSize();
 
         reservationService.toggleMakeStatus(id);
-        boolean isReady = "READY".equals(r.getMakeStatus());
+        boolean isReady = "PICKED_UP".equals(r.getStatus());
         if (!isReady) {
             // 제작 완료 처리: +1 movement + makeStatus=READY
             String requestId = "RES-" + System.currentTimeMillis();

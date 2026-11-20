@@ -40,44 +40,28 @@ public class ReservationController {
     private final CakeService cakeService;
     private final CakeProductionService cakeProductionService;
 
-    @GetMapping //케이크 예약 버튼
+    @GetMapping // GET 요청 /reservations
     public String showDashboard(ReservationPageReq pageRequest, Model model) {
-        log.info("[GET /reservations] 예약 대시보드 조회 요청");
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        log.info("[PAGE] authType={} name={} isAuthenticated={}",
-                auth.getClass().getSimpleName(),
-                auth.getName(),
-                auth.isAuthenticated());
-
-//        List<Reservation> reservations = findAll();
-//        List<Reservation> reservations = findAll(pageRequest);
         List<Reservation> reservations = reservationService.findTodayOrderByPickUpTime(today);
         log.info("예약 조회 결과 size={}", reservations.size());
 
         List<Cake> flavors = cakeService.findFlavorsForDashboard();
-
 
         ProductionStatus status = dashboardProductionStatus(today, reservations, model);
 
         try {
             model.addAttribute("reservations", reservations);
             model.addAttribute("range", "today");
-            model.addAttribute("cakeSizes", List.of(1, 2));
-
             model.addAttribute("flavors", flavors);
-
-
             model.addAttribute("status", status);
+            model.addAttribute("today", today);
 
         } catch (Exception e) {
             log.error("모델에 데이터 추가 중 오류 발생(error). reservations={}", reservations, e);
             throw e; // 오류 재발생
         }
-        // 오늘 날짜 추가
-        model.addAttribute("today", LocalDate.now());
         return "cake/reservation/reservation-dashboard";
     }
 
@@ -106,11 +90,11 @@ public class ReservationController {
                 }
                 break;
 
-            case "waiting": // pickupStatus=WAITING만
+            case "reserved": // 미픽업 예약건만 조회
                 if ("today".equals(range)) {
                     reservations = reservationService.findTodayByPickupStatusWaiting(today);
                 } else {
-                    reservations = reservationService.findByPickupStatus("WAITING");
+                    reservations = reservationService.findByStatus("RESERVED");
                 }
                 break;
 
@@ -140,13 +124,8 @@ public class ReservationController {
 
         List<Cake> flavors = cakeService.findFlavorsForDashboard();
 
-        // ✅ 집계용: 무조건 오늘
-        Map<Integer, Map<Long, Integer>> toMakeMap =
-                cakeMovementService.calcToMakeMap(today);
+//        ProductionStatus status = dashboardProductionStatus(today, reservations, model);
 
-        // ✅ 재고(현재 제작된 수량)도 같이 내려주기
-        Map<Integer, Map<Long, Integer>> stockMap =
-                cakeMovementService.calcStockMap(today);
 
         addTodayProductionReadyIds(model);
         model.addAttribute("reservations", reservations);
@@ -154,8 +133,7 @@ public class ReservationController {
 
         model.addAttribute("flavors", flavors);
 
-        model.addAttribute("toMakeMap", toMakeMap);
-        model.addAttribute("stockMap", stockMap);
+//        model.addAttribute("status", status);
 
         model.addAttribute("today", LocalDate.now());
         model.addAttribute("range", range);
@@ -191,40 +169,13 @@ public class ReservationController {
         return "cake/reservation/reservation-dashboard :: list";
     }
 
-    @GetMapping("/filter")
-    public String filterByPickupStatus(@RequestParam("pickupStatus") String pickupStatus,
-                                       Model model) {
-        List<Reservation> reservations = reservationService.findByPickupStatus(pickupStatus);
-        addTodayProductionReadyIds(model);
-        model.addAttribute("reservations", reservations);
-        model.addAttribute("today", LocalDate.now());
-        return "cake/reservation/reservation-dashboard :: list";
-    }
-
-//    @GetMapping("/print")
-//    public String printTodayReservations(Model model) {
-//
-//        LocalDate today = LocalDate.now();
-//
-//        // ✅ 오늘 예약 + 픽업 시간 오름차순 정렬
-//        List<Reservation> reservations = reservationService.findTodayOrderByPickUpTime();
-//
-//        model.addAttribute("reservations", reservations);
-//        model.addAttribute("today", today);
-//
-//        // 프린트 전용 템플릿
-//        return "reservation/print";
-//    }
-
     @GetMapping("/print")
     public String printReservations(
             @RequestParam(name = "range", defaultValue = "today") String range,
             @RequestParam(name = "date", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            Model model
-    ) {
+            Model model) {
 
-        // ✅ 출력 대상 날짜 결정
         LocalDate targetDate;
         if ("date".equals(range) && date != null) {
             targetDate = date;
@@ -232,7 +183,7 @@ public class ReservationController {
             targetDate = LocalDate.now();
         }
 
-        // ✅ 대상 날짜 예약 + 픽업시간 오름차순
+        // 대상 날짜 예약 건 픽업시간 오름차순 조회
         List<Reservation> reservations =
                 reservationService.findByDateOrderByPickUpTime(targetDate);
 
@@ -529,10 +480,7 @@ public class ReservationController {
         try {
             model.addAttribute("cakeSizes", List.of(1, 2));
             model.addAttribute("flavors", flavors);
-//            model.addAttribute("toMakeMap", toMakeMap);
-//            model.addAttribute("stockMap", stockMap);
             model.addAttribute("status", status);
-            model.addAttribute("flavors", cakeService.findFlavorsForDashboard());
 
         } catch (Exception e) {
             log.error("모델에 데이터 추가 중 오류 발생(error)", e);

@@ -12,7 +12,7 @@
         COUNT(*)    AS cnt
         FROM reservations r
         WHERE r.res_date = #{today}
-        AND r.pickup_status = 'WAITING'
+        AND r.status = 'RESERVED'
         GROUP BY r.cake_size, r.cake_id
     </select>
 
@@ -89,8 +89,7 @@
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
         WHERE r.res_date = #{today}
-        AND r.pickup_status = 'WAITING'
-        AND r.make_status = 'READY'
+        AND r.status = 'RESERVED'
         AND r.cake_id = #{cakeId}
         AND r.cake_size = #{cakeSize}
         ORDER BY r.res_time DESC, r.id DESC
@@ -133,14 +132,14 @@
         ORDER BY r.id DESC
     </select>
 
-    <select id="findByPickupStatus" resultType="Reservation">
+    <select id="findByStatus" resultType="Reservation">
         SELECT
         ROW_NUMBER() OVER (ORDER BY r.res_date ASC, r.res_time ASC) AS rowNumber,
         r.*,
         c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
-        WHERE r.pickup_status = #{pickupStatus}
+        WHERE r.status = #{status}
         AND r.res_date = CURRENT_DATE()
         ORDER BY r.res_date ASC, r.res_time ASC
     </select>
@@ -152,7 +151,7 @@
         c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
-        WHERE r.pickup_status = 'WAITING'
+        WHERE r.status = 'RESERVED'
         AND r.res_date = #{date}
         ORDER BY r.res_date ASC, r.res_time ASC
     </select>
@@ -164,7 +163,7 @@
         c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
-        WHERE r.pickup_status = 'WAITING'
+        WHERE r.status = 'RESERVED'
         AND r.res_date >= CURRENT_DATE()
         ORDER BY r.res_date ASC, r.res_time ASC
     </select>
@@ -178,7 +177,7 @@
         c.flavor AS cakeFlavor
         FROM reservations r
         JOIN cakes c ON r.cake_id = c.id
-        WHERE r.pickup_status = 'WAITING'
+        WHERE r.status = 'RESERVED'
         AND r.res_date = #{date}
         ORDER BY r.res_date ASC, r.res_time ASC
     </select>
@@ -242,7 +241,6 @@
         JOIN cakes c ON r.cake_id = c.id
         WHERE r.res_date = #{date}
         AND (r.contact IS NULL OR r.contact != 'ON_SITE')
-
         ORDER BY r.res_time ASC
     </select>
 
@@ -314,7 +312,7 @@
             cake_size
         FROM reservations
         WHERE res_date = #{today}
-        AND make_status = 'RESERVED'
+        AND status = 'RESERVED'
         AND cake_id = #{cakeId}
         AND cake_size = #{cakeSize}
         ORDER BY res_time ASC
@@ -353,8 +351,8 @@
     </insert>
 
     <insert id="insertOnSite" parameterType="Reservation" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO reservations (res_date, res_time, cake_id, cake_size, make_status, contact, paid, pickup_status, note)
-        VALUES (#{resDate}, #{resTime}, #{cakeId}, #{cakeSize}, #{makeStatus}, #{contact}, #{paid}, #{pickupStatus}, #{note})
+        INSERT INTO reservations (res_date, res_time, cake_id, cake_size, status, contact, paid, note)
+        VALUES (#{resDate}, #{resTime}, #{cakeId}, #{cakeSize}, #{status}, #{contact}, #{paid}, #{note})
     </insert>
 
     <update id="updateApi" parameterType="Reservation"> <!-- ✅ id=update -->
@@ -394,21 +392,16 @@
     <update id="updatePickupStatus">
         UPDATE reservations
         SET
-            pickup_status = #{pickupStatus},
+            status = #{status},
             picked_up_at = #{pickedUpAt}
         WHERE id = #{id}
     </update>
 
-    <update id="updateWithProduce">
-        UPDATE reservations
-        SET make_status = 'READY'
-        WHERE id = #{id}
-    </update>
 
-    <update id="updateMakeStatus">
+    <update id="updateStatus">
         UPDATE reservations
         SET
-        make_status = #{makeStatus}
+        status = #{status}
         WHERE id = #{id}
     </update>
 
