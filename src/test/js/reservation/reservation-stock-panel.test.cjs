@@ -6,7 +6,8 @@ const source = name => fs.readFileSync('src/main/resources/static/js/' + name, '
 const sample = [
     { cakeId: 7, cakeFlavor: '가나슈', cakeSize: 2, stockQuantity: 3 },
     { cakeId: 8, cakeFlavor: '모카', cakeSize: 1, stockQuantity: 9 },
-    { cakeId: 9, cakeFlavor: '기타', cakeSize: 2, stockQuantity: 0 }
+    { cakeId: 9, cakeFlavor: '기타', cakeSize: 2, stockQuantity: 0 },
+    { cakeId: 7, cakeFlavor: '가나슈', cakeSize: 1, stockQuantity: 0 }
 ];
 function page({ get = async () => ({ status: 200, json: async () => sample }), post = async () => ({ status: 204 }) } = {}) {
     const calls = [], feedback = [], triggers = [];
@@ -22,11 +23,14 @@ function page({ get = async () => ({ status: 200, json: async () => sample }), p
     const items = node('items'), status = node('status');
     const descendants = node => node.children.flatMap(child => [child, ...descendants(child)]);
     const buttons = () => descendants(items).filter(node => node.dataset.stockAction);
+    const sizeButtons = ['1', '2'].map(size => ({ dataset: { stockSize: size }, disabled: false,
+        attributes: { 'aria-pressed': String(size === '2') }, setAttribute(name, value) { this.attributes[name] = value; },
+        closest() { return this; } }));
     const toggle = { setAttribute(name, value) { this[name] = value; }, addEventListener(name, fn) { toggleClick = fn; } };
     const panel = {
         hidden: true, dataset: { needsUrl: '/cake-production/production-needs', produceUrl: '/cake-stocks/produce', cancelUrl: '/cake-stocks/produce-cancel' },
         querySelector: selector => selector === '[data-stock-panel-items]' ? items : status,
-        querySelectorAll: buttons,
+        querySelectorAll: selector => selector === '[data-stock-size]' ? sizeButtons : buttons(),
         contains: button => buttons().includes(button),
         addEventListener(name, fn) { panelClick = fn; }
     };
@@ -48,7 +52,7 @@ function page({ get = async () => ({ status: 200, json: async () => sample }), p
     });
     vm.runInContext(source('/auth/auth-common.js'), context);
     vm.runInContext(source('/cake/reservation/reservation-stock-panel.js'), context);
-    return { panel, toggle, items, status, calls, feedback, triggers, buttons,
+    return { panel, toggle, items, status, calls, feedback, triggers, buttons, sizeButtons,
         open: () => toggleClick(), click: button => panelClick({ target: button }),
         request: (id, headers) => beforeRequest({ detail: { target: { id }, requestConfig: { headers } } }),
         sse: () => sseChanged() };
@@ -142,4 +146,57 @@ test('sse change during a write waits for the write refresh only', async () => {
 test('sse list refresh keeps the panel open', async () => {
     const p = page(); await p.open(); p.request('list', { 'X-SSE-Refresh': 'true' });
     assert.equal(p.panel.hidden, false); assert.equal(p.toggle['aria-expanded'], 'true');
+});
+
+const flavors = p => p.items.children.map(card => card.children[0].textContent);
+const pressed = p => p.sizeButtons.filter(button => button.attributes['aria-pressed'] === 'true').map(button => button.dataset.stockSize);
+test('opens on size two by default and sends size two', async () => {
+    const p = page();
+    await p.open();
+    assert.deepEqual(pressed(p), ['2']);
+    assert.deepEqual(flavors(p), ['가나슈', '기타']);
+    await p.click(p.buttons().find(button => button.dataset.stockAction === 'produce'));
+    assert.equal(p.calls.find(call => call.options.method === 'POST').options.body.get('cake_size'), '2');
+});
+test('size one shows every size one flavor including zero stock without refetching', async () => {
+    const p = page();
+    await p.open();
+    const reads = p.calls.length;
+    await p.click(p.sizeButtons[0]);
+    assert.deepEqual(pressed(p), ['1']);
+    assert.deepEqual(flavors(p), ['모카', '가나슈']);
+    assert.equal(p.items.children[1].children[1].children[1].textContent, 0);
+    assert.equal(p.calls.length, reads);
+});
+test('size one stock buttons send size one and mention it in feedback', async () => {
+    const p = page();
+    await p.open();
+    await p.click(p.sizeButtons[0]);
+    const produce = p.buttons().find(button => button.dataset.stockAction === 'produce');
+    assert.equal(produce.attributes['aria-label'], '모카 1호 1개 제작 완료');
+    await p.click(produce);
+    assert.equal(p.calls.find(call => call.options.method === 'POST').options.body.get('cake_size'), '1');
+    assert.match(p.feedback.at(-1).message, /모카 1호 1개 제작 완료/);
+});
+test('closing and reopening returns to size two', async () => {
+    const p = page();
+    await p.open();
+    await p.click(p.sizeButtons[0]);
+    await p.open();
+    assert.deepEqual(pressed(p), ['2']);
+    await p.open();
+    assert.deepEqual(pressed(p), ['2']);
+    assert.deepEqual(flavors(p), ['가나슈', '기타']);
+});
+test('size cannot change while a stock write is pending', async () => {
+    let resolve;
+    const p = page({ post: () => new Promise(done => { resolve = done; }) });
+    await p.open();
+    const write = p.click(p.buttons().find(button => button.dataset.stockAction === 'produce'));
+    assert.ok(p.sizeButtons.every(button => button.disabled));
+    await p.click(p.sizeButtons[0]);
+    assert.deepEqual(pressed(p), ['2']);
+    resolve({ status: 204 });
+    await write;
+    assert.equal(p.calls.filter(call => call.options.method === 'POST')[0].options.body.get('cake_size'), '2');
 });

@@ -101,7 +101,12 @@
                 <section id="reservation-stock-panel" class="reservation-stock-panel" data-stock-panel hidden
                     aria-labelledby="reservation-stock-panel-title"
                     th:attr="data-needs-url=@{/cake-production/production-needs},data-produce-url=@{/cake-stocks/produce},data-cancel-url=@{/cake-stocks/produce-cancel}">
-                    <h3 id="reservation-stock-panel-title">제작현황 <span>2호</span></h3>
+                    <h3 id="reservation-stock-panel-title">제작현황
+                        <span class="reservation-stock-size-toggle" role="group" aria-label="제작 호수 선택">
+                            <button type="button" class="reservation-stock-size-option" data-stock-size="1" aria-pressed="false">1호</button>
+                            <button type="button" class="reservation-stock-size-option" data-stock-size="2" aria-pressed="true">2호</button>
+                        </span>
+                    </h3>
                     <p data-stock-panel-status role="status" aria-live="polite"></p>
                     <div class="reservation-stock-panel-grid" data-stock-panel-items></div>
                 </section>
