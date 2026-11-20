@@ -60,21 +60,20 @@
 
         /* ⭐ 시간 폭 넓게 */
         .item-time {
-            width: 21mm;
+            width: 25mm;
             font-weight: 600;
         }
 
         /* ⭐ 맛 글씨 크게 + 좌측 여백 */
         .item-flavor {
-            flex: 1;
+            width: 25mm;
         }
 
-        /* ⭐ 연락처(뒷4자리) */
-.item-contact {
-    width: 18mm;
-    text-align: right;
-    font-weight: 600;
-}
+        /* ⭐ 호수(1호만 표시) */
+        .item-size {
+            width: 12mm;
+            font-weight: 600;
+        }
     .time-sep {
     border-top: 1px dashed #000;
     margin: 6px 0 10px;
@@ -105,14 +104,6 @@
     line-height: 1.6;
     word-break: break-word;
   }
-        .pay-badge {
-  display: inline-block;
-  font-weight: 900;
-  font-size: 16px;
-  margin-left: 6px;
-}
-.pay-ok { }
-.pay-no { }
 
         @media print {
   .print-bottom-space {
@@ -165,13 +156,13 @@
 
         <div class="item-flavor"
              th:classappend="${r.status != null and r.status == 'PICKED_UP'} ? ' done' : ''"
-             th:with="
-         digits=${r.contact != null ? r.contact.replaceAll('\\D','') : ''},
-         last4=${#strings.length(digits) >= 4 ? #strings.substring(digits, #strings.length(digits) - 4) : ''},
-payText=${r.paid == true ? '결O' : '결X'},
-         label=${r.cakeFlavor + (last4 != '' ? ' (' + last4 + ')' : '') +  payText }"
-             th:text="${label}">
+             th:text="${r.cakeFlavor}">
         </div>
+
+        <!-- 1호만 오른쪽에 표시 (2호는 표시 안 함) -->
+        <div class="item-size"
+             th:if="${r.cakeSize == 1}"
+             th:classappend="${r.status != null and r.status == 'PICKED_UP'} ? ' done' : ''">1호</div>
 
     </div>
 

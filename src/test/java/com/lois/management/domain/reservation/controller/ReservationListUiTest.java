@@ -193,6 +193,38 @@ class ReservationListUiTest {
         assertThat(sizeOneExtraCard).contains("2개").doesNotContain("9개");
     }
 
+    @Test
+    void printShowsFlavorNoteAndSizeOneOnlyWithoutContactOrPayment() throws Exception {
+        Reservation sizeOne = new Reservation();
+        sizeOne.setId(1L);
+        sizeOne.setResTime(LocalTime.of(11, 0));
+        sizeOne.setCakeFlavor("모카");
+        sizeOne.setCakeSize(1);
+        sizeOne.setContact("010-1234-5678");
+        sizeOne.setPaid(false);
+        sizeOne.setNote("초 3개");
+        sizeOne.setStatus("RESERVED");
+        Reservation sizeTwo = new Reservation();
+        sizeTwo.setId(2L);
+        sizeTwo.setResTime(LocalTime.of(12, 0));
+        sizeTwo.setCakeFlavor("레몬");
+        sizeTwo.setCakeSize(2);
+        sizeTwo.setContact("010-9999-4321");
+        sizeTwo.setPaid(true);
+        sizeTwo.setStatus("RESERVED");
+        when(service.findByDateOrderByPickUpTime(any())).thenReturn(List.of(sizeOne, sizeTwo));
+
+        String html = mvc.perform(get("/reservations/print"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        assertThat(html).doesNotContain("결O", "결X", "5678", "4321");
+        assertThat(html).contains("→ 초 3개");
+        assertThat(html.split("class=\"item-size", -1)).hasSize(2);
+        String sizeOneRow = html.substring(html.indexOf(">모카<"), html.indexOf(">레몬<"));
+        assertThat(sizeOneRow).contains(">1호</div>");
+        assertThat(html.substring(html.indexOf(">레몬<"))).doesNotContain(">1호</div>");
+    }
+
     private void assertList(String html) {
         int summaryStart = html.indexOf("class=\"row summary-row");
         int detailStart = html.indexOf("class=\"detail-row hidden\"");
