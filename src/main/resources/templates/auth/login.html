@@ -7,58 +7,52 @@
         <link rel="stylesheet" th:href="@{/css/auth/login.css}">
     </th:block>
 </head>
-<body>
-    <div class="wrap">
-        <!-- 공통 헤더 -->
-        <header th:replace="~{fragments/header :: header}"></header>
+<body class="login-page">
+    <!-- 로그인 전에는 사용할 수 없는 메뉴라 공통 헤더·푸터 없이 로그인 화면만 보여준다. -->
+    <main class="login">
+        <a class="login-logo-link" th:href="@{/}" aria-label="메인으로 이동">
+            <img class="login-logo" th:src="@{/images/logo_lois.png}" alt="Lois by Auntie Jin">
+        </a>
+        <h1 class="login-headline">오늘도<br><em>로이스</em>를 시작해요.</h1>
+        <p class="login-lead">직원 계정으로 로그인해 주세요.</p>
 
-        <!-- 이 페이지 내용 -->
-        <main>
-            <form method="post" action="/login">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <form method="post" action="/login">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-                <div>
-                    <label for="username">아이디</label>
-                    <input type="text" id="username" name="username" value="admin" autocomplete="username" required />
-                </div>
-
-                <div>
-                    <label for="password">비밀번호</label>
-                    <input type="password" id="password" name="password" autocomplete="current-password" required />
-                </div>
-
-                <button type="submit">로그인</button>
-
-                <div th:if="${error}">
-                    아이디 또는 비밀번호가 올바르지 않습니다.
-                </div>
-
-                <div th:if="${logout}">
-                    로그아웃 되었습니다.
-                </div>
-            </form>
-
-            <!-- 소셜 로그인 영역 -->
-            <div class="social-box">
-                <div class="social-title">또는 소셜 계정으로 로그인</div>
-                <div class="social-buttons">
-                    <!-- 구글 로그인 -->
-                    <a class="btn-social btn-google" href="/oauth2/authorization/google">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-                        <span>Google로 로그인</span>
-                    </a>
-
-                    <!-- 카카오 로그인 -->
-                    <a class="btn-social btn-kakao" href="/oauth2/authorization/kakao">
-                        <!-- 공식 버튼 이미지 써도 되고, 텍스트만 해도 됨 -->
-                        <span>카카오 계정으로 로그인</span>
-                    </a>
-                </div>
+            <div class="login-row">
+                <label for="username">아이디</label>
+                <input type="text" id="username" name="username" value="admin" autocomplete="username" required />
             </div>
-        </main>
 
-        <!-- 공통 푸터 -->
-        <footer th:replace="~{fragments/footer :: footer}"></footer>
-    </div>
+            <div class="login-row">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required />
+            </div>
+
+            <div class="login-actions">
+                <!-- 소셜 로그인 (왼쪽, 동그란 아이콘) -->
+                <div class="login-social" aria-label="소셜 계정으로 로그인">
+                    <a class="login-chip" href="/oauth2/authorization/google">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="">
+                        <span class="login-sr-only">Google로 로그인</span>
+                    </a>
+                    <a class="login-chip login-chip--kakao" href="/oauth2/authorization/kakao">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5c-5.25 0-9.5 3.3-9.5 7.38 0 2.62 1.75 4.92 4.4 6.23l-.92 3.37c-.08.3.26.54.52.37l4.03-2.66c.48.05.97.08 1.47.08 5.25 0 9.5-3.3 9.5-7.39S17.25 3.5 12 3.5z"/></svg>
+                        <span class="login-sr-only">카카오 계정으로 로그인</span>
+                    </a>
+                </div>
+
+                <button type="submit" class="login-submit">로그인</button>
+            </div>
+
+            <div class="login-notice login-notice--error" th:if="${error}" role="alert">
+                아이디 또는 비밀번호가 올바르지 않습니다.
+            </div>
+
+            <div class="login-notice login-notice--info" th:if="${logout}" role="status">
+                로그아웃 되었습니다.
+            </div>
+        </form>
+    </main>
 </body>
 </html>

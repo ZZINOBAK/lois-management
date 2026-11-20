@@ -1,51 +1,207 @@
- .social-box {
-     margin-top: 20px;
-     border-top: 1px solid #eee;
-     padding-top: 18px;
- }
+/* 로그인 화면 (타이포 중심 미니멀 디자인) */
+.login-page {
+    --login-ink: #222;
+    --login-muted: #8a897d;
+    --login-line: #dcdad0;
+    --login-accent: #1c3b32;   /* 로이스 메인 진녹색 */
+    --login-green: #356346;    /* 제작 완료 색 */
+    --login-burgundy: #702440; /* 가나슈·1호·미결제 색 */
+    min-height: 90vh;
+    display: grid;
+    place-items: center;
+    padding: 48px 16px;
+    background: var(--bg, #faf9f7);
+}
 
- .social-title {
-     font-size: 12px;
-     color: #777;
-     text-align: center;
-     margin-bottom: 10px;
- }
+.login {
+    width: 100%;
+    max-width: 360px;
+}
 
- .social-buttons {
-     display: flex;
-     flex-direction: column;
-     gap: 8px;
- }
+.login-logo {
+    display: block;
+    width: 170px;
+    height: auto;
+    margin: 0 auto 28px;
+}
 
- .btn-social {
-     width: 100%;
-     display: inline-flex;
-     align-items: center;
-     justify-content: center;
-     gap: 8px;
-     padding: 9px 10px;
-     font-size: 14px;
-     border-radius: 999px;
-     border: 1px solid #ddd;
-     text-decoration: none;
-     color: #333;
-     background: #fff;
- }
+/* 로고 클릭 시 메인으로 이동 */
+.login-logo-link {
+    display: block;
+    width: fit-content;
+    margin: 0 auto;
+    border-radius: 8px;
+}
 
- .btn-social:hover {
-     background: #fafafa;
- }
+.login-logo-link:focus-visible {
+    outline: 2px solid var(--login-green);
+    outline-offset: 4px;
+}
 
- .btn-kakao {
-     background: #fee500;
-     border-color: #e0c900;
- }
+.login-headline {
+    margin: 0;
+    font-size: 40px;
+    line-height: 1.15;
+    letter-spacing: -.05em;
+    color: var(--login-ink);
+}
 
- .btn-kakao:hover {
-     background: #f4da00;
- }
+.login-headline em {
+    font-style: normal;
+    color: var(--login-burgundy);
+}
 
- .btn-google img,
- .btn-kakao img {
-     height: 18px;
- }
+.login-lead {
+    margin: 10px 0 36px;
+    color: var(--login-muted);
+    font-size: 14px;
+}
+
+/* 이름표와 입력이 한 줄에 있는 행 */
+.login-row {
+    display: flex;
+    align-items: center;
+    height: 54px;
+    border-bottom: 1px solid var(--login-line);
+}
+
+.login-row:first-of-type {
+    border-top: 1px solid var(--login-line);
+}
+
+.login-row label {
+    flex: none;
+    width: 76px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--login-accent);
+}
+
+.login-row input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 16px;
+    color: var(--login-ink);
+}
+
+.login-row input:focus {
+    outline: none;
+}
+
+.login-row:focus-within {
+    border-bottom-color: var(--login-accent);
+    box-shadow: 0 1px 0 var(--login-accent);
+}
+
+.login-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+.login-submit {
+    height: 48px;
+    padding: 0 28px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--login-accent);
+    color: #fff;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.login-submit:hover {
+    background: #142c25;
+}
+
+.login-submit:focus-visible,
+.login-chip:focus-visible {
+    outline: 2px solid var(--login-green);
+    outline-offset: 2px;
+}
+
+/* 소셜 로그인: 왼쪽에 동그란 아이콘 버튼, 오른쪽에 로그인 버튼 */
+.login-social {
+    display: flex;
+    gap: 10px;
+}
+
+.login-chip {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--login-line);
+    background: #fff;
+    text-decoration: none;
+}
+
+.login-chip img,
+.login-chip svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* 버튼 이름은 화면에 보이지 않고 스크린리더로만 읽힌다 */
+.login-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.login-chip--kakao {
+    background: #fee500;
+    border-color: #e0c900;
+    color: #191600;
+}
+
+.login-chip--kakao svg {
+    fill: #191600;
+}
+
+.login-notice {
+    margin-top: 18px;
+    font-size: 13px;
+}
+
+.login-notice--error {
+    color: var(--login-burgundy);
+}
+
+.login-notice--info {
+    color: var(--login-green);
+}
+
+@media (max-width: 480px) {
+    .login-headline {
+        font-size: 32px;
+    }
+
+    /* 좁은 화면: 로그인 버튼을 위에 꽉 차게, 아이콘은 그 아래 가운데 */
+    .login-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .login-submit {
+        width: 100%;
+    }
+
+    .login-social {
+        justify-content: center;
+    }
+}
