@@ -57,7 +57,7 @@
           align-items: center;
           justify-content: center;
           height: 40px;
-          padding: 0 40px;
+          padding: 0 20px;
           background: var(--surface);
           border: none;
           border-radius: var(--radius-cta);
@@ -399,6 +399,5 @@
    /* 제목 기본 마진 제거 권장 */
    .section-title{
     margin-left: 5px;
-        margin-top: 7px;
 
    }

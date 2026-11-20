@@ -30,7 +30,9 @@
    align-items: center;
    justify-content: space-between;
    position: relative;
-   margin-bottom: 50px;
+   margin-bottom: 15px;
+   padding-bottom: 10px;
+   border-bottom: 1px solid #e5e7eb;
  }
 
  .logo {
