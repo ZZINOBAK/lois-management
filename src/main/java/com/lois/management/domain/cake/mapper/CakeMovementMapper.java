@@ -31,6 +31,12 @@ public interface CakeMovementMapper {
                                  @Param("stockChanged") boolean stockChanged,
                                  @Param("requestId") String requestId);
 
+    // 일일 재고 초기화 이력 저장 (biz_date는 한국 날짜를 직접 지정)
+    int insertDailyResetMovement(CakeMovement m);
+
+    // 해당 날짜에 일일 재고 초기화를 이미 했는지
+    boolean existsDailyReset(@Param("bizDate") LocalDate bizDate);
+
     /**
      * 오늘(또는 지정일) 재고 = SUM(delta)
      * (cake_size, cake_id) 단위로 집계

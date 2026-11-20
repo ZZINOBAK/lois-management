@@ -113,6 +113,24 @@
             (#{cakeId}, #{cakeSize}, #{moveType}, #{stockChanged}, #{requestId})
     </insert>
 
+<!-- 일일 재고 초기화 이력 저장: biz_date는 DB 시간대와 무관하게 앱의 한국 날짜를 넣는다 -->
+    <insert id="insertDailyResetMovement" parameterType="CakeMovement">
+        INSERT INTO cake_movements
+            (biz_date, cake_id, cake_size, delta, move_type, stock_changed, request_id, memo)
+        VALUES
+            (#{bizDate}, #{cakeId}, #{cakeSize}, #{delta}, #{moveType}, #{stockChanged}, #{requestId}, #{memo})
+    </insert>
+
+<!-- 해당 날짜 일일 재고 초기화 여부 -->
+    <select id="existsDailyReset" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM cake_movements
+            WHERE move_type = 'DAILY_RESET'
+              AND biz_date = #{bizDate}
+        )
+    </select>
+
 <!-- 케이크 변동 이력 저장 with reservationId: 픽업 여부 -->
     <insert id="insertPickupMovement">
         INSERT INTO cake_movements

@@ -1,11 +1,16 @@
 package com.lois.management.domain.cake.service;
 
+import com.lois.management.domain.cake.CakeMovement;
 import com.lois.management.domain.cake.mapper.CakeMovementMapper;
 import com.lois.management.domain.cake.mapper.CakeStockMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import com.lois.management.global.sse.DataChangedEvent;
+import org.mockito.ArgumentCaptor;
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
@@ -16,6 +21,8 @@ import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.session.Configuration;
 
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,6 +33,7 @@ class CakeStockServiceTest {
     private final CakeStockMapper stocks = mock(CakeStockMapper.class);
     private final CakeMovementMapper movements = mock(CakeMovementMapper.class);
     private final CountingTransactionManager manager = new CountingTransactionManager();
+    private final ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
     private final CakeStockService service = transactionalService();
 
     @Test
@@ -327,6 +335,140 @@ class CakeStockServiceTest {
         assertThat(boundSql.getSql()).doesNotContain("reservation_id", "delta", "biz_date");
     }
 
+    // ===== 일일 재고 초기화 =====
+    private static final LocalDate RESET_DAY = LocalDate.of(2026, 11, 21);
+
+    private static CakeMovement stock(long cakeId, int cakeSize, Integer quantity) {
+        CakeMovement row = new CakeMovement();
+        row.setCakeId(cakeId);
+        row.setCakeSize(cakeSize);
+        row.setStock(quantity);
+        return row;
+    }
+
+    @Test
+    void dailyResetLocksStocksRecordsEveryRowThenZeroesAllInOneTransaction() {
+        when(stocks.findAllStocksForUpdate()).thenReturn(List.of(stock(1L, 1, 0), stock(1L, 2, 3)));
+        when(movements.existsDailyReset(RESET_DAY)).thenReturn(false);
+        when(movements.insertDailyResetMovement(any())).thenReturn(1);
+        when(stocks.resetAllStocks()).thenReturn(1);
+
+        assertThat(service.resetDailyStocks(RESET_DAY, "TEST")).isTrue();
+
+        var order = inOrder(stocks, movements);
+        order.verify(stocks).findAllStocksForUpdate();
+        order.verify(movements).existsDailyReset(RESET_DAY);
+        var captor = ArgumentCaptor.forClass(CakeMovement.class);
+        order.verify(movements, times(2)).insertDailyResetMovement(captor.capture());
+        order.verify(stocks).resetAllStocks();
+        var zero = captor.getAllValues().get(0);
+        var three = captor.getAllValues().get(1);
+        assertThat(zero.getDelta()).isZero();
+        assertThat(zero.getStockChanged()).isFalse();
+        assertThat(three.getBizDate()).isEqualTo(RESET_DAY);
+        assertThat(three.getMoveType()).isEqualTo("DAILY_RESET");
+        assertThat(three.getDelta()).isEqualTo(-3);
+        assertThat(three.getStockChanged()).isTrue();
+        assertThat(three.getRequestId()).isEqualTo("RESET-20261121-1-2").hasSizeLessThanOrEqualTo(36);
+        assertThat(three.getMemo()).contains("3");
+        assertThat(manager.begins).isEqualTo(1);
+        assertThat(manager.commits).isEqualTo(1);
+    }
+
+    @Test
+    void dailyResetPublishesChangeOnlyAfterCommit() {
+        when(stocks.findAllStocksForUpdate()).thenReturn(List.of(stock(1L, 2, 1)));
+        when(movements.insertDailyResetMovement(any())).thenReturn(1);
+        doAnswer(invocation -> {
+            assertThat(manager.commits).isEqualTo(1);
+            return null;
+        }).when(events).publishEvent(any(DataChangedEvent.class));
+
+        service.resetDailyStocks(RESET_DAY, "TEST");
+
+        verify(events).publishEvent(any(DataChangedEvent.class));
+    }
+
+    @Test
+    void dailyResetSkipsWhenAlreadyResetForThatDay() {
+        when(stocks.findAllStocksForUpdate()).thenReturn(List.of(stock(1L, 2, 4)));
+        when(movements.existsDailyReset(RESET_DAY)).thenReturn(true);
+
+        assertThat(service.resetDailyStocks(RESET_DAY, "TEST")).isFalse();
+
+        verify(movements, never()).insertDailyResetMovement(any());
+        verify(stocks, never()).resetAllStocks();
+        verifyNoInteractions(events);
+    }
+
+    @Test
+    void dailyResetMovementFailureRollsBackWithoutZeroingStock() {
+        when(stocks.findAllStocksForUpdate()).thenReturn(List.of(stock(1L, 2, 2)));
+        when(movements.insertDailyResetMovement(any())).thenThrow(new IllegalStateException("duplicate request"));
+
+        assertThatThrownBy(() -> service.resetDailyStocks(RESET_DAY, "TEST")).isInstanceOf(IllegalStateException.class);
+
+        verify(stocks, never()).resetAllStocks();
+        verifyNoInteractions(events);
+        assertRolledBack();
+    }
+
+    @Test
+    void startupResetSwallowsFailureSoApplicationKeepsRunning() {
+        when(stocks.findAllStocksForUpdate()).thenThrow(new IllegalStateException("db down"));
+
+        assertThatCode(service::resetStocksOnStartup).doesNotThrowAnyException();
+        assertThatCode(service::resetStocksAtMidnight).doesNotThrowAnyException();
+    }
+
+    @Test
+    void disabledResetNeverTouchesStocks() {
+        CakeStockService disabled = new CakeStockService(stocks, movements, manager, events, false);
+
+        disabled.resetStocksOnStartup();
+        disabled.resetStocksAtMidnight();
+
+        verifyNoInteractions(stocks, movements, events);
+    }
+
+    @Test
+    void midnightScheduleRunsAtZeroOClockKoreaTime() throws Exception {
+        Scheduled scheduled = CakeStockService.class.getMethod("resetStocksAtMidnight").getAnnotation(Scheduled.class);
+        assertThat(scheduled.cron()).isEqualTo("0 0 0 * * *");
+        assertThat(scheduled.zone()).isEqualTo("Asia/Seoul");
+    }
+
+    @Test
+    void dailyResetSqlLocksAllStocksAndZeroesOnlyNonZeroRows() throws Exception {
+        Configuration configuration = new Configuration();
+        configuration.getTypeAliasRegistry().registerAliases("com.lois.management.domain");
+        try (InputStream input = getClass().getResourceAsStream("/mapper/cake/CakeStockMapper.xml")) {
+            new XMLMapperBuilder(input, configuration, "CakeStockMapper.xml", configuration.getSqlFragments()).parse();
+        }
+        String select = configuration.getMappedStatement(CakeStockMapper.class.getName() + ".findAllStocksForUpdate")
+                .getBoundSql(null).getSql();
+        assertThat(select).contains("FROM cake_stocks", "quantity  AS stock", "FOR UPDATE").doesNotContain("WHERE");
+        String reset = configuration.getMappedStatement(CakeStockMapper.class.getName() + ".resetAllStocks")
+                .getBoundSql(null).getSql();
+        assertThat(reset).contains("SET quantity = 0", "WHERE quantity <> 0").doesNotContain("cake_id =");
+    }
+
+    @Test
+    void dailyResetMovementSqlStoresAppDateAndChecksByDate() throws Exception {
+        Configuration configuration = new Configuration();
+        configuration.getTypeAliasRegistry().registerAliases("com.lois.management.domain");
+        try (InputStream input = getClass().getResourceAsStream("/mapper/cake/CakeMovementMapper.xml")) {
+            new XMLMapperBuilder(input, configuration, "CakeMovementMapper.xml", configuration.getSqlFragments()).parse();
+        }
+        var insert = configuration.getMappedStatement(CakeMovementMapper.class.getName() + ".insertDailyResetMovement")
+                .getBoundSql(new CakeMovement());
+        assertThat(insert.getParameterMappings()).extracting("property").containsExactly(
+                "bizDate", "cakeId", "cakeSize", "delta", "moveType", "stockChanged", "requestId", "memo");
+        String exists = configuration.getMappedStatement(CakeMovementMapper.class.getName() + ".existsDailyReset")
+                .getBoundSql(Map.of("bizDate", RESET_DAY)).getSql();
+        assertThat(exists).contains("move_type = 'DAILY_RESET'", "biz_date = ?");
+    }
+
     private String sql(String mapper, String statement, Object parameter) throws Exception {
         Configuration configuration = new Configuration();
         configuration.getTypeAliasRegistry().registerAliases("com.lois.management.domain");
@@ -338,7 +480,7 @@ class CakeStockServiceTest {
     }
 
     private CakeStockService transactionalService() {
-        ProxyFactory factory = new ProxyFactory(new CakeStockService(stocks, movements));
+        ProxyFactory factory = new ProxyFactory(new CakeStockService(stocks, movements, manager, events, true));
         factory.setProxyTargetClass(true);
         factory.addAdvice(new TransactionInterceptor(manager, new AnnotationTransactionAttributeSource()));
         return (CakeStockService) factory.getProxy();

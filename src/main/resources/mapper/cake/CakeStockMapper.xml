@@ -31,4 +31,22 @@
           AND quantity > 0
     </update>
 
+<!-- 일일 초기화: 전체 재고 조회 with 행 락 -->
+    <select id="findAllStocksForUpdate" resultType="com.lois.management.domain.cake.CakeMovement">
+        SELECT cake_id   AS cakeId,
+               cake_size AS cakeSize,
+               quantity  AS stock
+        FROM cake_stocks
+        ORDER BY cake_id ASC, cake_size ASC
+        FOR UPDATE
+    </select>
+
+<!-- 일일 초기화: 전체 재고 0 -->
+    <update id="resetAllStocks">
+        UPDATE cake_stocks
+        SET quantity = 0,
+            updated_at = NOW()
+        WHERE quantity &lt;&gt; 0
+    </update>
+
 </mapper>
