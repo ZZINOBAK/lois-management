@@ -1,45 +1,48 @@
 package com.lois.management.domain.reservation.controller;
 
-import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.cake.Cake;
-import com.lois.management.domain.reservation.controller.ReservationController;
-import com.lois.management.domain.reservation.dto.ReservationPageReq;
-import com.lois.management.domain.reservation.dto.ProductionStatus;
 import com.lois.management.domain.cake.service.CakeMovementService;
+import com.lois.management.domain.cake.service.CakeProductionService;
 import com.lois.management.domain.cake.service.CakeService;
+import com.lois.management.domain.reservation.Reservation;
+import com.lois.management.domain.reservation.dto.ProductionStatus;
+import com.lois.management.domain.reservation.dto.ReservationPageReq;
 import com.lois.management.domain.reservation.service.ReservationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder;
 import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class ReservationListUiTest {
     private final ReservationService service = mock(ReservationService.class);
     private final CakeMovementService movements = mock(CakeMovementService.class);
     private final CakeService cakes = mock(CakeService.class);
+    private final CakeProductionService cakeProductionService = mock(CakeProductionService.class);
+
     private MockMvc mvc;
 
     @BeforeEach
@@ -55,7 +58,7 @@ class ReservationListUiTest {
         views.setTemplateEngine(engine);
         views.setCharacterEncoding("UTF-8");
         mvc = new StandaloneMockMvcBuilder(new ReservationController(
-                service, movements, cakes)) {
+                service, movements, cakes, cakeProductionService)) {
             @Override
             protected Map<String, Object> extendMvcSingletons(jakarta.servlet.ServletContext servletContext) {
                 return Map.of("webSecurityExpressionHandler",

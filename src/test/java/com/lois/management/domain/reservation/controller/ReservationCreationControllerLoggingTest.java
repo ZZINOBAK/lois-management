@@ -3,24 +3,27 @@ package com.lois.management.domain.reservation.controller;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.lois.management.domain.reservation.controller.ReservationApiController;
-import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.cake.service.CakeMovementService;
+import com.lois.management.domain.cake.service.CakeProductionService;
 import com.lois.management.domain.cake.service.CakeService;
-import com.lois.management.domain.reservation.controller.ReservationController;
-import com.lois.management.domain.reservation.service.ReservationService;
+import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.dto.ReservationCreateReq;
-import org.junit.jupiter.api.*;
+import com.lois.management.domain.reservation.service.ReservationService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.support.SimpleSessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
-import static org.assertj.core.api.Assertions.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class ReservationCreationControllerLoggingTest {
     ReservationService service = mock(ReservationService.class);
-    ReservationController web = new ReservationController(service, mock(CakeMovementService.class), mock(CakeService.class));
+    ReservationController web = new ReservationController(service, mock(CakeMovementService.class), mock(CakeService.class), mock(CakeProductionService.class));
     ReservationApiController api = new ReservationApiController(service, mock(CakeMovementService.class));
     Logger webLogger = (Logger) LoggerFactory.getLogger(ReservationController.class);
     Logger apiLogger = (Logger) LoggerFactory.getLogger(ReservationApiController.class);

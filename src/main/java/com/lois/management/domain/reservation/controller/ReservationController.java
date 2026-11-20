@@ -2,27 +2,28 @@ package com.lois.management.domain.reservation.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lois.management.domain.cake.Cake;
+import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
+import com.lois.management.domain.cake.service.CakeMovementService;
+import com.lois.management.domain.cake.service.CakeProductionService;
+import com.lois.management.domain.cake.service.CakeService;
 import com.lois.management.domain.reservation.Reservation;
 import com.lois.management.domain.reservation.dto.ProductionStatus;
 import com.lois.management.domain.reservation.dto.ReservationPageReq;
-import com.lois.management.domain.cake.service.CakeMovementService;
-import com.lois.management.domain.cake.service.CakeService;
-import com.lois.management.domain.cake.service.CakeProductionService;
-import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
 import com.lois.management.domain.reservation.service.ReservationService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,8 +38,7 @@ public class ReservationController {
     private final ReservationService reservationService;
     private final CakeMovementService cakeMovementService;
     private final CakeService cakeService;
-    @org.springframework.beans.factory.annotation.Autowired
-    private CakeProductionService cakeProductionService;
+    private final CakeProductionService cakeProductionService;
 
     @GetMapping //케이크 예약 버튼
     public String showDashboard(ReservationPageReq pageRequest, Model model) {
