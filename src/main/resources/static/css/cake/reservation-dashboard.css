@@ -124,17 +124,19 @@
 }
 
 /* 결제 뱃지 */
+/* 결제완료는 색 없이 표시하고, 미결제만 제작관리 페이지의 버건디(#702440)로 강조한다. */
 .badge-paid {
     padding: 4px 10px;
     border-radius: 999px;
-    background: #2f7d4a;
-    color: #fff;
+    border: 1px solid #ccc;
     font-size: 0.75rem;
 }
 .badge-unpaid {
     padding: 4px 10px;
     border-radius: 999px;
-    border: 1px solid #ccc;
+    border: 1px solid #702440;
+    background: #702440;
+    color: #fff;
     font-size: 0.75rem;
 }
 
@@ -517,10 +519,17 @@
 .pickup-cancel-option span { font-size: 14px; }
 .pickup-cancel-option svg { width: 120px; height: 100px; fill: none; stroke: #51765e; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
 
+/* 픽업 30분 전부터 아직 제작 필요인 행: 버건디 테두리 (inset 그림자라 행 크기가 변하지 않음) */
+.reservation-dashboard .reservation-list .summary-row.due-soon {
+    box-shadow: inset 0 0 0 2px #702440;
+}
+
+/* 제작 완료: 제작관리 페이지의 '제작 완료' 색(#356346)과 통일 */
 .reservation-dashboard .reservation-list .summary-row .pickup-btn.production-ready-btn {
-    background-color: #e2f1cc;
-    border-color: #c7dfa5;
-    color: #36502b;
+    background-color: #356346;
+    border-color: #356346;
+    color: #fff;
+    font-weight: 700;
 }
 
 .reservation-dashboard .reservation-stock-panel { margin: 0 0 20px; padding: 18px; border: 1px solid #dcded4; border-radius: 14px; background: #f8f9f3; }

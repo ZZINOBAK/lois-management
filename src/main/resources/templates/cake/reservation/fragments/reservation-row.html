@@ -3,7 +3,9 @@
 <body>
 
 <!-- 조각 rowFragment(r) 시작 -->
-<div th:fragment="rowFragment(r, rowNo)" data-reservation-row th:attr="data-reservation-id=${r.id}, data-status=${r.status}, data-cake-size=${r.cakeSize}" th:id="'row-block-' + ${r.id}">
+<div th:fragment="rowFragment(r, rowNo)" data-reservation-row th:attr="data-reservation-id=${r.id}, data-status=${r.status}, data-cake-size=${r.cakeSize},
+                 data-res-date=${r.resDate != null ? #temporals.format(r.resDate, 'yyyy-MM-dd') : ''},
+                 data-res-time=${r.resTime != null ? #temporals.format(r.resTime, 'HH:mm') : ''}" th:id="'row-block-' + ${r.id}">
 
     <!-- 요약 행 -->
     <div class="row summary-row" data-reservation-summary

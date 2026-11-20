@@ -3,7 +3,14 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 const source = fs.readFileSync('src/main/resources/static/js/cake/reservation/reservation-pickup.js', 'utf8');
-function page({ status = 'RESERVED', response = 204, token = async () => 'token', fetcher, reason = 'MISTAKE', autoSelect = true, cakeSize = '2' } = {}) {
+// 테스트 안의 현재 시각을 고정한다. (실행 시각·자정 경계와 무관하게 동작 확인)
+function fixedDate(now) {
+    return class extends Date {
+        constructor(...args) { if (args.length) super(...args); else super(now.getTime()); }
+        static now() { return now.getTime(); }
+    };
+}
+function page({ status = 'RESERVED', response = 204, token = async () => 'token', fetcher, reason = 'MISTAKE', autoSelect = true, cakeSize = '2', resDate, resTime, ready = false, now } = {}) {
     let click;
     let settle;
     const card = { dataset: { readyReservationIds: "" } };
@@ -11,10 +18,15 @@ function page({ status = 'RESERVED', response = 204, token = async () => 'token'
     const refreshes = [];
     const feedback = { hidden: true, dataset: {} };
     let timer;
+    let interval;
     const label = { textContent: 'original' };
-    const classes = () => ({ toggle() {} });
-    const button = { disabled: false, dataset: { pickupUrl: '/api/reservations/pickup/7', cancelUrl: '/api/reservations/pickup-cancel/7' }, classList: classes(), closest: () => row, querySelector: () => label };
-    const row = { dataset: { reservationId: '7', status, cakeSize }, querySelector: s => s === '[data-pickup-label]' ? label : s === '[data-reservation-pickup]' ? button : s === '[data-reservation-summary]' ? { classList: classes() } : null };
+    const classes = (initial = []) => {
+        const names = new Set(initial);
+        return { toggle(name, force) { const on = force === undefined ? !names.has(name) : force; if (on) names.add(name); else names.delete(name); return on; }, contains: name => names.has(name) };
+    };
+    const summary = { classList: classes() };
+    const button = { disabled: false, dataset: { pickupUrl: '/api/reservations/pickup/7', cancelUrl: '/api/reservations/pickup-cancel/7' }, classList: classes(ready ? ['production-ready-btn'] : []), closest: () => row, querySelector: () => label };
+    const row = { dataset: { reservationId: '7', status, cakeSize, ...(resDate ? { resDate } : {}), ...(resTime ? { resTime } : {}) }, querySelector: s => s === '[data-pickup-label]' ? label : s === '[data-reservation-pickup]' ? button : s === '[data-reservation-summary]' ? summary : null };
     const listeners = new Map();
     const options = ['MISTAKE', 'RETURNED'].map(reason => ({ dataset: { cancelReason: reason }, disabled: false }));
     const dismiss = { disabled: false };
@@ -34,11 +46,12 @@ function page({ status = 'RESERVED', response = 204, token = async () => 'token'
     vm.runInNewContext(source, {
         document: { addEventListener: (name, fn) => { if (name === 'click') click = fn; if (name === 'htmx:afterSettle') settle = fn; }, querySelector: selector => selector === '[data-ready-reservation-ids]' ? card : selector === '[data-pickup-cancel-dialog]' ? dialog : feedback, querySelectorAll: () => [renderedRow], getElementById: () => renderedRow },
         URLSearchParams,
-        setTimeout: fn => { timer = fn; return 1; }, clearTimeout: () => { timer = null; },
+        ...(now ? { Date: fixedDate(now) } : {}),
+        setTimeout: fn => { timer = fn; return 1; }, clearTimeout: () => { timer = null; }, setInterval: fn => { interval = fn; return 2; },
         window: { confirm: () => true, htmx: { trigger: (target, event) => refreshes.push(event) } }, ensureToken: token, clearToken() {},
         fetch: async (...args) => { calls.push(args); return fetcher ? fetcher() : { status: response, headers: { get: () => 'completed' } }; }
     });
-    return { click: () => click({ target: { closest: () => button } }), replace: newRow => { renderedRow = newRow; }, settle: ids => { card.dataset.readyReservationIds = ids; settle({ detail: { elt: { matches: () => true } } }); }, calls, refreshes, row, button, feedback, label, dialog, options, choose, expire: () => timer?.() };
+    return { click: () => click({ target: { closest: () => button } }), replace: newRow => { renderedRow = newRow; }, settle: ids => { card.dataset.readyReservationIds = ids; settle({ detail: { elt: { matches: () => true } } }); }, calls, refreshes, row, button, summary, feedback, label, dialog, options, choose, expire: () => timer?.(), tick: () => interval?.() };
 }
 test('RESERVED requests pickup and updates only after 204', async () => {
     const p = page(); await p.click();
@@ -139,4 +152,40 @@ test('refreshed card allocation updates size one reserved row label like size tw
 });
 test('refreshed stock never changes picked up label to ready', () => {
     const p = page({ status: 'PICKED_UP' }); p.settle('7'); assert.equal(p.label.textContent, '픽업 완료');
+});
+
+// 현재 시각을 오늘 오전 11:00으로 고정하고, 픽업 시간을 HH:mm으로 지정한다.
+const ELEVEN = (() => { const at = new Date(); at.setHours(11, 0, 0, 0); return at; })();
+const TODAY = (() => { const pad = value => String(value).padStart(2, '0'); return ELEVEN.getFullYear() + '-' + pad(ELEVEN.getMonth() + 1) + '-' + pad(ELEVEN.getDate()); })();
+function pickupAt(resTime) { return { now: ELEVEN, resDate: TODAY, resTime }; }
+test('production-needed row is highlighted from 30 minutes before pickup', () => {
+    assert.equal(page(pickupAt('11:20')).summary.classList.contains('due-soon'), true);
+    assert.equal(page(pickupAt('10:50')).summary.classList.contains('due-soon'), true);
+});
+test('row more than 30 minutes before pickup is not highlighted', () => {
+    assert.equal(page(pickupAt('11:31')).summary.classList.contains('due-soon'), false);
+    assert.equal(page(pickupAt('11:30')).summary.classList.contains('due-soon'), true);
+});
+test('reservation on another day is not highlighted', () => {
+    assert.equal(page({ ...pickupAt('11:10'), resDate: '2000-01-01' }).summary.classList.contains('due-soon'), false);
+});
+test('production-ready or picked-up rows are not highlighted', () => {
+    assert.equal(page({ ...pickupAt('11:10'), ready: true }).summary.classList.contains('due-soon'), false);
+    assert.equal(page({ ...pickupAt('11:10'), status: 'PICKED_UP' }).summary.classList.contains('due-soon'), false);
+});
+test('highlight clears after pickup and when stock allocation makes the row ready', async () => {
+    const picked = page(pickupAt('11:10'));
+    await picked.click();
+    assert.equal(picked.summary.classList.contains('due-soon'), false);
+    const allocated = page(pickupAt('11:10'));
+    allocated.settle('7');
+    assert.equal(allocated.summary.classList.contains('due-soon'), false);
+    allocated.settle('8');
+    assert.equal(allocated.summary.classList.contains('due-soon'), true);
+});
+test('highlight is rechecked periodically as time passes', () => {
+    const p = page(pickupAt('11:10'));
+    p.summary.classList.toggle('due-soon', false);
+    p.tick();
+    assert.equal(p.summary.classList.contains('due-soon'), true);
 });
