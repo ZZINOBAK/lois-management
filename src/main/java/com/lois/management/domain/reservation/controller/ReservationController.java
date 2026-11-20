@@ -529,22 +529,28 @@ public class ReservationController {
 
     private void addProductionReadyIds(Model model, List<Reservation> todayReservations,
                                        List<CakeProductionNeedDto> needs) {
-        Map<Long, Integer> remaining = new LinkedHashMap<>();
+        // 호수+맛별 재고를 픽업 시간이 빠른 예약부터 배분한다. (제작관리 페이지와 동일 기준)
+        Map<String, Integer> remaining = new LinkedHashMap<>();
         for (CakeProductionNeedDto need : needs) {
-            if (Integer.valueOf(2).equals(need.getCakeSize())) remaining.put(need.getCakeId(), need.getStockQuantity());
+            remaining.put(stockKey(need.getCakeSize(), need.getCakeId()), need.getStockQuantity());
         }
         List<Long> readyIds = new ArrayList<>();
         todayReservations.stream()
-                .filter(r -> Integer.valueOf(2).equals(r.getCakeSize()) && "RESERVED".equals(r.getStatus()))
+                .filter(r -> "RESERVED".equals(r.getStatus()))
                 .sorted(java.util.Comparator.comparing(Reservation::getResTime).thenComparing(Reservation::getId))
                 .forEach(r -> {
-                    int quantity = remaining.getOrDefault(r.getCakeId(), 0);
+                    String key = stockKey(r.getCakeSize(), r.getCakeId());
+                    int quantity = remaining.getOrDefault(key, 0);
                     if (quantity > 0) {
                         readyIds.add(r.getId());
-                        remaining.put(r.getCakeId(), quantity - 1);
+                        remaining.put(key, quantity - 1);
                     }
                 });
         model.addAttribute("productionReadyIds", readyIds);
+    }
+
+    private String stockKey(Integer cakeSize, Long cakeId) {
+        return cakeSize + ":" + cakeId;
     }
 
 }

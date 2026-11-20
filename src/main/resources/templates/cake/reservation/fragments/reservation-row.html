@@ -27,9 +27,9 @@
         <div class="pickup-cell"><!-- 픽업 상태 버튼 -->
             <div class="pickup-cell">
                 <button type="button" class="btn pickup-btn" data-reservation-pickup
-                        th:classappend="${r.status == 'PICKED_UP' ? 'picked-btn' : (r.cakeSize == 2 and r.status == 'RESERVED' and productionReadyIds != null and #lists.contains(productionReadyIds, r.id) ? 'production-ready-btn' : '')}"
+                        th:classappend="${r.status == 'PICKED_UP' ? 'picked-btn' : (r.status == 'RESERVED' and productionReadyIds != null and #lists.contains(productionReadyIds, r.id) ? 'production-ready-btn' : '')}"
                         th:attr="data-pickup-url=@{/api/reservations/pickup/{id}(id=${r.id})}, data-cancel-url=@{/api/reservations/pickup-cancel/{id}(id=${r.id})}">
-                    <span data-pickup-label th:text="${r.status == 'PICKED_UP' ? '픽업 완료' : (r.cakeSize == 2 ? (r.status == 'RESERVED' ? (productionReadyIds != null and #lists.contains(productionReadyIds, r.id) ? '제작 완료' : '제작 필요') : '-') : '픽업예정')}"></span>
+                    <span data-pickup-label th:text="${r.status == 'PICKED_UP' ? '픽업 완료' : (r.status == 'RESERVED' ? (productionReadyIds != null and #lists.contains(productionReadyIds, r.id) ? '제작 완료' : '제작 필요') : '-')}"></span>
                 </button>
             </div>
         </div>

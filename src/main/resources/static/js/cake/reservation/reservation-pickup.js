@@ -43,7 +43,6 @@
         if (!card) return;
         const readyIds = new Set((card.dataset.readyReservationIds || '').split(','));
         for (const row of document.querySelectorAll('[data-reservation-row]')) {
-            if (row.dataset.cakeSize !== '2') continue;
             row.querySelector('[data-reservation-pickup]')?.classList.toggle('production-ready-btn',
                 row.dataset.status === 'RESERVED' && readyIds.has(row.dataset.reservationId));
             const label = row.querySelector('[data-pickup-label]');
@@ -95,7 +94,7 @@
             currentRow.querySelector('[data-reservation-summary]').classList.toggle('picked', !cancel);
             currentButton.classList.toggle('picked-btn', !cancel);
             currentButton.classList.toggle('production-ready-btn', false);
-            currentButton.querySelector('[data-pickup-label]').textContent = cancel ? (currentRow.dataset.cakeSize === '2' ? '제작 필요' : '픽업예정') : '픽업 완료';
+            currentButton.querySelector('[data-pickup-label]').textContent = cancel ? '제작 필요' : '픽업 완료';
             const time = currentRow.querySelector('[data-pickup-time]');
             if (time) time.hidden = true;
             const already = response.headers.get(cancel ? 'Pickup-Cancel-Result' : 'Pickup-Result') === 'already-completed';

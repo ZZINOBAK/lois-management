@@ -1,6 +1,7 @@
 package com.lois.management.domain.reservation.controller;
 
 import com.lois.management.domain.cake.Cake;
+import com.lois.management.domain.cake.dto.CakeProductionNeedDto;
 import com.lois.management.domain.cake.service.CakeMovementService;
 import com.lois.management.domain.cake.service.CakeProductionService;
 import com.lois.management.domain.cake.service.CakeService;
@@ -137,6 +138,33 @@ class ReservationListUiTest {
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         assertList(html);
         assertThat(html).doesNotContain("reservation-list--today");
+    }
+
+    @Test
+    void sizeOneReservationWithAllocatedStockShowsProductionComplete() throws Exception {
+        Reservation sizeOne = new Reservation();
+        sizeOne.setId(8L);
+        sizeOne.setResDate(LocalDate.now());
+        sizeOne.setResTime(LocalTime.of(11, 0));
+        sizeOne.setCakeId(1L);
+        sizeOne.setCakeSize(1);
+        sizeOne.setContact("010-1234-0078");
+        sizeOne.setContactSuffix("0078");
+        sizeOne.setPaid(true);
+        sizeOne.setStatus("RESERVED");
+        CakeProductionNeedDto need = new CakeProductionNeedDto();
+        need.setCakeId(1L);
+        need.setCakeSize(1);
+        need.setReservationQuantity(1);
+        need.setStockQuantity(1);
+        when(service.findByContactSuffix("0078")).thenReturn(List.of(sizeOne));
+        when(service.findTodayOrderByPickUpTime(any())).thenReturn(List.of(sizeOne));
+        when(cakeProductionService.findTodayProductionNeeds()).thenReturn(List.of(need));
+
+        String html = mvc.perform(get("/reservations/search").param("contactSuffix", "0078"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        assertThat(html).contains("production-ready-btn", "제작 완료").doesNotContain("픽업예정");
     }
 
     private void assertList(String html) {

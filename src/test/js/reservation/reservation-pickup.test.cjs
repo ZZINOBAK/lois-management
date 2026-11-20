@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 const source = fs.readFileSync('src/main/resources/static/js/cake/reservation/reservation-pickup.js', 'utf8');
-function page({ status = 'RESERVED', response = 204, token = async () => 'token', fetcher, reason = 'MISTAKE', autoSelect = true } = {}) {
+function page({ status = 'RESERVED', response = 204, token = async () => 'token', fetcher, reason = 'MISTAKE', autoSelect = true, cakeSize = '2' } = {}) {
     let click;
     let settle;
     const card = { dataset: { readyReservationIds: "" } };
@@ -14,7 +14,7 @@ function page({ status = 'RESERVED', response = 204, token = async () => 'token'
     const label = { textContent: 'original' };
     const classes = () => ({ toggle() {} });
     const button = { disabled: false, dataset: { pickupUrl: '/api/reservations/pickup/7', cancelUrl: '/api/reservations/pickup-cancel/7' }, classList: classes(), closest: () => row, querySelector: () => label };
-    const row = { dataset: { reservationId: '7', status, cakeSize: '2' }, querySelector: s => s === '[data-pickup-label]' ? label : s === '[data-reservation-pickup]' ? button : s === '[data-reservation-summary]' ? { classList: classes() } : null };
+    const row = { dataset: { reservationId: '7', status, cakeSize }, querySelector: s => s === '[data-pickup-label]' ? label : s === '[data-reservation-pickup]' ? button : s === '[data-reservation-summary]' ? { classList: classes() } : null };
     const listeners = new Map();
     const options = ['MISTAKE', 'RETURNED'].map(reason => ({ dataset: { cancelReason: reason }, disabled: false }));
     const dismiss = { disabled: false };
@@ -131,6 +131,10 @@ test('failed mutation does not refresh production cards', async () => {
 
 test('refreshed card allocation updates reserved row label to ready and back', () => {
     const p = page(); p.settle('7'); assert.equal(p.label.textContent, '제작 완료');
+    p.settle('8'); assert.equal(p.label.textContent, '제작 필요');
+});
+test('refreshed card allocation updates size one reserved row label like size two', () => {
+    const p = page({ cakeSize: '1' }); p.settle('7'); assert.equal(p.label.textContent, '제작 완료');
     p.settle('8'); assert.equal(p.label.textContent, '제작 필요');
 });
 test('refreshed stock never changes picked up label to ready', () => {
